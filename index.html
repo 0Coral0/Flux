@@ -1516,6 +1516,7 @@ main { min-width: 0; }
 
 
     </style>
+    <link rel="stylesheet" href="css/browser.css">
 </head>
 
 <body>
@@ -1592,6 +1593,9 @@ main { min-width: 0; }
             </div>
 
             <nav class="nav-list">
+                <button class="nav-item" id="btn-browser" onclick="showPage('browser')">
+                    <i class="fa-solid fa-globe"></i> Browser
+                </button>
                 <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')">
                     <i class="fas fa-terminal"></i> Dashboard
                 </button>
@@ -1632,6 +1636,13 @@ main { min-width: 0; }
         </sidebar>
 
         <main tabindex="-1" aria-label="Page content">
+            <div id="view-browser" class="container">
+                <iframe id="flux-browser-frame" title="Flux Browser" referrerpolicy="no-referrer"></iframe>
+                <div id="flux-browser-setup" class="flux-browser-setup" hidden>
+                    <h2>Browser service setup</h2>
+                    <p>Connect the proxy service in js/browser-config.js to browse here.</p>
+                </div>
+            </div>
             <!-- Dashboard -->
             <div id="view-dashboard" class="container active">
                 <div class="module-banner">
@@ -3060,7 +3071,7 @@ main { min-width: 0; }
     const closeButton = document.getElementById('mobile-menu-close');
     let returnFocus = null;
     let open = false;
-    const titles = {dashboard:'Dashboard',archives:'Game Library',movies:'Movies',changelog:'Changelog',chat:'Lounge & DMs',records:'Records',settings:'Preferences',account:'Profile',credits:'Credits'};
+    const titles = {browser:'Browser',dashboard:'Dashboard',archives:'Game Library',movies:'Movies',changelog:'Changelog',chat:'Lounge & DMs',records:'Records',settings:'Preferences',account:'Profile',credits:'Credits'};
     function setMenu(value, restoreFocus = true) {
         open = media.matches && value;
         document.body.classList.toggle('mobile-menu-open', open);
@@ -3112,6 +3123,8 @@ main { min-width: 0; }
 })();
 
 </script>
+<script src="js/browser-config.js"></script>
+<script src="js/browser.js"></script>
 </body>
 
 </html>

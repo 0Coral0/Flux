@@ -1,0 +1,4 @@
+# The proxy runs on the PC, never as part of the static Vercel upload.
+proxy/
+Start Flux Browser.cmd
+Start Public Flux Proxy.cmd
