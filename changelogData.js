@@ -1,5 +1,11 @@
 const changelogData = [
     {
+        "v": "3.1.0",
+        "name": "The Cinema Update",
+        "mini": "Added A Movies Page And A New Loading Screen",
+        "large": "Flux Now Has Movies. This Update Adds A Whole New Movies Page And A Brand New Loading Screen You Can Customize.\n\nNew Features\n\nAdded A Movies Page Called Flux Cinema To The Sidebar\nAdded A Watch Featured Button That Plays The Top Movie Right Away\nAdded Movie Search By Title Or Genre\nAdded A Trending And Catalog Grid With Posters, Titles, And Genres\nMovies Play In The Same Player As Games\nAdded A New Flux Terminal Loading Screen Where The Flux Name Slides In With A Glowing X\nAdded A Startup Loading Screen Style Option In Preferences\nAdded A Preview Button To Try Out Your Loading Screen Without Refreshing\n\nUi Changes\n\nChanged The Default Loading Screen To The New Flux Terminal Loader\nRedesigned The Skeleton Loading Screen To Look Like The Real Site With A Sidebar And Dashboard Cards\nAdded A New Font Called Orbitron For The Loading Screen\n\nFixed Bugs\n\nFixed The Changelog Data File Loading Twice"
+    },
+    {
         "v": "3.0.0",
         "name": "The Flux Update",
         "mini": "Aggw Is Now Flux With A Full Remake Of The Site",
