@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Flux // Gateway</title>
     <link id="favicon" rel="icon" type="image/x-icon" href="Fluxlogo.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -410,8 +410,13 @@
         }
 
         @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         /* Flux Terminal Loader Styles */
@@ -504,8 +509,18 @@
         }
 
         @keyframes flashPrompt {
-            0%, 100% { opacity: 0.25; transform: scale(0.95); }
-            50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 24px rgba(34, 197, 94, 0.9)); }
+
+            0%,
+            100% {
+                opacity: 0.25;
+                transform: scale(0.95);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 24px rgba(34, 197, 94, 0.9));
+            }
         }
 
         .module-banner {
@@ -684,7 +699,7 @@
         .game-node:hover {
             border-color: var(--accent);
             transform: translateY(-6px);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.8), 0 0 20px rgba(34, 197, 94, 0.2);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 197, 94, 0.2);
         }
 
         .game-node img {
@@ -999,13 +1014,13 @@
             color: var(--text);
             font-size: 0.92rem;
             font-family: inherit;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
             transition: border-color 0.2s ease;
         }
 
         .lounge-text-input:focus {
             border-color: var(--accent);
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.6), 0 0 15px rgba(34,197,94,0.12);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(34, 197, 94, 0.12);
         }
 
         .lounge-send-btn {
@@ -1395,6 +1410,111 @@
             font-weight: 700;
             font-size: 1.1rem;
         }
+    /* Flux mobile interface: desktop styles remain above. */
+.mobile-header, .mobile-bottom-nav, .mobile-menu-close, .mobile-menu-backdrop { display: none; }
+main { min-width: 0; }
+:where(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 900px) {
+    html, body { width: 100%; height: 100%; }
+    .app-layout { width: 100%; height: 100vh; height: 100dvh; }
+    .mobile-header { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); min-height: 68px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .mobile-brand { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--text); font: inherit; font-weight: 800; font-size: 1.15rem; padding: 0; min-height: 44px; cursor: pointer; }
+    .mobile-brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--border-active); border-radius: 10px; background: #000; font-family: 'JetBrains Mono', monospace; font-size: 1rem; }
+    .mobile-brand-mark b, .mobile-brand .brand-period { color: var(--accent); }
+    .mobile-page-name { margin-left: auto; max-width: 38%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; color: var(--text-dim); }
+    .mobile-icon-button { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; background: var(--surface-card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 1.1rem; }
+    .mobile-bottom-nav { position: fixed; inset: auto 0 0; z-index: 20; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 8px max(10px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border); background: var(--surface); }
+    .mobile-nav-button { min-width: 0; min-height: 52px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font: inherit; font-size: .68rem; font-weight: 600; cursor: pointer; }
+    .mobile-nav-button i { font-size: 1.1rem; }
+    .mobile-nav-button[aria-current="page"] { color: var(--accent); background: rgba(var(--accent-rgb), .1); border-color: rgba(var(--accent-rgb), .2); }
+    main { width: 100%; height: 100%; padding: calc(88px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) calc(94px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); overscroll-behavior-y: contain; scroll-padding-top: 18px; -webkit-overflow-scrolling: touch; }
+    #flux-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; width: min(320px, calc(100vw - 44px)); min-width: 0; height: 100vh; height: 100dvh; padding: calc(22px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-105%); visibility: hidden; transition: transform .25s ease, visibility .25s; overflow-y: auto; }
+    .mobile-menu-open #flux-sidebar { transform: translateX(0); visibility: visible; }
+    #flux-sidebar .brand-box { padding-right: 48px; min-height: 61px; }
+    .mobile-menu-close { display: grid; position: absolute; right: 16px; top: calc(20px + env(safe-area-inset-top, 0px)); }
+    #flux-sidebar .nav-list { overflow: visible; flex: 1 0 auto; margin-top: 16px; padding-bottom: 16px; }
+    #flux-sidebar .nav-item, #flux-sidebar .external-link { min-height: 44px; }
+    .mobile-menu-backdrop:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 30; border: 0; padding: 0; background: rgba(0, 0, 0, .65); backdrop-filter: blur(4px); cursor: pointer; }
+    .container, .container > *, .settings-wrap, .tab-panel, .lounge-chat-pane, .msg-details { min-width: 0; }
+    .module-banner, .movie-hero { padding: 24px; margin-bottom: 20px; }
+    .module-banner h2 { font-size: clamp(1.45rem, 5vw, 1.8rem); }
+    #view-movies .movie-hero h2 { font-size: clamp(2.1rem, 8vw, 3.4rem) !important; letter-spacing: -1px !important; }
+    .metrics-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .metric-card { padding: 18px 12px; }
+    .metric-label { font-size: .63rem; line-height: 1.6; overflow-wrap: anywhere; }
+    .metric-value { font-size: 1.7rem; }
+    .library-header-row { gap: 12px; }
+    .search-box { min-width: 0; flex-basis: 100%; }
+    #archive-search, #movie-search, .settings-input, .lounge-text-input { font-size: 16px; }
+    .library-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .movie-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+    .game-info { opacity: 1; inset: auto 0 0; min-height: 36%; padding: 26px 8px 10px; }
+    .game-name { font-size: .8rem; color: var(--text); }
+    .game-fav-btn { width: 44px; height: 44px; top: 6px; right: 6px; }
+    .quick-resume-card { padding: 16px; gap: 14px; }
+    .quick-resume-thumb, .profile-avatar-lg { flex-shrink: 0; }
+    .settings-wrap { padding: 20px; }
+    .tabs-header { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 12px; overscroll-behavior-x: contain; }
+    .tab-btn { min-height: 44px; flex-shrink: 0; padding: 10px 14px; }
+    .settings-row { align-items: flex-start; flex-wrap: wrap; gap: 14px; }
+    .settings-row > div:first-child { flex: 1 1 200px; }
+    .settings-row > div:not(:first-child) { display: flex; flex-wrap: wrap; max-width: 100%; gap: 10px; }
+    .settings-input, .settings-row select { max-width: 100%; min-height: 44px; }
+    .settings-row input[type="color"] { min-width: 44px; min-height: 44px; }
+    .action-btn, .movie-hero-btn, .lounge-send-btn { min-height: 44px; }
+    .settings-row input[type="range"] { min-height: 44px; }
+    .switch { flex-shrink: 0; height: 44px; margin: 0; }
+    .switch .slider { inset: 10px 0; }
+    .profile-card-preview { padding: 18px; gap: 14px; overflow-wrap: anywhere; }
+    .profile-card-preview > div:last-child { min-width: 0; }
+    .record-row { padding: 16px; gap: 14px; flex-wrap: wrap; overflow-wrap: anywhere; }
+    .changelog-card { padding: 20px; }
+    .changelog-header-row { flex-wrap: wrap; gap: 12px; }
+    .changelog-body { overflow-wrap: anywhere; }
+    .lounge-layout-grid { grid-template-columns: minmax(0, 1fr); height: auto; max-height: none; gap: 14px; }
+    .lounge-sidebar-pane { padding: 14px; gap: 10px; }
+    .lounge-nav-list { flex-direction: row; overflow-x: auto; }
+    .lounge-nav-btn { min-width: max-content; min-height: 44px; }
+    .lounge-chat-pane { height: 60vh; height: 60dvh; min-height: 350px; }
+    .lounge-header-bar { padding: 14px; gap: 10px; flex-wrap: wrap; }
+    .lounge-messages-feed { padding: 14px; min-height: 0; }
+    .lounge-input-bar { padding: 12px; gap: 8px; }
+    .lounge-text-input { min-width: 0; padding: 12px; }
+    .lounge-send-btn { padding: 0 16px; }
+    .msg-header-line { flex-wrap: wrap; gap: 6px; }
+    .dm-add-btn { min-width: 44px; min-height: 44px; }
+    #theater-overlay { height: 100vh; height: 100dvh; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+    .theater-header { padding: 12px; flex-wrap: wrap; gap: 12px; }
+    .theater-title { min-width: 0; overflow-wrap: anywhere; }
+    .theater-actions { flex-wrap: wrap; gap: 8px; width: 100%; }
+    .theater-btn { min-height: 44px; padding: 8px 10px; flex: 1 1 auto; justify-content: center; }
+    .theater-main-grid { display: flex; flex-direction: column; flex: 1; min-height: 0; height: auto; overflow-y: auto; gap: 12px; padding: 12px; }
+    .theater-viewport-box { min-height: 240px; height: 52vh; height: 52dvh; flex-shrink: 0; }
+    .theater-desc-panel { max-height: none; flex-shrink: 0; }
+    .theater-sidebar { flex-shrink: 0; overflow: visible; }
+    .recommended-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    #loader-type-skeleton > div > div:first-child { display: none !important; }
+    #loader-type-skeleton > div > div:last-child { padding: 24px !important; min-width: 0; }
+    #loader-type-skeleton > div > div:last-child > div:last-child { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 380px) {
+    main { padding-left: 12px; padding-right: 12px; }
+    .metrics-grid { grid-template-columns: 1fr; }
+    .metric-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .metric-label { margin-bottom: 0; }
+    .movie-grid, .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .module-banner, .movie-hero, .settings-wrap { padding: 18px; }
+    .mobile-page-name { display: none; }
+    .mobile-header .mobile-icon-button { margin-left: auto; }
+}
+@media (max-width: 900px) and (hover: none) {
+    .game-node:hover, .movie-card:hover { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #flux-sidebar { transition: none; }
+}
+
+
     </style>
 </head>
 
@@ -1403,10 +1523,13 @@
     <!-- Main Startup Loader Overlay -->
     <div id="loader-overlay">
         <!-- Skeleton Loader Template -->
-        <div id="loader-type-skeleton" style="display: none; width: 100vw; height: 100vh; background: var(--bg); pointer-events: none;">
+        <div id="loader-type-skeleton"
+            style="display: none; width: 100vw; height: 100vh; background: var(--bg); pointer-events: none;">
             <div style="display: flex; width: 100vw; height: 100vh; overflow: hidden; background: var(--bg);">
-                <div style="width: 260px; height: 100vh; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 24px;">
-                    <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div
+                    style="width: 260px; height: 100vh; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 24px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                         <div class="skeleton-box" style="width: 40px; height: 40px; border-radius: 10px;"></div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <div class="skeleton-box" style="width: 60px; height: 14px;"></div>
@@ -1421,7 +1544,8 @@
                         <div class="skeleton-box" style="width: 100%; height: 40px; border-radius: 8px;"></div>
                     </div>
                 </div>
-                <div style="flex: 1; padding: 40px; display: flex; flex-direction: column; gap: 28px; overflow: hidden;">
+                <div
+                    style="flex: 1; padding: 40px; display: flex; flex-direction: column; gap: 28px; overflow: hidden;">
                     <div class="skeleton-box" style="width: 100%; height: 130px; border-radius: 12px;"></div>
                     <div class="skeleton-box" style="width: 100%; height: 90px; border-radius: 12px;"></div>
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
@@ -1449,13 +1573,20 @@
     <canvas id="particle-canvas"></canvas>
 
     <div class="app-layout">
-        <sidebar>
+        <header class="mobile-header" aria-label="Flux mobile header">
+            <button class="mobile-brand" onclick="showPage('dashboard')" aria-label="Flux home"><span class="mobile-brand-mark" aria-hidden="true"><span><b>&gt;</b>F</span></span><span>Flux<span class="brand-period">.</span></span></button>
+            <span class="mobile-page-name" id="mobile-page-name">Dashboard</span>
+            <button class="mobile-icon-button" data-mobile-menu aria-controls="flux-sidebar" aria-expanded="false" aria-label="Open navigation menu"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+        </header>
+        <button class="mobile-menu-backdrop" id="mobile-menu-backdrop" hidden tabindex="-1" aria-label="Close navigation menu"></button>
+        <sidebar id="flux-sidebar" aria-label="Main navigation">
+            <button class="mobile-icon-button mobile-menu-close" id="mobile-menu-close" aria-label="Close navigation menu"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
             <div class="brand-box" onclick="showPage('dashboard')">
                 <div class="brand-logo-code">
                     <span class="prompt">></span><span class="letter">F</span>
                 </div>
                 <div class="brand-text">
-                    <h1>Flux</h1>
+                    <h1>Flux<span style="color: #22c55e;">.</span></h1>
                     <span class="unscramble" data-text="// gateway">// gateway</span>
                 </div>
             </div>
@@ -1500,7 +1631,7 @@
             </div>
         </sidebar>
 
-        <main>
+        <main tabindex="-1" aria-label="Page content">
             <!-- Dashboard -->
             <div id="view-dashboard" class="container active">
                 <div class="module-banner">
@@ -1527,21 +1658,57 @@
             </div>
 
             <!-- Movies Streaming View -->
+            <!-- Movies Streaming View -->
             <div id="view-movies" class="container">
                 <div class="movie-hero">
-                    <h2>Flux Cinema</h2>
-                    <p>Stream curated films, sci-fi epics, and animations directly inside your gateway.</p>
-                    <button class="movie-hero-btn" onclick="playFeaturedMovie()"><i class="fa-solid fa-play"></i> Watch Featured</button>
+                    <span style="
+            display: inline-block;
+            margin-bottom: 14px;
+            color: var(--accent, #22c55e);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+        ">FLUX CINEMA</span>
+
+                    <h2 style="
+            max-width: 650px;
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin: 0 0 18px;
+        ">
+                        Your next movie night<span style="color: var(--accent, #22c55e);">.</span>
+                    </h2>
+
+                    <p style="max-width: 500px; margin-bottom: 24px;">
+                        Discover sci-fi worlds, animated adventures, and stories
+                        worth staying up for. Find your next watch.
+                    </p>
+
+                    <button class="movie-hero-btn" onclick="playFeaturedMovie()">
+                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                        Play Featured
+                    </button>
                 </div>
 
-                <div class="library-header-row" style="margin-bottom: 24px;">
+                <div class="library-header-row" style="margin-bottom: 28px;">
                     <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="movie-search" placeholder="Search movies by title or genre..." oninput="refreshMovies()">
+                        <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                        <input type="search" id="movie-search" placeholder="Find your next movie..."
+                            aria-label="Search movies by title or genre" oninput="refreshMovies()">
                     </div>
                 </div>
 
-                <div class="section-title"><i class="fa-solid fa-fire"></i> Trending & Catalog</div>
+                <div style="margin-bottom: 20px;">
+                    <div class="section-title" style="margin-bottom: 6px;">
+                        <i class="fa-solid fa-film" aria-hidden="true"></i>
+                        Find Your Next Watch
+                    </div>
+                    <p style="margin: 0; color: var(--text-dim, #94a3b8); font-size: 0.9rem;">
+                        Explore the collection. Pick a poster. Press play.
+                    </p>
+                </div>
+
                 <div class="movie-grid" id="movies-grid"></div>
             </div>
 
@@ -1549,7 +1716,8 @@
             <div id="view-changelog" class="container">
                 <div style="margin-bottom: 24px;">
                     <h2 style="margin: 0 0 6px 0; font-size: 1.5rem; font-weight: 800;">Site Changelog</h2>
-                    <p style="margin: 0; color: var(--text-dim);">Recent updates, patches, and features brought to Flux.</p>
+                    <p style="margin: 0; color: var(--text-dim);">Recent updates, patches, and features brought to Flux.
+                    </p>
                 </div>
                 <div class="changelog-feed" id="changelog-feed-container"></div>
             </div>
@@ -1569,7 +1737,8 @@
                     <div class="library-grid" id="favorites-grid"></div>
                 </div>
 
-                <div class="section-title" id="all-games-title"><i class="fa-solid fa-gamepad"></i> All Available Games</div>
+                <div class="section-title" id="all-games-title"><i class="fa-solid fa-gamepad"></i> All Available Games
+                </div>
                 <div class="library-grid" id="main-grid"></div>
             </div>
 
@@ -1597,7 +1766,8 @@
                         <div class="lounge-header-bar">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <i class="fa-solid fa-comments" style="color: var(--accent); font-size: 1.1rem;"></i>
-                                <h3 id="current-chat-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">Global
+                                <h3 id="current-chat-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">
+                                    Global
                                     Lounge</h3>
                             </div>
                             <div style="font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;"
@@ -1629,7 +1799,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Startup Loading Screen Style</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Choose between the Flux Terminal Loader and the Skeleton Shimmer</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Choose between the Flux Terminal
+                                    Loader and the Skeleton Shimmer</div>
                             </div>
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <select id="set-loader-style" onchange="saveConfiguration()"
@@ -1637,13 +1808,15 @@
                                     <option value="flux">Flux Terminal Loader</option>
                                     <option value="skeleton">Skeleton Shimmer</option>
                                 </select>
-                                <button class="action-btn btn-outline" onclick="previewLoaderSelection()">Preview</button>
+                                <button class="action-btn btn-outline"
+                                    onclick="previewLoaderSelection()">Preview</button>
                             </div>
                         </div>
                         <div class="settings-row">
                             <div>
                                 <strong>Website Accent Color</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Primary highlight glow and text color
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Primary highlight glow and text
+                                    color
                                     (Default: Green)</div>
                             </div>
                             <input type="color" id="set-accent" value="#22c55e" oninput="applyThemeColors()"
@@ -1652,7 +1825,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Primary Background</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Main backdrop color for the gateway</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Main backdrop color for the
+                                    gateway</div>
                             </div>
                             <input type="color" id="set-bg" value="#070709" oninput="applyThemeColors()"
                                 style="width:38px; height:38px; border:none; background:none; cursor:pointer;">
@@ -1660,7 +1834,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Card Background</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Background color for cards and panels
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Background color for cards and
+                                    panels
                                 </div>
                             </div>
                             <input type="color" id="set-card-bg" value="#14141c" oninput="applyThemeColors()"
@@ -1669,7 +1844,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Border Color</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Color for borders and dividers</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Color for borders and dividers
+                                </div>
                             </div>
                             <input type="color" id="set-border" value="#22222e" oninput="applyThemeColors()"
                                 style="width:38px; height:38px; border:none; background:none; cursor:pointer;">
@@ -1694,7 +1870,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Background Particles</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Enable or disable animated gray grid
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Enable or disable animated gray
+                                    grid
                                     particles</div>
                             </div>
                             <label class="switch">
@@ -1708,7 +1885,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Theme Code</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Unique code for theme sharing</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Unique code for theme sharing
+                                </div>
                             </div>
                             <div style="display:flex; gap:10px;">
                                 <input type="text" id="theme-code" placeholder="e.g. neonDark" class="settings-input"
@@ -1722,7 +1900,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Export / Import Theme File</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Backup or upload .json theme files</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Backup or upload .json theme
+                                    files</div>
                             </div>
                             <div style="display:flex; gap:10px;">
                                 <button class="action-btn btn-outline" onclick="exportTheme()">Download JSON</button>
@@ -1744,7 +1923,8 @@
                                 style="padding:10px 14px; background:var(--bg); border:1px solid var(--border); color:#fff; border-radius:8px;">
                                 <option value="">None</option>
                                 <option value="https://www.clever.com/favicon.ico|Clever">Clever Portal</option>
-                                <option value="https://cdn.i-ready.com/instruction/asset-manifest/latest/favicon.ico|i-Ready">
+                                <option
+                                    value="https://cdn.i-ready.com/instruction/asset-manifest/latest/favicon.ico|i-Ready">
                                     i-Ready</option>
                                 <option value="https://www.studysync.com/favicon.ico|StudySync">StudySync</option>
                             </select>
@@ -1770,7 +1950,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Reset Tab Disguise</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Restore default title and icon</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Restore default title and icon
+                                </div>
                             </div>
                             <button class="action-btn btn-outline" onclick="resetTabCloak()">Reset</button>
                         </div>
@@ -1780,7 +1961,8 @@
                         <div class="settings-row">
                             <div>
                                 <strong>Panic Shortcut Key</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Instant redirect to Classroom</div>
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Instant redirect to Classroom
+                                </div>
                             </div>
                             <input type="text" id="set-panic" maxlength="1" value="]"
                                 style="width:45px; padding:8px; background:var(--bg); border:1px solid var(--border); color:var(--accent); text-align:center; border-radius:8px;"
@@ -1789,10 +1971,12 @@
                         <div class="settings-row">
                             <div>
                                 <strong>System Cache</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Clear all local storage and preferences
+                                <div style="font-size:0.82rem; color:var(--text-dim);">Clear all local storage and
+                                    preferences
                                 </div>
                             </div>
-                            <button class="action-btn" style="background: #ef4444; color:#fff;" onclick="purgeSystem()">Purge
+                            <button class="action-btn" style="background: #ef4444; color:#fff;"
+                                onclick="purgeSystem()">Purge
                                 System Cache</button>
                         </div>
                     </div>
@@ -1803,7 +1987,8 @@
             <div id="view-account" class="container">
                 <div class="settings-wrap">
                     <h3 style="margin-top:0; font-size: 1.25rem;">Profile Customization</h3>
-                    <p style="color: var(--text-dim); margin-bottom: 24px;">Personalize how your profile card appears across the
+                    <p style="color: var(--text-dim); margin-bottom: 24px;">Personalize how your profile card appears
+                        across the
                         gateway.</p>
 
                     <div class="profile-card-preview">
@@ -1812,7 +1997,8 @@
                         </div>
                         <div>
                             <h4 id="profile-preview-name" style="margin:0 0 4px 0; font-size:1.1rem;">Gamer</h4>
-                            <p id="profile-preview-status" style="margin:0; font-size:0.85rem; color:var(--text-dim);">Ready to
+                            <p id="profile-preview-status" style="margin:0; font-size:0.85rem; color:var(--text-dim);">
+                                Ready to
                                 play.</p>
                         </div>
                     </div>
@@ -1829,11 +2015,12 @@
                     <div class="settings-row">
                         <div>
                             <strong>Avatar Image URL or Upload</strong>
-                            <div style="font-size:0.82rem; color:var(--text-dim);">Direct link or upload from your device</div>
+                            <div style="font-size:0.82rem; color:var(--text-dim);">Direct link or upload from your
+                                device</div>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" id="profile-avatar-input" class="settings-input" placeholder="https://..."
-                                oninput="saveProfileData()" style="width: 160px;">
+                            <input type="text" id="profile-avatar-input" class="settings-input"
+                                placeholder="https://..." oninput="saveProfileData()" style="width: 160px;">
                             <button class="action-btn btn-outline"
                                 onclick="document.getElementById('profile-avatar-file').click()"><i
                                     class="fa-solid fa-upload"></i> Upload PFP</button>
@@ -1847,8 +2034,8 @@
                             <strong>Status Message</strong>
                             <div style="font-size:0.82rem; color:var(--text-dim);">Short bio or mood</div>
                         </div>
-                        <input type="text" id="profile-status-input" class="settings-input" placeholder="Chasing high scores..."
-                            oninput="saveProfileData()">
+                        <input type="text" id="profile-status-input" class="settings-input"
+                            placeholder="Chasing high scores..." oninput="saveProfileData()">
                     </div>
                 </div>
             </div>
@@ -1868,6 +2055,12 @@
                 </div>
             </div>
         </main>
+        <nav class="mobile-bottom-nav" aria-label="Quick navigation">
+            <button class="mobile-nav-button" data-page="dashboard" aria-current="page" onclick="showPage('dashboard')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></button>
+            <button class="mobile-nav-button" data-page="archives" onclick="showPage('archives')"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span>Games</span></button>
+            <button class="mobile-nav-button" data-page="movies" onclick="showPage('movies')"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Movies</span></button>
+            <button class="mobile-nav-button" data-page="more" data-mobile-menu aria-controls="flux-sidebar" aria-expanded="false"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i><span>More</span></button>
+        </nav>
     </div>
 
     <!-- Advanced Theater Mode Overlay -->
@@ -2645,6 +2838,7 @@
         }
 
         function showPage(id) {
+            window.fluxMobile?.pageChanged(id);
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('view-' + id).classList.add('active');
@@ -2853,6 +3047,71 @@
             }
         });
     </script>
+<script>
+// Mobile navigation reuses the site's existing sidebar and showPage function.
+(() => {
+    const media = window.matchMedia('(max-width: 900px)');
+    const sidebar = document.getElementById('flux-sidebar');
+    const backdrop = document.getElementById('mobile-menu-backdrop');
+    const main = document.querySelector('main');
+    const header = document.querySelector('.mobile-header');
+    const bottom = document.querySelector('.mobile-bottom-nav');
+    const toggles = document.querySelectorAll('[data-mobile-menu]');
+    const closeButton = document.getElementById('mobile-menu-close');
+    let returnFocus = null;
+    let open = false;
+    const titles = {dashboard:'Dashboard',archives:'Game Library',movies:'Movies',changelog:'Changelog',chat:'Lounge & DMs',records:'Records',settings:'Preferences',account:'Profile',credits:'Credits'};
+    function setMenu(value, restoreFocus = true) {
+        open = media.matches && value;
+        document.body.classList.toggle('mobile-menu-open', open);
+        backdrop.hidden = !open;
+        toggles.forEach(button => button.setAttribute('aria-expanded', String(open)));
+        sidebar.inert = media.matches && !open;
+        main.inert = open; header.inert = open; bottom.inert = open;
+        if (media.matches) sidebar.setAttribute('aria-hidden', String(!open));
+        else sidebar.removeAttribute('aria-hidden');
+        if (open) {
+            sidebar.setAttribute('role', 'dialog'); sidebar.setAttribute('aria-modal', 'true');
+            closeButton.focus();
+        } else {
+            sidebar.removeAttribute('role'); sidebar.removeAttribute('aria-modal');
+            if (restoreFocus && returnFocus?.isConnected) returnFocus.focus();
+        }
+    }
+    toggles.forEach(button => button.addEventListener('click', () => {
+        returnFocus = button; setMenu(!open);
+    }));
+    closeButton.addEventListener('click', () => setMenu(false));
+    backdrop.addEventListener('click', () => setMenu(false));
+    sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setMenu(false)));
+    document.addEventListener('keydown', event => {
+        if (!open) return;
+        if (event.key === 'Escape') { event.preventDefault(); setMenu(false); }
+        if (event.key === 'Tab') {
+            const focusable = [...sidebar.querySelectorAll('button, a[href], [tabindex="0"]')].filter(el => el.getClientRects().length && !el.disabled);
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+    });
+    window.fluxMobile = {pageChanged(id) {
+        document.getElementById('mobile-page-name').textContent = titles[id] || 'Flux';
+        const section = ['dashboard', 'archives', 'movies'].includes(id) ? id : 'more';
+        bottom.querySelectorAll('[data-page]').forEach(button => {
+            if (button.dataset.page === section) button.setAttribute('aria-current', 'page');
+            else button.removeAttribute('aria-current');
+        });
+        sidebar.querySelectorAll('.nav-item').forEach(button => {
+            if (button.id === 'btn-' + id) button.setAttribute('aria-current', 'page');
+            else button.removeAttribute('aria-current');
+        });
+        if (media.matches) { setMenu(false, false); main.scrollTop = 0; main.focus({preventScroll: true}); }
+    }};
+    media.addEventListener('change', () => setMenu(false, false));
+    setMenu(false, false);
+})();
+
+</script>
 </body>
 
 </html>
