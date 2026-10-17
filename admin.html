@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,6 +151,7 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
  </div>
  <div class="nav-group">Library</div>
  <button class="nav-item active" data-tab="tab-games"><i class="fa-solid fa-gamepad"></i> Game Manager <span class="nav-badge" id="badge-requests" hidden>0</span></button>
+ <button class="nav-item" data-tab="tab-movies"><i class="fa-solid fa-film"></i> Movie Manager</button>
  <button class="nav-item" data-tab="tab-records"><i class="fa-solid fa-trophy"></i> Record Setter</button>
  <button class="nav-item" data-tab="tab-changelog"><i class="fa-solid fa-list-check"></i> Changelog</button>
  <div class="nav-group">Community</div>
@@ -192,6 +192,21 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
    </div>
    <div id="req-list"><p class="empty-msg"><i class="fa-solid fa-spinner fa-spin"></i>Loading requests…</p></div>
   </div>
+ </div>
+</section>
+
+<section id="tab-movies" class="tab-content">
+ <div class="page-head"><div><div class="page-kicker">Library / Cinema</div><h2>Movie manager</h2><p class="page-description">Add movies directly to your `movieData.js` library using VidNest IDs.</p></div></div>
+ <div class="panel" style="max-width:640px">
+  <div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-film"></i></div><div class="grow"><h3>Add a movie</h3><p>Enter the movie details and its VidNest ID.</p></div></div>
+  <div class="form-group"><label for="movie-name">Movie name</label><input id="movie-name" placeholder="e.g. Interstellar"></div>
+  <div class="grid-2">
+   <div class="form-group"><label for="movie-genre">Genre</label><input id="movie-genre" placeholder="Sci-Fi // Drama"></div>
+   <div class="form-group"><label for="movie-id">VidNest Movie ID</label><input id="movie-id" placeholder="157336"></div>
+  </div>
+  <div class="form-group"><label for="movie-thumb">Thumbnail Image URL</label><input id="movie-thumb" placeholder="https://image.tmdb.org/t/p/w500/..."></div>
+  <div class="form-group"><label for="movie-desc">Description</label><textarea id="movie-desc" rows="4" placeholder="A short plot summary..."></textarea></div>
+  <button class="btn" id="btn-send-movie"><i class="fa-solid fa-floppy-disk"></i> Save movie entry</button>
  </div>
 </section>
 
@@ -330,6 +345,7 @@ async function ensureFluxDataLoaded() {
                 window.fluxGames = data.games;
                 window.fluxRecords = data.records;
                 window.fluxChangelog = data.changelog;
+                window.fluxMovies = Array.isArray(data.movies) ? data.movies : [];
                 fluxDataReady = true;
 
                 setConn(true, 'Data files connected');
@@ -734,6 +750,62 @@ async function sendGame() {
     } catch (error) {
         console.error('Game save failed:', error);
         showStatus('Could not save game: ' + error.message, true);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+/* ---------- Movie Manager: writes to movieData.js ---------- */
+
+async function sendMovie() {
+    const button = document.getElementById('btn-send-movie');
+    if (button.disabled) return;
+
+    const movieId = document.getElementById('movie-id').value.trim();
+    const movie = {
+        name: document.getElementById('movie-name').value.trim(),
+        genre: document.getElementById('movie-genre').value.trim(),
+        thumb: document.getElementById('movie-thumb').value.trim(),
+        url: movieId ? 'https://vidnest.fun/movie/' + movieId : '',
+        description: document.getElementById('movie-desc').value.trim()
+    };
+
+    if (!movie.name || !movieId) {
+        showStatus('Movie name and VidNest ID are required!', true);
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        await ensureFluxDataLoaded();
+
+        const movies = window.fluxMovies || [];
+        const index = movies.findIndex(item =>
+            String(item.name || '').toLowerCase() === movie.name.toLowerCase()
+        );
+
+        if (index >= 0) {
+            if (!confirm('A movie with this name already exists. Update its entry?')) {
+                button.disabled = false;
+                return;
+            }
+
+            movies[index] = { ...movies[index], ...movie };
+        } else {
+            movies.push(movie);
+        }
+
+        await saveFluxData('movies', movies);
+
+        ['movie-name', 'movie-genre', 'movie-id', 'movie-thumb', 'movie-desc'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+
+        showStatus('Movie saved successfully to movieData.js.');
+    } catch (error) {
+        console.error('Movie save failed:', error);
+        showStatus('Could not save movie: ' + error.message, true);
     } finally {
         button.disabled = false;
     }
@@ -1149,6 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btn-send-game').addEventListener('click', sendGame);
+    document.getElementById('btn-send-movie').addEventListener('click', sendMovie);
     document.getElementById('btn-send-record').addEventListener('click', sendRecord);
     document.getElementById('btn-send-changelog').addEventListener('click', sendChangelog);
     document.getElementById('btn-run-ai-sweep').addEventListener('click', runAISweep);
@@ -1271,6 +1344,7 @@ Object.assign(window, {
     startRequests,
     showStatus,
     sendGame,
+    sendMovie,
     sendRecord,
     sendChangelog,
     loadReports,
