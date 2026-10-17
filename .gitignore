@@ -1,0 +1,7 @@
+node_modules/
+dist/
+out/
+*.exe
+*.zip
+.DS_Store
+electron.exe

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+    <!-- Black Background Container -->
+    <rect width="100" height="100" rx="20" fill="#000000" />
+    <rect width="100" height="100" rx="20" fill="none" stroke="#22c55e" stroke-width="3" stroke-opacity="0.3" />
+    
+    <!-- Terminal Prompt '>' -->
+    <path d="M 28 35 L 45 50 L 28 65" fill="none" stroke="#22c55e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Letter 'F' -->
+    <path d="M 58 35 L 78 35 M 58 50 L 72 50 M 58 35 L 58 65" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

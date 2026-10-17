@@ -1,0 +1,159 @@
+/* ============================================
+   CORE DESIGN TOKENS & VARIABLES
+   ============================================ */
+:root {
+    --bg: #070709;
+    --surface: #111116;
+    --surface-hover: #181820;
+    --surface-card: #14141c;
+    --accent: #22c55e;
+    --accent-rgb: 34, 197, 94;
+    --text: #f4f4f5;
+    --text-dim: #94a3b8;
+    --border: #22222e;
+    --border-active: #323246;
+    --sidebar-width: 260px;
+    --radius: 10px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --ui-scale: 1;
+}
+
+html {
+    font-size: calc(16px * var(--ui-scale, 1));
+}
+
+/* ============================================
+   BASE RESET & GLOBAL STYLES
+   ============================================ */
+* {
+    box-sizing: border-box;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow: auto;
+    min-height: 100vh;
+    width: 100vw;
+    transition: background var(--transition-smooth);
+}
+
+body {
+    background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(255, 238, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
+}
+
+/* ============================================
+   GLASSMORPHISM SYSTEM
+   ============================================ */
+.info-card,
+.config-block,
+.theme-preview-modal,
+.theme-preview-card,
+#archive-search,
+.changelog-modal,
+#detail-overlay .theme-preview-modal {
+    background: var(--card) !important;
+    backdrop-filter: var(--glass) !important;
+    -webkit-backdrop-filter: var(--glass) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.theme-preview-modal {
+    width: min(420px, 92vw);
+    border-radius: 24px;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(20, 20, 30, 0.9), rgba(30, 30, 45, 0.9)) !important;
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+input[type="color"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+html,
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* ============================================
+   HERO UNIT & DASHBOARD
+   ============================================ */
+.hero-unit {
+    padding: 40px 0 20px 0;
+    position: relative;
+}
+
+.welcome-label {
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: clamp(2px, 0.5vw, 4px);
+    margin-bottom: 30px;
+    display: block;
+    line-height: 1.1;
+    filter: drop-shadow(0 0 20px rgba(var(--accent-rgb), 0.3));
+}
+
+.dashboard-mostplayed-section {
+    margin-top: clamp(44px, 6vw, 72px);
+}
+
+.dashboard-section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.dashboard-section-heading h2 {
+    margin: 5px 0 0;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+}
+
+.dashboard-mostplayed-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+}

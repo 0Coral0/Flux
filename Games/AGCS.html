@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Another Generic Code Studio</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/one-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-darker: #181a1f;
+            --bg-dark: #21252b;
+            --bg-editor: #282c34;
+            --sidebar-width: 60px;
+            --border-color: #000000;
+            --accent-color: #fbff00;
+            --text-main: #abb2bf;
+            --text-muted: #5c6370;
+            --header-height: 45px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            height: 100%;
+            background-color: var(--bg-darker);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .app-wrapper { display: flex; height: 100vh; }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-darker);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            gap: 25px;
+        }
+
+        .sidebar i {
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .sidebar i:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .sidebar i.active { color: var(--accent-color); background: rgba(97, 175, 239, 0.1); }
+
+        /* Main Workspace */
+        .main-workspace { flex: 1; display: flex; flex-direction: column; }
+
+        header {
+            height: var(--header-height);
+            background-color: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo { font-weight: 600; color: var(--accent-color); font-size: 0.9rem; letter-spacing: 1px; }
+
+        .content-area { display: flex; flex: 1; overflow: hidden; }
+
+        .editor-container {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-editor);
+        }
+
+        /* Tab Bar */
+        .tabs { display: flex; background: var(--bg-darker); height: 35px; }
+
+        .tab {
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: var(--bg-dark);
+            border-right: 1px solid var(--border-color);
+            transition: 0.2s;
+            border-top: 2px solid transparent;
+        }
+
+        .tab.active {
+            background: var(--bg-editor);
+            color: var(--text-main);
+            border-top: 2px solid var(--accent-color);
+        }
+
+        .tab.html i { color: #e34f26; }
+        .tab.css i { color: #1572b6; }
+        .tab.js i { color: #f7df1e; }
+
+        .CodeMirror { flex: 1; font-family: 'Fira Code', monospace; font-size: 14px; }
+
+        /* Preview Section */
+        .preview-container {
+            width: 50%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            border-left: 4px solid var(--border-color);
+        }
+
+        .browser-header {
+            height: 35px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+        }
+
+        .dots { display: flex; gap: 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .address-bar {
+            flex: 1;
+            background: white;
+            height: 22px;
+            border-radius: 4px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: #999;
+        }
+
+        #output-frame { flex: 1; border: none; background: white; }
+
+        .action-btn {
+            background: var(--accent-color);
+            color: #181a1f;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover { opacity: 0.9; }
+
+        /* Notification Toast */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d2d2d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 13px;
+            display: none;
+            z-index: 1000;
+            border: 1px solid var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Action performed successfully!</div>
+
+    <div class="app-wrapper">
+        <div class="sidebar">
+            <i class="fa-solid fa-file-code active" title="Explorer" onclick="notify('Explorer View')"></i>
+            <i class="fa-solid fa-magnifying-glass" title="Search" onclick="notify('Search Tool')"></i>
+            <i class="fa-solid fa-code-branch" title="Source Control" onclick="notify('Source Control')"></i>
+            <i class="fa-solid fa-play" title="Run Code" onclick="updatePreview()"></i>
+            <div style="margin-top: auto; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-half-stroke" title="Toggle Theme" onclick="toggleTheme()"></i>
+                <i class="fa-solid fa-gear" title="Settings" onclick="notify('Settings')"></i>
+            </div>
+        </div>
+
+        <div class="main-workspace">
+            <header>
+                <div class="logo">Another Generic Code Studio <span style="color: var(--text-muted); font-weight: 400;">v1</span></div>
+                <button class="action-btn" onclick="exportProject()">DOWNLOAD INDEX.HTML</button>
+            </header>
+
+            <div class="content-area">
+                <div class="editor-container">
+                    <div class="tabs">
+                        <div id="tab-html" class="tab active html" onclick="switchTab('html')">
+                            <i class="fa-brands fa-html5"></i> index.html
+                        </div>
+                        <div id="tab-css" class="tab css" onclick="switchTab('css')">
+                            <i class="fa-brands fa-css3-alt"></i> style.css
+                        </div>
+                        <div id="tab-js" class="tab js" onclick="switchTab('js')">
+                            <i class="fa-brands fa-js"></i> script.js
+                        </div>
+                    </div>
+                    <textarea id="code-editor"></textarea>
+                </div>
+
+                <div class="preview-container">
+                    <div class="browser-header">
+                        <div class="dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                        <div class="address-bar">https://agcs-preview.local/index.html</div>
+                        <i class="fa-solid fa-rotate-right" style="font-size: 12px; color: #666; cursor: pointer;" onclick="updatePreview()"></i>
+                    </div>
+                    <iframe id="output-frame"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+
+    <script>
+        const files = {
+            html: `<div class="container">\n  <h1>AGCS Live</h1>\n  <p>Modify code and watch the preview update instantly.</p>\n  <button id="main-btn">Test JS Function</button>\n</div>`,
+            css: `body { \n  background: #f4f7f6; \n  font-family: sans-serif; \n  display: flex; \n  justify-content: center; \n  align-items: center; \n  height: 100vh; \n  margin: 0; \n}\n.container {\n  text-align: center;\n  padding: 40px;\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 10px 25px rgba(0,0,0,0.1);\n}\nbutton {\n  background: #61afef;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 5px;\n  cursor: pointer;\n  font-weight: bold;\n}`,
+            js: `// This code runs in the preview pane\nconst btn = document.getElementById('main-btn');\n\nbtn.onclick = () => {\n  btn.innerText = "It Works!";\n  btn.style.background = "#98c379";\n  console.log("Button clicked inside preview!");\n};`
+        };
+
+        let activeTab = 'html';
+        const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+            theme: 'one-dark',
+            lineNumbers: true,
+            tabSize: 2,
+            mode: 'xml',
+            viewportMargin: Infinity
+        });
+
+        editor.setValue(files.html);
+
+        function switchTab(type) {
+            files[activeTab] = editor.getValue();
+            activeTab = type;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${type}`).classList.add('active');
+            
+            const modeMap = { html: 'xml', css: 'css', js: 'javascript' };
+            editor.setOption('mode', modeMap[type]);
+            editor.setValue(files[type]);
+        }
+
+        function updatePreview() {
+            files[activeTab] = editor.getValue();
+            const frame = document.getElementById('output-frame');
+            
+            const source = `
+                <!DOCTYPE html>
+                <html>
+                <head><style>${files.css}</style></head>
+                <body>
+                    ${files.html}
+                    <script>${files.js}<\/script>
+                </body>
+                </html>
+            `;
+
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            doc.open();
+            doc.write(source);
+            doc.close();
+        }
+
+        // Live update on typing
+        editor.on('change', () => {
+            updatePreview();
+        });
+
+        // Functional Export
+        function exportProject() {
+            files[activeTab] = editor.getValue();
+            const fullContent = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n${files.css}\n</style>\n</head>\n<body>\n${files.html}\n<script>\n${files.js}\n<\/script>\n</body>\n</html>`;
+            
+            const blob = new Blob([fullContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'agcs_project.html';
+            link.click();
+            notify('Project downloaded as index.html');
+        }
+
+        // UI Feedback
+        function notify(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        function toggleTheme() {
+            const current = editor.getOption('theme');
+            const next = current === 'one-dark' ? 'default' : 'one-dark';
+            editor.setOption('theme', next);
+            notify(`Theme set to ${next}`);
+        }
+
+        // Initial preview load
+        updatePreview();
+    </script>
+</body>
+</html>

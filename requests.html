@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux // Game Requests</title>
+    <link rel="icon" type="image/svg+xml" href="Fluxlogo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #070709;
+            --surface: #111116;
+            --surface-hover: #181820;
+            --surface-card: #14141c;
+            --accent: #22c55e;
+            --accent-rgb: 34, 197, 94;
+            --text: #f4f4f5;
+            --text-dim: #94a3b8;
+            --border: #22222e;
+            --border-active: #323246;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 12px 40px rgba(0, 0, 0, .6);
+            --ui-scale: 1;
+        }
+        html { font-size: calc(16px * var(--ui-scale, 1)); }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; min-height: 100%; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+        button, input, textarea, select { font: inherit; color: inherit; }
+        #particle-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        a { color: var(--accent); }
+        :focus-visible { box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .4); }
+
+        .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 4vw, 40px); background: rgba(17, 17, 22, .88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+        .brand-logo { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: #000; border: 1px solid var(--border-active); border-radius: 10px; box-shadow: inset 0 2px 6px rgba(0,0,0,.9); font: 800 1.05rem 'JetBrains Mono', monospace; }
+        .brand-logo .p { color: var(--accent); margin-right: 2px; }
+        .brand-name { font-weight: 700; letter-spacing: -.2px; line-height: 1.15; }
+        .brand-name small { display: block; color: var(--accent); font: 500 .72rem 'JetBrains Mono', monospace; }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-hover); color: var(--text-dim); text-decoration: none; font-size: .85rem; font-weight: 500; transition: all .2s ease; }
+        .back-link:hover { color: var(--text); border-color: var(--border-active); }
+
+        .page { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 40px) 80px; }
+
+        .hero { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(22px, 4vw, 36px); margin-bottom: 28px; }
+        .hero::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .hero h1 { margin: 0 0 10px; font-size: clamp(1.6rem, 3.2vw, 2.1rem); font-weight: 800; letter-spacing: -.6px; }
+        .hero p { margin: 0; max-width: 62ch; color: var(--text-dim); line-height: 1.6; }
+        .hero .tally { margin-top: 16px; font: 500 .85rem 'JetBrains Mono', monospace; color: var(--text); }
+        .hero .tally b { color: var(--accent); font-weight: 700; }
+
+        .layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: start; }
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .form-panel { position: static !important; } }
+
+        .panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+        .form-panel { position: sticky; top: 88px; }
+        .panel h2 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 700; }
+        .panel .sub { margin: 0 0 18px; color: var(--text-dim); font-size: .88rem; line-height: 1.5; }
+
+        .field { margin-bottom: 16px; }
+        .field label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; color: var(--text-dim); font: 600 .78rem 'JetBrains Mono', monospace; }
+        .field label .opt { font-weight: 400; opacity: .75; }
+        .field label .count { font-weight: 400; opacity: .7; }
+        .field input, .field textarea { display: block; width: 100%; padding: 11px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: .92rem; transition: border-color .18s, box-shadow .18s; }
+        .field input::placeholder, .field textarea::placeholder { color: #596273; }
+        .field input:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .12); }
+        .field textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
+        .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+        .hint { display: none; margin: -6px 0 16px; padding: 10px 12px; border-radius: 8px; font-size: .84rem; line-height: 1.45; border: 1px solid var(--border-active); background: var(--surface-hover); }
+        .hint.show { display: block; }
+        .hint.warn { border-color: rgba(var(--accent-rgb), .45); }
+        .hint button { margin-top: 8px; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border: none; border-radius: 8px; background: var(--accent); color: #000; font-size: .88rem; font-weight: 700; cursor: pointer; transition: all .2s ease; }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; filter: none; }
+        .btn.full { width: 100%; padding: 12px 18px; }
+        .btn.outline { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 7px 12px; font-size: .8rem; }
+        .btn.outline:hover { border-color: var(--accent); color: var(--accent); filter: none; }
+
+        .queue-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .queue-head h2 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+        .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .chips { display: inline-flex; padding: 3px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; }
+        .chip { padding: 7px 13px; border: 0; border-radius: 7px; background: transparent; color: var(--text-dim); font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .18s ease; }
+        .chip:hover { color: var(--text); }
+        .chip[aria-pressed="true"] { background: rgba(var(--accent-rgb), .12); color: var(--accent); }
+        .select { padding: 9px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: .82rem; cursor: pointer; }
+        .select option { background: var(--surface); }
+        .search { flex: 1 1 180px; min-width: 150px; padding: 9px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: .85rem; }
+        .search:focus { border-color: var(--accent); }
+
+        .list { display: flex; flex-direction: column; gap: 12px; }
+        .req { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 16px; padding: 16px; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color .2s ease, background .2s ease; }
+        .req:hover { border-color: var(--border-active); }
+        .req.flash { border-color: var(--accent); animation: flash 1.4s ease; }
+        @keyframes flash { 0%, 60% { background: rgba(var(--accent-rgb), .12); } 100% { background: var(--surface-card); } }
+        .req.added { background: rgba(var(--accent-rgb), .05); border-color: rgba(var(--accent-rgb), .3); }
+
+        .rail { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; align-self: start; }
+        .vote { width: 100%; height: 32px; border: 0; background: transparent; color: var(--text-dim); font-size: .95rem; cursor: pointer; transition: color .15s ease, transform .15s ease; }
+        .vote:hover { color: var(--text); }
+        .vote:active { transform: scale(.88); }
+        .vote.up[aria-pressed="true"] { color: var(--accent); }
+        .vote.down[aria-pressed="true"] { color: var(--danger); }
+        .score { font: 800 1.05rem 'JetBrains Mono', monospace; line-height: 1.4; }
+        .score.pos { color: var(--accent); }
+        .score.neg { color: var(--danger); }
+
+        .body { min-width: 0; }
+        .title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .rank { font: 800 .85rem 'JetBrains Mono', monospace; color: var(--accent); }
+        .title { margin: 0; font-size: 1.02rem; font-weight: 700; overflow-wrap: anywhere; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: .74rem; font-weight: 700; background: rgba(var(--accent-rgb), .14); color: var(--accent); border: 1px solid rgba(var(--accent-rgb), .35); }
+        .note { margin: 0 0 10px; color: var(--text-dim); font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; }
+        .meta { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: .78rem; color: var(--text-dim); }
+        .meta a { text-decoration: none; }
+        .meta a:hover { text-decoration: underline; }
+        .bar { height: 3px; margin-top: 12px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .bar > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .35s ease; }
+
+        .empty { padding: 40px 20px; text-align: center; color: var(--text-dim); border: 1px dashed var(--border-active); border-radius: var(--radius); line-height: 1.6; }
+        .empty strong { display: block; margin-bottom: 4px; color: var(--text); }
+
+        .mode { font: 500 .74rem 'JetBrains Mono', monospace; color: var(--text-dim); }
+        .mode i { color: var(--accent); margin-right: 6px; font-size: .6rem; vertical-align: 1px; }
+        .mode.local i { color: #eab308; }
+
+        #toast { position: fixed; left: 50%; bottom: 28px; z-index: 100; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: 12px 18px; background: var(--surface-card); border: 1px solid rgba(var(--accent-rgb), .45); border-radius: 10px; box-shadow: var(--shadow); font-size: .88rem; font-weight: 600; max-width: calc(100vw - 32px); transition: opacity .25s ease, transform .25s ease; }
+        #toast.show { opacity: 1; transform: translate(-50%, 0); }
+        #toast.error { border-color: rgba(239, 68, 68, .55); color: #f87171; }
+
+        @media (max-width: 520px) { .req { grid-template-columns: 50px minmax(0, 1fr); gap: 12px; padding: 13px; } }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <header class="topbar">
+        <a class="brand" href="index.html">
+            <span class="brand-logo"><span class="p">&gt;</span>F</span>
+            <span class="brand-name">Flux<small>// requests</small></span>
+        </a>
+        <a class="back-link" href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to Flux</a>
+    </header>
+
+    <main class="page">
+        <section class="hero">
+            <h1 id="hero-title">Request a game</h1>
+            <p>Tell us what you want on Flux, and vote on what other people asked for. Every request will be added eventually. The more votes a game has, the sooner it gets added.</p>
+            <div class="tally" id="tally">Loading requests...</div>
+        </section>
+
+        <div class="layout">
+            <section class="panel form-panel" aria-labelledby="form-title">
+                <h2 id="form-title">New request</h2>
+                <p class="sub">Every game gets added eventually, and the most voted ones go first. Check the queue first. If someone already asked for it, give it a thumbs up instead.</p>
+
+                <form id="request-form" novalidate autocomplete="off">
+                    <div class="field">
+                        <label for="f-name"><span>Game name</span><span class="count" id="c-name">0/80</span></label>
+                        <input id="f-name" type="text" maxlength="80" placeholder="e.g. Slope" required>
+                    </div>
+                    <div class="hint" id="name-hint" role="status"></div>
+
+                    <div class="field">
+                        <label for="f-link"><span>Link to the game</span><span class="opt">optional</span></label>
+                        <input id="f-link" type="url" maxlength="300" placeholder="https://...">
+                    </div>
+
+                    <div class="field">
+                        <label for="f-note"><span>Why should we add it?</span><span class="count" id="c-note">0/300</span></label>
+                        <textarea id="f-note" maxlength="300" placeholder="Optional. What makes it fun?"></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label for="f-who"><span>Your name</span><span class="opt">optional, shown publicly</span></label>
+                        <input id="f-who" type="text" maxlength="40" placeholder="Anonymous">
+                    </div>
+
+                    <input class="hp" id="f-site" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+                    <button class="btn full" id="submit-btn" type="submit"><i class="fa-solid fa-paper-plane"></i> Send request</button>
+                </form>
+                <p class="mode" id="mode" style="margin: 14px 0 0;"><i class="fa-solid fa-circle"></i><span>Connecting...</span></p>
+            </section>
+
+            <section aria-labelledby="queue-title">
+                <div class="queue-head">
+                    <h2 id="queue-title">The queue</h2>
+                    <div class="controls">
+                        <div class="chips" role="group" aria-label="Filter requests">
+                            <button class="chip" type="button" data-filter="queue" aria-pressed="true">In queue</button>
+                            <button class="chip" type="button" data-filter="added" aria-pressed="false">Added</button>
+                            <button class="chip" type="button" data-filter="all" aria-pressed="false">All</button>
+                        </div>
+                        <select class="select" id="sort" aria-label="Sort requests">
+                            <option value="top">Most wanted</option>
+                            <option value="new">Newest</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="controls" style="margin-bottom: 14px;">
+                    <input class="search" id="search" type="search" placeholder="Search requests" aria-label="Search requests">
+                </div>
+                <div class="list" id="list" aria-live="polite"></div>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" role="status"></div>
+
+    <!-- Optional: if data.js sits next to this file, we warn about games that are already in the library -->
+    <script src="data.js" onerror="void 0"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        // ---------- Config ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcSoHg-3ZvmhF1N_ROn8yrpqfTfldZqDc",
+            authDomain: "aggw-themes.firebaseapp.com",
+            projectId: "aggw-themes",
+            storageBucket: "aggw-themes.firebasestorage.app",
+            messagingSenderId: "651619047980",
+            appId: "1:651619047980:web:e19cb52860f53aa29d4f89",
+            measurementId: "G-93Y4EWCLYL"
+        };
+        const COLLECTION = 'game_requests';
+        const LS_LOCAL = 'flux_requests_local';
+        const LS_VOTES = 'flux_request_votes';
+        const LS_LAST = 'flux_request_last_sent';
+        const COOLDOWN_MS = 45 * 1000;
+
+        // ---------- Theme (shares Flux settings) ----------
+        let particlesOn = true;
+        (function applyFluxTheme() {
+            let c = {};
+            try { c = JSON.parse(localStorage.getItem('flux_config') || '{}'); } catch (e) {}
+            const root = document.documentElement;
+            const rgb = (hex) => { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || ''); return r ? parseInt(r[1], 16) + ', ' + parseInt(r[2], 16) + ', ' + parseInt(r[3], 16) : null; };
+            if (c.accent && rgb(c.accent)) { root.style.setProperty('--accent', c.accent); root.style.setProperty('--accent-rgb', rgb(c.accent)); }
+            if (c.bg) root.style.setProperty('--bg', c.bg);
+            if (c.cardBg) root.style.setProperty('--surface-card', c.cardBg);
+            if (c.borderColor) root.style.setProperty('--border', c.borderColor);
+            if (c.textColor) root.style.setProperty('--text', c.textColor);
+            if (c.uiScale) root.style.setProperty('--ui-scale', String(Number(c.uiScale) / 100));
+            particlesOn = c.particlesEnabled !== false;
+            if (c.customTabName) document.title = c.customTabName;
+        })();
+
+        // ---------- Helpers ----------
+        const $ = (id) => document.getElementById(id);
+        const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        const keyOf = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const readJSON = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } };
+        const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+        function timeAgo(ms) {
+            const s = Math.max(1, Math.floor((Date.now() - ms) / 1000));
+            if (s < 60) return 'just now';
+            const m = Math.floor(s / 60); if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
+            const h = Math.floor(m / 60); if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+            const d = Math.floor(h / 24); if (d < 30) return d + (d === 1 ? ' day ago' : ' days ago');
+            return new Date(ms).toLocaleDateString();
+        }
+
+        let toastTimer;
+        function toast(msg, isError) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.className = 'show' + (isError ? ' error' : '');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.className = ''; }, 3200);
+        }
+
+        // ---------- State ----------
+        let requests = [];
+        let myVotes = readJSON(LS_VOTES, {});
+        let filter = 'queue';
+        let sortMode = 'top';
+        let searchTerm = '';
+        let backend = null;   // null = local only, otherwise firebase handles
+        const libraryKeys = new Set();
+        try { if (typeof gameList !== 'undefined' && Array.isArray(gameList)) gameList.forEach(g => g && g.name && libraryKeys.add(keyOf(g.name))); } catch (e) {}
+
+        // ---------- Backend: Firestore with local fallback ----------
+        function setMode(live, detail) {
+            const el = $('mode');
+            el.className = 'mode' + (live ? '' : ' local');
+            el.querySelector('span').textContent = live ? 'Live sync: everyone sees the same queue' : (detail || 'Local only: requests are saved in this browser');
+        }
+
+        function normalize(raw) {
+            const created = raw.createdAt && raw.createdAt.toMillis ? raw.createdAt.toMillis() : (typeof raw.createdAt === 'number' ? raw.createdAt : Date.now());
+            return {
+                id: raw.id,
+                name: String(raw.name || '').slice(0, 80),
+                link: String(raw.link || ''),
+                note: String(raw.note || '').slice(0, 300),
+                requester: String(raw.requester || 'Anonymous').slice(0, 40),
+                up: Math.max(0, Number(raw.up) || 0),
+                down: Math.max(0, Number(raw.down) || 0),
+                status: raw.status === 'added' || raw.status === 'rejected' ? raw.status : 'pending',
+                createdAt: created
+            };
+        }
+
+        function useLocal(detail) {
+            backend = null;
+            requests = readJSON(LS_LOCAL, []).map(normalize);
+            setMode(false, detail);
+            render();
+        }
+
+        async function initBackend() {
+            try {
+                const base = 'https://www.gstatic.com/firebasejs/10.8.0/';
+                const appSdk = await import(base + 'firebase-app.js');
+                const fs = await import(base + 'firebase-firestore.js');
+                const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
+                const db = fs.getFirestore(app);
+                backend = { db, fs };
+                const q = fs.query(fs.collection(db, COLLECTION), fs.orderBy('createdAt', 'desc'), fs.limit(300));
+                fs.onSnapshot(q, (snap) => {
+                    requests = snap.docs.map(d => normalize(Object.assign({ id: d.id }, d.data())));
+                    setMode(true);
+                    render();
+                }, (err) => {
+                    console.error('Request feed failed:', err);
+                    useLocal('Live sync unavailable. Using this browser only.');
+                });
+            } catch (err) {
+                console.error('Firebase failed to load:', err);
+                useLocal('Offline. Requests are saved in this browser only.');
+            }
+        }
+
+        async function createRequest(data) {
+            if (backend) {
+                const { db, fs } = backend;
+                await fs.addDoc(fs.collection(db, COLLECTION), Object.assign({}, data, { up: 0, down: 0, status: 'pending', createdAt: fs.serverTimestamp() }));
+            } else {
+                const list = readJSON(LS_LOCAL, []);
+                list.unshift(Object.assign({}, data, { id: 'local_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), up: 0, down: 0, status: 'pending', createdAt: Date.now() }));
+                writeJSON(LS_LOCAL, list.slice(0, 300));
+                requests = list.map(normalize);
+                render();
+            }
+        }
+
+        async function applyVote(id, dUp, dDown) {
+            if (backend) {
+                const { db, fs } = backend;
+                const patch = {};
+                if (dUp) patch.up = fs.increment(dUp);
+                if (dDown) patch.down = fs.increment(dDown);
+                await fs.updateDoc(fs.doc(db, COLLECTION, id), patch);
+            } else {
+                const list = readJSON(LS_LOCAL, []);
+                const item = list.find(r => r.id === id);
+                if (item) { item.up = Math.max(0, (item.up || 0) + dUp); item.down = Math.max(0, (item.down || 0) + dDown); }
+                writeJSON(LS_LOCAL, list);
+                requests = list.map(normalize);
+                render();
+            }
+        }
+
+        // ---------- Voting ----------
+        const voting = new Set();
+        async function vote(id, dir) {
+            if (voting.has(id)) return;
+            const prev = myVotes[id] || 0;
+            const next = prev === dir ? 0 : dir;
+            const dUp = (next === 1 ? 1 : 0) - (prev === 1 ? 1 : 0);
+            const dDown = (next === -1 ? 1 : 0) - (prev === -1 ? 1 : 0);
+            voting.add(id);
+            if (next === 0) delete myVotes[id]; else myVotes[id] = next;
+            writeJSON(LS_VOTES, myVotes);
+            render();
+            try {
+                await applyVote(id, dUp, dDown);
+            } catch (err) {
+                console.error('Vote failed:', err);
+                if (prev === 0) delete myVotes[id]; else myVotes[id] = prev;
+                writeJSON(LS_VOTES, myVotes);
+                render();
+                toast('Your vote did not go through. Try again.', true);
+            } finally {
+                voting.delete(id);
+            }
+        }
+
+        // ---------- Render ----------
+        function visibleList() {
+            let list = requests.filter(r => r.status !== 'rejected');
+            if (filter === 'queue') list = list.filter(r => r.status !== 'added');
+            else if (filter === 'added') list = list.filter(r => r.status === 'added');
+            if (searchTerm) {
+                const t = searchTerm.toLowerCase();
+                list = list.filter(r => r.name.toLowerCase().includes(t) || r.note.toLowerCase().includes(t));
+            }
+            const score = (r) => r.up - r.down;
+            if (sortMode === 'new') list.sort((a, b) => b.createdAt - a.createdAt);
+            else list.sort((a, b) => score(b) - score(a) || b.up - a.up || a.createdAt - b.createdAt);
+            return list;
+        }
+
+        function render() {
+            const open = requests.filter(r => r.status === 'pending').length;
+            const added = requests.filter(r => r.status === 'added').length;
+            $('tally').innerHTML = '<b>' + open + '</b> ' + (open === 1 ? 'request' : 'requests') + ' in the queue, <b>' + added + '</b> added so far.';
+
+            const list = visibleList();
+            const box = $('list');
+            if (!list.length) {
+                const none = searchTerm ? 'Nothing matches that search.' : (filter === 'added' ? 'Nothing has been added from requests yet.' : 'The queue is empty.');
+                const tip = searchTerm ? 'Try a different name, or send it as a new request.' : (filter === 'added' ? 'Games that get enough votes will show up here.' : 'Be the first to request a game.');
+                box.innerHTML = '<div class="empty"><strong>' + none + '</strong>' + tip + '</div>';
+                return;
+            }
+
+            const maxScore = Math.max(1, ...list.map(r => r.up - r.down));
+            const ranked = sortMode === 'top' && filter !== 'added';
+            let rank = 0;
+
+            box.innerHTML = list.map(r => {
+                const sc = r.up - r.down;
+                const mine = myVotes[r.id] || 0;
+                const isAdded = r.status === 'added';
+                if (!isAdded) rank++;
+                const showRank = ranked && !isAdded;
+                const scoreCls = sc > 0 ? 'pos' : (sc < 0 ? 'neg' : '');
+                let linkHtml = '';
+                if (/^https?:\/\//i.test(r.link)) linkHtml = '<a href="' + esc(r.link) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-up-right-from-square"></i> Game link</a>';
+                const width = isAdded ? 100 : Math.round(Math.max(0, sc) / maxScore * 100);
+                return '<article class="req' + (isAdded ? ' added' : '') + '" data-id="' + esc(r.id) + '">' +
+                    '<div class="rail">' +
+                        '<button type="button" class="vote up" data-vote="1" aria-pressed="' + (mine === 1) + '" aria-label="Thumbs up ' + esc(r.name) + '"><i class="fa-' + (mine === 1 ? 'solid' : 'regular') + ' fa-thumbs-up"></i></button>' +
+                        '<div class="score ' + scoreCls + '" title="' + r.up + ' up, ' + r.down + ' down">' + sc + '</div>' +
+                        '<button type="button" class="vote down" data-vote="-1" aria-pressed="' + (mine === -1) + '" aria-label="Thumbs down ' + esc(r.name) + '"><i class="fa-' + (mine === -1 ? 'solid' : 'regular') + ' fa-thumbs-down"></i></button>' +
+                    '</div>' +
+                    '<div class="body">' +
+                        '<div class="title-row">' +
+                            (showRank ? '<span class="rank">#' + rank + '</span>' : '') +
+                            '<h3 class="title">' + esc(r.name) + '</h3>' +
+                            (isAdded ? '<span class="badge"><i class="fa-solid fa-check"></i> Added to Flux</span>' : '') +
+                        '</div>' +
+                        (r.note ? '<p class="note">' + esc(r.note) + '</p>' : '') +
+                        '<div class="meta"><span>Requested by ' + esc(r.requester) + '</span><span>' + esc(timeAgo(r.createdAt)) + '</span>' + linkHtml + '</div>' +
+                        '<div class="bar" aria-hidden="true"><i style="width:' + width + '%"></i></div>' +
+                    '</div>' +
+                '</article>';
+            }).join('');
+        }
+
+        // ---------- Form ----------
+        function checkNameHint() {
+            const hint = $('name-hint');
+            const raw = $('f-name').value.trim();
+            const k = keyOf(raw);
+            hint.className = 'hint';
+            hint.innerHTML = '';
+            if (!k) return null;
+
+            if (libraryKeys.has(k)) {
+                hint.className = 'hint show warn';
+                hint.textContent = 'That game is already in the Flux library. Search for it there.';
+                return 'library';
+            }
+            const dupe = requests.find(r => r.status !== 'rejected' && keyOf(r.name) === k);
+            if (dupe) {
+                hint.className = 'hint show warn';
+                hint.innerHTML = dupe.status === 'added'
+                    ? 'This one was already added to Flux.'
+                    : 'Someone already requested this (' + (dupe.up - dupe.down) + ' votes). Give it a thumbs up instead.<br><button type="button" class="btn outline" id="goto-dupe">Show request</button>';
+                const b = $('goto-dupe');
+                if (b) b.onclick = () => focusRequest(dupe.id);
+                return 'dupe';
+            }
+            return null;
+        }
+
+        function focusRequest(id) {
+            filter = 'queue'; searchTerm = ''; $('search').value = '';
+            syncChips(); render();
+            const el = document.querySelector('.req[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+            if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); }
+        }
+
+        async function onSubmit(e) {
+            e.preventDefault();
+            if ($('f-site').value) return; // honeypot
+
+            const name = $('f-name').value.trim().replace(/\s+/g, ' ');
+            let link = $('f-link').value.trim();
+            const note = $('f-note').value.trim();
+            const requester = $('f-who').value.trim().replace(/\s+/g, ' ') || 'Anonymous';
+
+            if (!name) { $('f-name').focus(); return toast('Enter the name of the game.', true); }
+            if (link) {
+                if (!/^https?:\/\//i.test(link)) link = 'https://' + link;
+                try { const u = new URL(link); if (!/^https?:$/.test(u.protocol)) throw 0; } catch (err) { $('f-link').focus(); return toast('That link does not look right. Check it and try again.', true); }
+            }
+            const state = checkNameHint();
+            if (state === 'library') return toast('That game is already in the Flux library.', true);
+            if (state === 'dupe') return toast('That game is already requested. Vote on it instead.', true);
+
+            const wait = COOLDOWN_MS - (Date.now() - Number(localStorage.getItem(LS_LAST) || 0));
+            if (wait > 0) return toast('Please wait ' + Math.ceil(wait / 1000) + ' seconds before sending another request.', true);
+
+            const btn = $('submit-btn');
+            btn.disabled = true;
+            try {
+                await createRequest({ name, link, note, requester });
+                try { localStorage.setItem(LS_LAST, String(Date.now())); } catch (err) {}
+                $('request-form').reset();
+                $('c-name').textContent = '0/80'; $('c-note').textContent = '0/300';
+                $('name-hint').className = 'hint';
+                toast('Request sent. It is now in the queue.');
+            } catch (err) {
+                console.error('Submit failed:', err);
+                toast('Could not send your request. Check your connection and try again.', true);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function syncChips() {
+            document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.filter === filter)));
+        }
+
+        // ---------- Wire up ----------
+        $('request-form').addEventListener('submit', onSubmit);
+        $('f-name').addEventListener('input', () => { $('c-name').textContent = $('f-name').value.length + '/80'; checkNameHint(); });
+        $('f-note').addEventListener('input', () => { $('c-note').textContent = $('f-note').value.length + '/300'; });
+        $('sort').addEventListener('change', (e) => { sortMode = e.target.value; render(); });
+        $('search').addEventListener('input', (e) => { searchTerm = e.target.value.trim(); render(); });
+        document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filter = c.dataset.filter; syncChips(); render(); }));
+        $('list').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-vote]');
+            if (!btn) return;
+            const card = btn.closest('.req');
+            if (card) vote(card.dataset.id, Number(btn.dataset.vote));
+        });
+
+        // ---------- Title unscramble (same effect as Flux) ----------
+        (function unscramble() {
+            if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const el = $('hero-title'); const target = el.textContent; const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
+            let i = 0;
+            const t = setInterval(() => {
+                el.textContent = target.split('').map((ch, idx) => idx < i || ch === ' ' ? ch : chars[Math.floor(Math.random() * chars.length)]).join('');
+                if (i++ >= target.length) { clearInterval(t); el.textContent = target; }
+            }, 35);
+        })();
+
+        // ---------- Background grid ----------
+        (function grid() {
+            const canvas = $('particle-canvas'); const ctx = canvas.getContext('2d');
+            function draw() {
+                canvas.width = innerWidth; canvas.height = innerHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (!particlesOn) return;
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.12)';
+                for (let x = 0; x < canvas.width; x += 40) for (let y = 0; y < canvas.height; y += 40) ctx.fillRect(x, y, 1.5, 1.5);
+            }
+            addEventListener('resize', draw); draw();
+        })();
+
+        // Local first so the page is never empty, then try live sync
+        requests = readJSON(LS_LOCAL, []).map(normalize);
+        render();
+        initBackend();
+    })();
+    </script>
+</body>
+</html>

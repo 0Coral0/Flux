@@ -1,0 +1,394 @@
+/* ============================================
+   TIME-BOUND THEME BANNERS
+   ============================================ */
+.theme-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    min-height: 60px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+}
+
+.anniversary-banner {
+    background: linear-gradient(90deg, #171717 0%, #2a2a1a 52%, #171717 100%);
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 238, 0, 0.38);
+    z-index: 10001;
+}
+
+.memorial-banner {
+    background: linear-gradient(90deg, #002868 0%, #ffffff 50%, #b22234 100%);
+    color: #002868;
+    border-bottom: 2px solid #b22234;
+    z-index: 10000;
+}
+
+.memorial-banner .banner-text {
+    color: #002868;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
+}
+
+.memorial-banner .banner-action-btn {
+    background: rgba(0, 40, 104, 0.85);
+    border-color: rgba(255, 255, 255, 0.75);
+    color: #ffffff;
+}
+
+.memorial-banner .banner-close {
+    color: #002868;
+    border-color: rgba(0, 40, 104, 0.35);
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.banner-text {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.banner-action-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.banner-action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.banner-action-btn.is-active {
+    background: rgba(255, 255, 255, 0.34);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.banner-close {
+    width: 34px;
+    height: 34px;
+    margin-left: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.16);
+    color: #ffffff;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.banner-close:hover,
+.banner-close:focus-visible {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* ============================================
+   9/11 MEMORIAL THEME STYLING
+   Red, white, and blue patriotic palette
+   ============================================ */
+body.memorial-theme {
+    --accent: #ffffff !important;
+    --accent-rgb: 255, 255, 255 !important;
+    --bg: #0a1628 !important;
+    --card: rgba(0, 40, 104, 0.82) !important;
+    --card-hover: rgba(0, 58, 130, 0.92) !important;
+    --border: rgba(178, 34, 52, 0.48) !important;
+    --text: #ffffff !important;
+    --text-dim: rgba(255, 255, 255, 0.72) !important;
+    --header: rgba(0, 22, 65, 0.97) !important;
+    --gradient-1: linear-gradient(135deg, #002868 0%, #ffffff 50%, #b22234 100%) !important;
+    --gradient-2: linear-gradient(135deg, #b22234 0%, #ffffff 50%, #002868 100%) !important;
+    background-image:
+        linear-gradient(180deg, rgba(0, 40, 104, 0.18) 0%, transparent 40%),
+        linear-gradient(0deg, rgba(178, 34, 52, 0.12) 0%, transparent 35%),
+        #0a1628 !important;
+}
+
+body.memorial-theme .sidebar-brand img {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.55)) brightness(1.1);
+}
+
+body.memorial-theme .sidebar-brand-main {
+    background: linear-gradient(135deg, #ffffff 0%, #b22234 48%, #002868 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+body.memorial-theme .sidebar-brand-sub {
+    background: none !important;
+    -webkit-text-fill-color: #b22234 !important;
+    color: #b22234 !important;
+}
+
+body.memorial-theme .sidebar-nav-btn {
+    border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+body.memorial-theme .sidebar-nav-btn:hover {
+    background: rgba(0, 40, 104, 0.42) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+    color: #ffffff !important;
+}
+
+body.memorial-theme .sidebar-nav-btn.active {
+    color: #ffffff !important;
+    background: rgba(178, 34, 52, 0.38) !important;
+    border-color: rgba(255, 255, 255, 0.62) !important;
+    box-shadow: 0 0 18px rgba(178, 34, 52, 0.35) !important;
+}
+
+body.memorial-theme .sidebar-quick-link.discord {
+    background: #002868 !important;
+    box-shadow: 0 4px 15px rgba(0, 40, 104, 0.45) !important;
+}
+
+body.memorial-theme .sidebar-quick-link.request {
+    background: #b22234 !important;
+    box-shadow: 0 4px 15px rgba(178, 34, 52, 0.45) !important;
+}
+
+body.memorial-theme .action-btn {
+    background: linear-gradient(135deg, #b22234 0%, #002868 100%) !important;
+    color: #ffffff !important;
+}
+
+body.memorial-theme .btn-outline {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
+}
+
+body.memorial-theme .btn-outline:hover {
+    background: rgba(0, 40, 104, 0.35) !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
+}
+
+body.memorial-theme .info-card,
+body.memorial-theme .archive-card,
+body.memorial-theme .config-block {
+    border-color: rgba(178, 34, 52, 0.35) !important;
+}
+
+body.memorial-theme .info-card:hover,
+body.memorial-theme .archive-card:hover {
+    border-color: rgba(255, 255, 255, 0.55) !important;
+}
+
+body.memorial-theme .info-data,
+body.memorial-theme .footer-metric,
+body.memorial-theme .metric-value {
+    color: #ffffff !important;
+}
+
+body.memorial-theme .welcome-label {
+    background: linear-gradient(135deg, #ffffff, #b22234, #002868);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+body.memorial-theme #site-footer {
+    border-top-color: rgba(178, 34, 52, 0.45);
+    background: rgba(0, 22, 65, 0.98);
+}
+
+body.memorial-theme .sidebar {
+    border-right-color: rgba(178, 34, 52, 0.45) !important;
+}
+
+/* ============================================
+   ORIGINAL EDITION ANNIVERSARY THEME
+   Cosmetic-only treatment based on the first release
+   ============================================ */
+body.original-edition {
+    --accent: #ffee00 !important;
+    --bg: #050505 !important;
+    --card: rgba(18, 18, 18, 0.8) !important;
+    --card-hover: rgba(28, 28, 28, 0.95) !important;
+    --border: rgba(255, 255, 255, 0.08) !important;
+    --text: #ffffff !important;
+    --text-dim: rgba(255, 255, 255, 0.5) !important;
+    --header: rgba(5, 5, 5, 0.98) !important;
+    --glass: blur(25px) saturate(180%) !important;
+    --transition-smooth: 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+    background-image: none !important;
+}
+
+body.original-edition #particle-canvas {
+    display: none !important;
+}
+
+body.original-edition .sidebar-header {
+    padding: 0 20px !important;
+    height: 85px !important;
+    min-height: 85px;
+    max-height: 85px;
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+    background: var(--header) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+body.original-edition .sidebar-brand {
+    flex: 0 0 auto;
+}
+
+body.original-edition .sidebar-brand-main {
+    font-weight: 900 !important;
+    font-size: 1.4rem !important;
+    letter-spacing: -0.5px !important;
+}
+
+body.original-edition .sidebar-brand-sub {
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    color: var(--accent) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    margin-top: -3px !important;
+    background: none !important;
+    -webkit-text-fill-color: var(--accent) !important;
+}
+
+body.original-edition .sidebar-nav {
+    flex: 1 1 auto;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    margin-left: 0;
+    min-width: 0;
+}
+
+body.original-edition .sidebar-nav-btn {
+    padding: 10px 22px !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--text-dim) !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    min-height: auto !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Text-only page tabs — hide icons like the original release */
+body.original-edition .sidebar-nav-btn:not(.discord-pill):not(.request-pill) i {
+    display: none !important;
+}
+
+body.original-edition .sidebar-nav-btn:not(.discord-pill):not(.request-pill):hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+body.original-edition .sidebar-nav-btn:not(.discord-pill):not(.request-pill).active {
+    color: var(--accent) !important;
+    background: rgba(255, 238, 0, 0.08) !important;
+    border-color: rgba(255, 238, 0, 0.2) !important;
+    box-shadow: none !important;
+}
+
+body.original-edition .sidebar-quick-link.discord {
+    background: #5865F2 !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3) !important;
+    margin-right: 15px !important;
+}
+
+body.original-edition .sidebar-quick-link.request {
+    background: #6a0dad !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(84, 39, 95, 0.6) !important;
+    margin-right: 4px !important;
+}
+
+body.original-edition .sidebar-quick-link i {
+    display: none !important;
+}
+
+body.original-edition .welcome-label {
+    font-size: 1.2rem !important;
+    color: var(--accent) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 4px !important;
+    display: block !important;
+    background: none !important;
+    -webkit-text-fill-color: var(--accent) !important;
+}
+
+body.original-edition #typewriter-container {
+    display: block !important;
+}
+
+body.original-edition #typewriter {
+    font-size: clamp(2.5rem, 8vw, 5.5rem) !important;
+    margin: 0 !important;
+    font-weight: 950 !important;
+    line-height: 0.9 !important;
+    letter-spacing: -2px !important;
+    min-height: 1.2em !important;
+    color: var(--text) !important;
+}
+
+body.original-edition #normal-welcome {
+    display: none !important;
+}
+
+body.original-edition .info-card::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100px !important;
+    height: 100px !important;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%) !important;
+    opacity: 0.03 !important;
+}
+
+body.original-edition .archive-card:hover img {
+    filter: blur(4px) !important;
+}
+
+/* ============================================
+   TIME-BOUND THEMES SETTINGS BLOCK
+   ============================================ */
+#timebound-themes-block {
+    display: none;
+}
+
+.theme-countdown {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 700;
+}

@@ -1,0 +1,1287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flux // Control Center</title>
+<link rel="icon" href="Fluxlogo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+ color-scheme:dark;
+ --bg:#070709;
+ --surface:#111116;
+ --card:#111116;
+ --surface-hover:#181820;
+ --surface-card:#14141c;
+ --accent:#22c55e;
+ --accent-rgb:34,197,94;
+ --text:#f4f4f5;
+ --text-dim:#94a3b8;
+ --border:#22222e;
+ --border-active:#323246;
+ --danger:#ef4444;
+ --warn:#eab308;
+ --radius:12px;
+ --shadow:0 12px 40px #0009;
+ --ui-scale:1
+}
+*{box-sizing:border-box;outline:none;-webkit-tap-highlight-color:transparent}
+html{font-size:calc(16px * var(--ui-scale,1))}
+html,body{margin:0;padding:0;width:100%;min-height:100%}
+body{height:100vh;overflow:hidden;display:flex;position:relative;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{box-shadow:0 0 0 3px rgba(var(--accent-rgb),.4)}
+#particle-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.sidebar{position:relative;z-index:10;width:264px;min-width:264px;height:100vh;display:flex;flex-direction:column;padding:22px 14px;background:var(--surface);border-right:1px solid var(--border);box-shadow:4px 0 25px #0006}
+.sidebar-header{display:flex;align-items:center;gap:12px;padding:0 8px 20px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+.brand-icon{width:42px;height:42px;object-fit:contain;padding:5px;border:1px solid var(--border-active);border-radius:10px;background:#000}
+.brand-copy{display:flex;flex-direction:column;gap:3px;font-size:1.05rem;font-weight:800}
+.brand-copy small{color:var(--accent);font:.72rem 'JetBrains Mono',monospace}
+.nav-group{margin:14px 10px 6px;color:var(--text-dim);font:600 .7rem 'JetBrains Mono',monospace}
+.nav-item{width:100%;padding:11px 13px;margin:2px 0;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left;font-size:.9rem;font-weight:600}
+.nav-item i{width:18px;text-align:center}
+.nav-item:hover{background:var(--surface-hover);color:var(--text);border-color:var(--border)}
+.nav-item.active{color:var(--accent);background:rgba(var(--accent-rgb),.1);border-color:rgba(var(--accent-rgb),.3)}
+.nav-badge{margin-left:auto;min-width:22px;padding:2px 7px;border-radius:999px;background:var(--accent);color:#000;font:800 .7rem 'JetBrains Mono',monospace;text-align:center}
+.nav-badge[hidden]{display:none}
+.sidebar-footer{margin-top:auto;padding:14px 10px 2px;border-top:1px solid var(--border);color:var(--text-dim);font:.72rem 'JetBrains Mono',monospace;line-height:1.9}
+.dot{display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:var(--accent)}
+.dot.off{background:var(--danger)}
+.content{position:relative;z-index:1;flex:1;min-width:0;height:100vh;padding:34px clamp(20px,3.5vw,48px) 60px;overflow-y:auto;background:radial-gradient(ellipse at top right,rgba(var(--accent-rgb),.06),transparent 40%)}
+.tab-content{display:none;width:100%;max-width:1240px;margin:auto;animation:fadeIn .22s ease}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.page-kicker{margin-bottom:8px;color:var(--accent);font:700 .72rem 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase}
+h2{margin:0 0 8px;font-size:clamp(1.5rem,2vw,1.95rem);letter-spacing:-.7px;font-weight:800}
+.page-description{margin:0;max-width:64ch;color:var(--text-dim);line-height:1.6}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;gap:8px;padding:7px 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text-dim);font:600 .76rem 'JetBrains Mono',monospace}
+.pill b{color:var(--accent)}
+.split{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:22px;align-items:start}
+.panel{padding:clamp(18px,2.5vw,26px);margin:0 0 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.panel-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.panel-icon{width:36px;height:36px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(var(--accent-rgb),.12);border:1px solid rgba(var(--accent-rgb),.3);color:var(--accent)}
+.panel-head h3{margin:0;font-size:1.02rem}
+.panel-head p{margin:3px 0 0;color:var(--text-dim);font-size:.82rem;line-height:1.4}
+.grow{flex:1;min-width:0}
+.form-group{margin-bottom:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;margin-bottom:8px;color:var(--text-dim);font:600 .76rem 'JetBrains Mono',monospace}
+.help{margin-top:6px;color:var(--text-dim);font-size:.78rem;line-height:1.4}
+input,textarea,select{display:block;width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:.92rem}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.12)}
+textarea{resize:vertical;min-height:96px;line-height:1.55}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:10px 18px;border:0;border-radius:8px;background:var(--accent);color:#000;cursor:pointer;font-size:.85rem;font-weight:700}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-ghost-danger{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
+.btn-ghost-danger:hover{border-color:var(--danger);color:var(--danger)}
+.btn-sm{min-height:32px;padding:6px 12px;font-size:.78rem}
+.btn-block{width:100%}
+.button-row{display:flex;flex-wrap:wrap;gap:10px}
+.muted{color:var(--text-dim)}
+.empty-msg{margin:0;padding:34px 20px;text-align:center;color:var(--text-dim);border:1px dashed var(--border-active);border-radius:var(--radius);line-height:1.6}
+.empty-msg i{display:block;margin-bottom:10px;font-size:1.5rem;opacity:.6}
+.error-msg{color:#f87171}
+.filled-banner{display:none;align-items:center;gap:10px;margin-bottom:18px;padding:11px 13px;border-radius:9px;border:1px solid rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.08);font-size:.84rem}
+.filled-banner.show{display:flex}
+.filled-banner span{flex:1;min-width:0}
+.req-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;padding:3px;background:var(--bg);border:1px solid var(--border);border-radius:9px}
+.seg button{padding:7px 12px;border:0;border-radius:7px;background:transparent;color:var(--text-dim);font-size:.78rem;font-weight:600;cursor:pointer}
+.seg button[aria-pressed=true]{background:rgba(var(--accent-rgb),.13);color:var(--accent)}
+.seg em{margin-left:6px;font:700 .7rem 'JetBrains Mono',monospace;font-style:normal}
+.req-tools select{width:auto;padding:8px 12px;font-size:.8rem}
+.req-tools .search{flex:1 1 140px;min-width:120px;padding:8px 12px;font-size:.82rem}
+#req-list{display:flex;flex-direction:column;gap:10px;max-height:68vh;overflow-y:auto;padding-right:4px}
+.rq{display:grid;grid-template-columns:54px minmax(0,1fr);gap:14px;padding:14px;background:var(--surface-card);border:1px solid var(--border);border-radius:10px}
+.rq.added{border-color:rgba(var(--accent-rgb),.35)}
+.rq.rejected{opacity:.65}
+.rq-score{align-self:start;padding:8px 0;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:9px}
+.rq-score strong{display:block;font:800 1.1rem 'JetBrains Mono',monospace}
+.rq-score .pos{color:var(--accent)}.rq-score .neg{color:var(--danger)}
+.rq-score small{display:block;margin-top:4px;color:var(--text-dim);font:.66rem 'JetBrains Mono',monospace}
+.rq h4{margin:0 0 4px;font-size:.98rem;overflow-wrap:anywhere}
+.rq-rank{margin-right:8px;color:var(--accent);font:800 .8rem 'JetBrains Mono',monospace}
+.rq-note{margin:0 0 8px;color:var(--text-dim);font-size:.86rem;line-height:1.5}
+.rq-meta{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--text-dim);font-size:.76rem}
+.rq-meta a{color:var(--accent)}
+.rq-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{display:inline-flex;gap:6px;margin-left:8px;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700}
+.tag.added{color:var(--accent);border:1px solid rgba(var(--accent-rgb),.35)}
+.tag.rejected{color:#f87171;border:1px solid rgba(239,68,68,.35)}
+.cl-preview{padding:16px;background:var(--surface-card);border:1px solid var(--border);border-radius:10px}
+.cl-preview .head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:6px}
+.cl-ver{padding:3px 9px;border-radius:6px;background:rgba(var(--accent-rgb),.13);color:var(--accent);font:800 .76rem 'JetBrains Mono',monospace}
+.cl-preview p{margin:0 0 12px;color:var(--text-dim);font-size:.86rem}
+.cl-body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.86rem;line-height:1.6;max-height:340px;overflow-y:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.stat-box{padding:16px;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:10px}
+.stat-box .num{font:800 1.8rem 'JetBrains Mono',monospace;color:var(--accent)}
+.stat-box .lbl{margin-top:4px;font-size:.78rem;color:var(--text-dim)}
+.sweep-status{display:none;padding:10px 14px;border-radius:8px;margin-top:14px;font-weight:600;font-size:.86rem}
+.entry-list,#reports-container,#memorial-entries-container{display:flex;flex-direction:column;gap:12px}
+.entry-card{display:flex;gap:15px;align-items:flex-start;min-width:0;padding:16px;background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius)}
+.entry-card.removed{border-color:var(--danger);opacity:.7}
+.entry-card h3,.entry-card h4{margin:0 0 5px;color:var(--accent);overflow-wrap:anywhere}
+.entry-card p{margin:5px 0 0;font-size:.86rem;color:var(--text-dim);overflow-wrap:anywhere}
+.entry-card img{width:60px;height:60px;border-radius:8px;object-fit:cover;background:#000;border:1px solid var(--border)}
+.status-msg{position:fixed;right:24px;bottom:24px;z-index:100;max-width:min(420px,calc(100vw - 48px));display:none;padding:13px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface-card);box-shadow:var(--shadow);font-size:.88rem;font-weight:600;line-height:1.4}
+@media(max-width:1080px){.split{grid-template-columns:1fr}}
+@media(max-width:760px){body{overflow:auto;height:auto;min-height:100vh;flex-direction:column}.sidebar{width:100%;min-width:0;height:auto;padding:14px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px}.sidebar-header{width:100%;margin-bottom:8px;padding-bottom:14px}.nav-group,.sidebar-footer{display:none}.nav-item{width:auto;flex:1 0 140px}.content{height:auto;min-height:70vh;padding:24px 16px 60px}}
+@media(max-width:560px){.grid-2{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+
+<aside class="sidebar">
+ <div class="sidebar-header">
+  <img class="brand-icon" src="Fluxlogo.svg" alt="Flux logo" onerror="this.style.display='none'">
+  <div class="brand-copy">Flux <small>// control center</small></div>
+ </div>
+ <div class="nav-group">Library</div>
+ <button class="nav-item active" data-tab="tab-games"><i class="fa-solid fa-gamepad"></i> Game Manager <span class="nav-badge" id="badge-requests" hidden>0</span></button>
+ <button class="nav-item" data-tab="tab-records"><i class="fa-solid fa-trophy"></i> Record Setter</button>
+ <button class="nav-item" data-tab="tab-changelog"><i class="fa-solid fa-list-check"></i> Changelog</button>
+ <div class="nav-group">Community</div>
+ <button class="nav-item" data-tab="tab-memorial"><i class="fa-solid fa-dove"></i> Memorial Manager</button>
+ <button class="nav-item" data-tab="tab-reports"><i class="fa-solid fa-flag"></i> Reports</button>
+ <div class="sidebar-footer"><span class="dot" id="conn-dot"></span><span id="conn-label">Connecting…</span><br>Flux admin tools</div>
+</aside>
+
+<main class="content">
+<section id="tab-games" class="tab-content active">
+ <div class="page-head">
+  <div><div class="page-kicker">Library / Catalog</div><h2>Game manager</h2><p class="page-description">Add games to the Flux library and review player requests. Requests with the most votes appear first.</p></div>
+  <div class="chip-row"><span class="pill">Pending <b id="pill-pending">0</b></span><span class="pill">Added <b id="pill-added">0</b></span></div>
+ </div>
+ <div class="split">
+  <div class="panel">
+   <div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-circle-plus"></i></div><div class="grow"><h3>Add a game</h3><p>Save a new entry directly to Flux's game data.</p></div></div>
+   <div class="filled-banner" id="filled-banner"><i class="fa-solid fa-link"></i><span id="filled-text"></span><button class="btn btn-secondary btn-sm" id="btn-clear-filled">Clear</button></div>
+   <div class="form-group"><label for="game-name">Game name</label><input id="game-name" placeholder="e.g. RetroActive"></div>
+   <div class="grid-2">
+    <div class="form-group"><label for="game-file">HTML file path</label><input id="game-file" placeholder="games/mygame.html"></div>
+    <div class="form-group"><label for="game-thumb">Thumbnail path</label><input id="game-thumb" placeholder="assets/thumb.png"></div>
+   </div>
+   <div class="form-group"><label for="game-desc">Description</label><textarea id="game-desc" rows="4" placeholder="A short description..."></textarea></div>
+   <button class="btn btn-block" id="btn-send-game"><i class="fa-solid fa-floppy-disk"></i> Save game entry</button>
+  </div>
+  <div class="panel">
+   <div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-inbox"></i></div><div class="grow"><h3>Game requests</h3><p id="req-sub">Connecting to request queue…</p></div></div>
+   <div class="req-tools">
+    <div class="seg" id="req-filter" role="group" aria-label="Filter requests">
+     <button data-f="pending" aria-pressed="true">Pending<em id="n-pending">0</em></button>
+     <button data-f="added" aria-pressed="false">Added<em id="n-added">0</em></button>
+     <button data-f="rejected" aria-pressed="false">Rejected<em id="n-rejected">0</em></button>
+     <button data-f="all" aria-pressed="false">All</button>
+    </div>
+    <select id="req-sort" aria-label="Sort requests"><option value="top">Most wanted</option><option value="new">Newest</option></select>
+    <input class="search" id="req-search" type="search" placeholder="Search requests">
+   </div>
+   <div id="req-list"><p class="empty-msg"><i class="fa-solid fa-spinner fa-spin"></i>Loading requests…</p></div>
+  </div>
+ </div>
+</section>
+
+<section id="tab-records" class="tab-content">
+ <div class="page-head"><div><div class="page-kicker">Records / Leaderboard</div><h2>Record setter</h2><p class="page-description">Update the player and score shown for a game on the Flux records page.</p></div></div>
+ <div class="panel" style="max-width:640px">
+  <div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-trophy"></i></div><div class="grow"><h3>New high score</h3><p>The game name should match the record entry in recordsdata.js.</p></div></div>
+  <div class="form-group"><label for="rec-name">Game name</label><input id="rec-name" placeholder="RetroActive"></div>
+  <div class="grid-2"><div class="form-group"><label for="rec-player">Player name</label><input id="rec-player"></div><div class="form-group"><label for="rec-score">New high score</label><input id="rec-score" type="number"></div></div>
+  <button class="btn" id="btn-send-record"><i class="fa-solid fa-trophy"></i> Save record</button>
+ </div>
+</section>
+
+<section id="tab-changelog" class="tab-content">
+ <div class="page-head"><div><div class="page-kicker">Release notes</div><h2>Publish a Flux update</h2><p class="page-description">Write the version, summary and full changelog.</p></div></div>
+ <div class="split" style="grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr)">
+  <div class="panel">
+   <div class="grid-2"><div class="form-group"><label for="cl-v">Version number</label><input id="cl-v" placeholder="3.0.0"></div><div class="form-group"><label for="cl-title">Update title</label><input id="cl-title" placeholder="The Flux Update"></div></div>
+   <div class="form-group"><label for="cl-mini">Mini description</label><input id="cl-mini" placeholder="Added games and fixed bugs."></div>
+   <div class="form-group"><label for="cl-large">Full changelog</label><textarea id="cl-large" rows="14" placeholder="Paste your formatted list here…"></textarea><div class="help">Line breaks are preserved.</div></div>
+   <button class="btn" id="btn-send-changelog"><i class="fa-solid fa-paper-plane"></i> Publish changelog</button>
+  </div>
+  <div class="panel"><div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-eye"></i></div><div class="grow"><h3>Preview</h3><p>Updates as you type.</p></div></div><div class="cl-preview" id="cl-preview"></div></div>
+ </div>
+</section>
+
+<section id="tab-memorial" class="tab-content">
+ <div class="page-head"><div><div class="page-kicker">Community / Moderation</div><h2>Memorial manager</h2><p class="page-description">Review memorial entries and run the content-moderation sweep.</p></div></div>
+ <div class="split" style="grid-template-columns:minmax(300px,440px) minmax(0,1fr)">
+  <div>
+   <div class="panel"><div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-robot"></i></div><div class="grow"><h3>Content moderation</h3><p>Scan memorial entries for threats and hateful content.</p></div></div><div class="button-row"><button class="btn btn-danger" id="btn-run-ai-sweep"><i class="fa-solid fa-robot"></i> Run AI sweep</button><button class="btn btn-secondary" id="btn-refresh-entries"><i class="fa-solid fa-rotate"></i> Refresh entries</button></div><div id="ai-sweep-status" class="sweep-status"></div></div>
+   <div class="panel"><div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-chart-simple"></i></div><div class="grow"><h3>Statistics</h3></div></div><div class="stats-grid"><div class="stat-box"><div class="num" id="stat-total-entries">0</div><div class="lbl">Total entries</div></div><div class="stat-box"><div class="num" id="stat-removed-by-ai">0</div><div class="lbl">Removed by AI</div></div><div class="stat-box"><div class="num" id="stat-pending-reports">0</div><div class="lbl">Pending reports</div></div></div></div>
+  </div>
+  <div id="memorial-entries-container"><p class="empty-msg">Loading memorial entries…</p></div>
+ </div>
+</section>
+
+<section id="tab-reports" class="tab-content">
+ <div class="page-head"><div><div class="page-kicker">Community / Reports</div><h2>Game reports</h2><p class="page-description">Review reports submitted by players and take appropriate action.</p></div></div>
+ <div id="reports-container"><p class="empty-msg">Loading reports…</p></div>
+</section>
+</main>
+
+<div id="global-status" class="status-msg" role="status"></div>
+
+<script>
+/* ---------- Theme and status ---------- */
+
+const fluxBridge = window.fluxAPI || null;
+
+function showStatus(message, isError = false) {
+    const el = document.getElementById('global-status');
+    el.textContent = message;
+    el.style.display = 'block';
+    el.style.background = isError ? 'rgba(239,68,68,.14)' : 'var(--surface-card)';
+    el.style.color = isError ? '#f87171' : 'var(--text)';
+    el.style.border = isError
+        ? '1px solid rgba(239,68,68,.5)'
+        : '1px solid rgba(var(--accent-rgb),.45)';
+
+    clearTimeout(showStatus.timer);
+    showStatus.timer = setTimeout(
+        () => el.style.display = 'none',
+        isError ? 6000 : 3500
+    );
+}
+
+function applyFluxTheme() {
+    let config = {};
+    try {
+        config = JSON.parse(localStorage.getItem('flux_config') || '{}');
+    } catch (_) {}
+
+    const root = document.documentElement;
+
+    const toRgb = hex => {
+        const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+        return match
+            ? `${parseInt(match[1],16)}, ${parseInt(match[2],16)}, ${parseInt(match[3],16)}`
+            : null;
+    };
+
+    if (config.accent && toRgb(config.accent)) {
+        root.style.setProperty('--accent', config.accent);
+        root.style.setProperty('--accent-rgb', toRgb(config.accent));
+    }
+    if (config.bg) root.style.setProperty('--bg', config.bg);
+    if (config.cardBg) {
+        root.style.setProperty('--surface-card', config.cardBg);
+        root.style.setProperty('--card', config.cardBg);
+    }
+    if (config.borderColor) root.style.setProperty('--border', config.borderColor);
+    if (config.textColor) root.style.setProperty('--text', config.textColor);
+    if (config.uiScale) root.style.setProperty('--ui-scale', String(Number(config.uiScale) / 100));
+
+    window.__fluxParticles = config.particlesEnabled !== false;
+}
+
+applyFluxTheme();
+window.addEventListener('storage', event => {
+    if (event.key === 'flux_config') applyFluxTheme();
+});
+window.addEventListener('focus', applyFluxTheme);
+
+function setConn(ok, label) {
+    document.getElementById('conn-dot').classList.toggle('off', !ok);
+    document.getElementById('conn-label').textContent = label;
+}
+
+/* ---------- Load and save the actual Flux data files ---------- */
+
+let fluxDataReady = false;
+let fluxDataLoading = null;
+
+async function ensureFluxDataLoaded() {
+    if (fluxDataReady) return;
+
+    if (!window.fluxAPI ||
+        typeof window.fluxAPI.loadData !== 'function' ||
+        typeof window.fluxAPI.saveData !== 'function') {
+        throw new Error(
+            'Electron data API unavailable. Check preload.js and main.js.'
+        );
+    }
+
+    if (!fluxDataLoading) {
+        fluxDataLoading = window.fluxAPI.loadData()
+            .then(data => {
+                if (!data ||
+                    !Array.isArray(data.games) ||
+                    !Array.isArray(data.records) ||
+                    !Array.isArray(data.changelog)) {
+                    throw new Error('A data file is missing or does not contain an array.');
+                }
+
+                window.fluxGames = data.games;
+                window.fluxRecords = data.records;
+                window.fluxChangelog = data.changelog;
+                fluxDataReady = true;
+
+                setConn(true, 'Data files connected');
+            })
+            .catch(error => {
+                fluxDataLoading = null;
+                setConn(false, 'Data files unavailable');
+                throw error;
+            });
+    }
+
+    await fluxDataLoading;
+}
+
+async function saveFluxData(type, data) {
+    await ensureFluxDataLoaded();
+
+    const result = await window.fluxAPI.saveData(type, data);
+
+    if (result && result.success === false) {
+        throw new Error(result.message || 'The file could not be saved.');
+    }
+
+    return result;
+}
+
+/* ---------- Firebase request queue ---------- */
+
+let initializeApp, getFirestore, collection, getDocs, deleteDoc, doc;
+let query, orderBy, limit, onSnapshot, updateDoc, fbApp;
+let db, memorialCollection, firebaseLoaded = false;
+let reqItems = [], reqUnsub = null, reqFilter = 'pending', reqSort = 'top', reqSearch = '';
+let activeRequestId = null;
+
+const REQ_COLLECTION = 'game_requests';
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDcSoHg-3ZvmhF1N_ROn8yrpqfTfldZqDc",
+    authDomain: "aggw-themes.firebaseapp.com",
+    projectId: "aggw-themes",
+    storageBucket: "aggw-themes.firebasestorage.app",
+    messagingSenderId: "651619047980",
+    appId: "1:651619047980:web:e19cb52860f53aa29d4f89",
+    measurementId: "G-93Y4EWCLYL"
+};
+
+async function loadFirebase() {
+    if (firebaseLoaded) return true;
+
+    try {
+        if (!initializeApp) {
+            const appSdk = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js');
+            const fsSdk = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js');
+
+            ({ initializeApp } = appSdk);
+            ({
+                getFirestore, collection, getDocs, deleteDoc, doc,
+                query, orderBy, limit, onSnapshot, updateDoc
+            } = fsSdk);
+        }
+
+        fbApp = initializeApp(firebaseConfig);
+        db = getFirestore(fbApp);
+        memorialCollection = 'memorial_entries';
+        firebaseLoaded = true;
+        return true;
+    } catch (error) {
+        console.error('Failed to load Firebase:', error);
+        showStatus('Failed to load Firebase: ' + error.message, true);
+        return false;
+    }
+}
+
+function switchTab(tabId, button) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tabId)?.classList.add('active');
+    button?.classList.add('active');
+
+    if (tabId === 'tab-games') startRequests();
+    if (tabId === 'tab-reports') loadReports();
+    if (tabId === 'tab-memorial') loadMemorialEntries();
+}
+
+function keyOf(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function normReq(id, data) {
+    const created = data.createdAt && data.createdAt.toMillis
+        ? data.createdAt.toMillis()
+        : (typeof data.createdAt === 'number' ? data.createdAt : 0);
+
+    return {
+        id,
+        name: String(data.name || 'Untitled'),
+        link: String(data.link || ''),
+        note: String(data.note || ''),
+        requester: String(data.requester || 'Anonymous'),
+        up: Math.max(0, Number(data.up) || 0),
+        down: Math.max(0, Number(data.down) || 0),
+        status: ['added', 'rejected'].includes(data.status) ? data.status : 'pending',
+        createdAt: created
+    };
+}
+
+function timeAgo(ms) {
+    if (!ms) return 'just now';
+
+    const seconds = Math.max(1, Math.floor((Date.now() - ms) / 1000));
+    if (seconds < 60) return 'just now';
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
+
+    const days = Math.floor(hours / 24);
+    if (days < 30) return days + (days === 1 ? ' day ago' : ' days ago');
+
+    return new Date(ms).toLocaleDateString();
+}
+
+async function startRequests() {
+    if (reqUnsub) return;
+
+    if (!(await loadFirebase())) {
+        document.getElementById('req-sub').textContent = 'Could not reach Firebase.';
+        document.getElementById('req-list').innerHTML =
+            '<p class="empty-msg error-msg">Failed to load Firebase. Requests are unavailable.</p>';
+        setConn(false, 'Firebase offline');
+        return;
+    }
+
+    try {
+        const requestQuery = query(
+            collection(db, REQ_COLLECTION),
+            orderBy('createdAt', 'desc'),
+            limit(300)
+        );
+
+        reqUnsub = onSnapshot(requestQuery, snapshot => {
+            reqItems = snapshot.docs.map(item => normReq(item.id, item.data()));
+            renderRequests();
+        }, error => {
+            console.error('Request feed failed:', error);
+            reqUnsub = null;
+            document.getElementById('req-sub').textContent = 'The request queue could not be read.';
+            document.getElementById('req-list').innerHTML =
+                '<p class="empty-msg error-msg">Firestore refused to read requests. Check Firestore rules and permissions.</p>';
+        });
+    } catch (error) {
+        console.error('Could not start request feed:', error);
+        showStatus('Could not start request feed: ' + error.message, true);
+    }
+}
+
+function reqVisible() {
+    let list = reqItems.slice();
+
+    if (reqFilter !== 'all') {
+        list = list.filter(item => item.status === reqFilter);
+    }
+
+    if (reqSearch) {
+        const term = reqSearch.toLowerCase();
+        list = list.filter(item =>
+            item.name.toLowerCase().includes(term) ||
+            item.note.toLowerCase().includes(term) ||
+            item.requester.toLowerCase().includes(term)
+        );
+    }
+
+    if (reqSort === 'new') {
+        list.sort((a, b) => b.createdAt - a.createdAt);
+    } else {
+        list.sort((a, b) =>
+            (b.up - b.down) - (a.up - a.down) ||
+            b.up - a.up ||
+            a.createdAt - b.createdAt
+        );
+    }
+
+    return list;
+}
+
+function escapeHtml(value) {
+    const element = document.createElement('div');
+    element.textContent = String(value ?? '');
+    return element.innerHTML;
+}
+
+function renderRequests() {
+    const count = status => reqItems.filter(item => item.status === status).length;
+    const pending = count('pending');
+    const added = count('added');
+    const rejected = count('rejected');
+
+    document.getElementById('n-pending').textContent = pending;
+    document.getElementById('n-added').textContent = added;
+    document.getElementById('n-rejected').textContent = rejected;
+    document.getElementById('pill-pending').textContent = pending;
+    document.getElementById('pill-added').textContent = added;
+
+    const badge = document.getElementById('badge-requests');
+    badge.textContent = pending > 99 ? '99+' : pending;
+    badge.hidden = pending === 0;
+
+    document.getElementById('req-sub').textContent = reqItems.length
+        ? pending + (pending === 1 ? ' request' : ' requests') + ' waiting. Highest score first.'
+        : 'Nothing has been requested yet.';
+
+    document.querySelectorAll('#req-filter button').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.f === reqFilter));
+    });
+
+    const list = reqVisible();
+    const box = document.getElementById('req-list');
+
+    if (!list.length) {
+        const message = reqSearch
+            ? 'No requests match that search.'
+            : (reqItems.length
+                ? 'No ' + (reqFilter === 'all' ? '' : reqFilter + ' ') + 'requests here.'
+                : 'No requests yet.');
+
+        box.innerHTML = '<p class="empty-msg"><i class="fa-solid fa-inbox"></i>' +
+            escapeHtml(message) + '</p>';
+        return;
+    }
+
+    let rank = 0;
+
+    box.innerHTML = list.map(item => {
+        const score = item.up - item.down;
+        const isPending = item.status === 'pending';
+        if (isPending) rank++;
+
+        const showRank = reqSort === 'top' && isPending;
+
+        const link = /^https?:\/\//i.test(item.link)
+            ? '<a href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer">Game link</a>'
+            : '';
+
+        let actions = '';
+
+        if (isPending) {
+            actions =
+                '<button class="btn btn-sm" data-act="use">Use in form</button>' +
+                '<button class="btn btn-secondary btn-sm" data-act="added">Mark added</button>' +
+                '<button class="btn btn-ghost-danger btn-sm" data-act="rejected">Reject</button>';
+        } else {
+            actions = '<button class="btn btn-secondary btn-sm" data-act="pending">' +
+                (item.status === 'added' ? 'Reopen' : 'Restore') + '</button>';
+        }
+
+        actions += '<button class="btn btn-ghost-danger btn-sm" data-act="delete" title="Delete request"><i class="fa-solid fa-trash"></i></button>';
+
+        return '<article class="rq ' + item.status + '" data-id="' + escapeHtml(item.id) + '">' +
+            '<div class="rq-score"><strong class="' +
+            (score > 0 ? 'pos' : score < 0 ? 'neg' : '') + '">' + score +
+            '</strong><small>+' + item.up + ' / -' + item.down + '</small></div>' +
+            '<div><h4>' + (showRank ? '<span class="rq-rank">#' + rank + '</span>' : '') +
+            escapeHtml(item.name) +
+            (item.status === 'added' ? '<span class="tag added">Added</span>' : '') +
+            (item.status === 'rejected' ? '<span class="tag rejected">Rejected</span>' : '') +
+            '</h4>' +
+            (item.note ? '<p class="rq-note">' + escapeHtml(item.note) + '</p>' : '') +
+            '<div class="rq-meta"><span>By ' + escapeHtml(item.requester) +
+            '</span><span>' + escapeHtml(timeAgo(item.createdAt)) + '</span>' + link + '</div>' +
+            '<div class="rq-actions">' + actions + '</div></div></article>';
+    }).join('');
+}
+
+function reqError(error, operation) {
+    console.error(operation + ' failed:', error);
+
+    if (error?.code === 'permission-denied') {
+        showStatus('Firestore permissions denied. Check your Firestore security rules.', true);
+    } else {
+        showStatus(operation + ' failed: ' + (error?.message || 'unknown error'), true);
+    }
+}
+
+async function setRequestStatus(id, status, quiet = false) {
+    if (!(await loadFirebase())) return false;
+
+    try {
+        await updateDoc(doc(db, REQ_COLLECTION, id), { status });
+
+        if (!quiet) {
+            showStatus(
+                status === 'added' ? 'Marked as added'
+                : status === 'rejected' ? 'Request rejected'
+                : 'Request moved back to pending'
+            );
+        }
+
+        return true;
+    } catch (error) {
+        reqError(error, 'Updating the request');
+        return false;
+    }
+}
+
+async function deleteRequest(id) {
+    const item = reqItems.find(request => request.id === id);
+
+    if (!confirm('Delete the request for "' + (item?.name || 'this game') + '"? This cannot be undone.')) {
+        return;
+    }
+
+    if (!(await loadFirebase())) return;
+
+    try {
+        await deleteDoc(doc(db, REQ_COLLECTION, id));
+        if (activeRequestId === id) clearFilled();
+        showStatus('Request deleted');
+    } catch (error) {
+        reqError(error, 'Deleting the request');
+    }
+}
+
+function useRequest(id) {
+    const item = reqItems.find(request => request.id === id);
+    if (!item) return;
+
+    document.getElementById('game-name').value = item.name;
+    document.getElementById('game-desc').value = item.note;
+    activeRequestId = id;
+
+    document.getElementById('filled-text').textContent =
+        'Filled from the request for "' + item.name + '". It will be marked added when the game saves.';
+    document.getElementById('filled-banner').classList.add('show');
+
+    const file = document.getElementById('game-file');
+    file.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    file.focus();
+}
+
+function clearFilled() {
+    activeRequestId = null;
+    document.getElementById('filled-banner').classList.remove('show');
+}
+
+/* ---------- Game Manager: writes to data.js ---------- */
+
+async function sendGame() {
+    const button = document.getElementById('btn-send-game');
+    if (button.disabled) return;
+
+    const game = {
+        name: document.getElementById('game-name').value.trim(),
+        file: document.getElementById('game-file').value.trim(),
+        thumb: document.getElementById('game-thumb').value.trim(),
+        description: document.getElementById('game-desc').value.trim()
+    };
+
+    if (!game.name || !game.file) {
+        showStatus('Name and file are required!', true);
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        await ensureFluxDataLoaded();
+
+        const games = window.fluxGames;
+        const index = games.findIndex(item =>
+            String(item.file || '').toLowerCase() === game.file.toLowerCase()
+        );
+
+        if (index >= 0) {
+            if (!confirm('A game with this file path already exists. Update its entry?')) {
+                return;
+            }
+
+            games[index] = { ...games[index], ...game };
+        } else {
+            games.push(game);
+        }
+
+        await saveFluxData('games', games);
+
+        if (activeRequestId) {
+            const request = reqItems.find(item => item.id === activeRequestId);
+
+            if (request && keyOf(request.name) === keyOf(game.name)) {
+                const marked = await setRequestStatus(activeRequestId, 'added', true);
+                if (marked) clearFilled();
+            }
+        }
+
+        ['game-name', 'game-file', 'game-thumb', 'game-desc'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+
+        showStatus('Game saved successfully to data.js.');
+    } catch (error) {
+        console.error('Game save failed:', error);
+        showStatus('Could not save game: ' + error.message, true);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+/* ---------- Record Setter: writes to recordsdata.js ---------- */
+
+async function sendRecord() {
+    const button = document.getElementById('btn-send-record');
+    if (button.disabled) return;
+
+    const game = document.getElementById('rec-name').value.trim();
+    const player = document.getElementById('rec-player').value.trim();
+    const rawScore = document.getElementById('rec-score').value.trim();
+
+    if (!game || !player || rawScore === '') {
+        showStatus('Game, player, and score are required!', true);
+        return;
+    }
+
+    const score = Number(rawScore);
+
+    if (!Number.isFinite(score)) {
+        showStatus('Enter a valid numeric score.', true);
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        await ensureFluxDataLoaded();
+
+        const records = window.fluxRecords;
+
+        const index = records.findIndex(record =>
+            String(record.game || '').toLowerCase() === game.toLowerCase()
+        );
+
+        if (index >= 0) {
+            records[index] = {
+                ...records[index],
+                game,
+                score,
+                beatenBy: player,
+                date: new Date().toISOString().slice(0, 10)
+            };
+        } else {
+            records.push({
+                game,
+                score,
+                beatenBy: player,
+                date: new Date().toISOString().slice(0, 10),
+                image: '',
+                proof: ''
+            });
+        }
+
+        await saveFluxData('records', records);
+
+        document.getElementById('rec-name').value = '';
+        document.getElementById('rec-player').value = '';
+        document.getElementById('rec-score').value = '';
+
+        showStatus('Record saved successfully to recordsdata.js.');
+    } catch (error) {
+        console.error('Record save failed:', error);
+        showStatus('Could not save record: ' + error.message, true);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+/* ---------- Changelog: writes to changelogData.js ---------- */
+
+async function sendChangelog() {
+    const button = document.getElementById('btn-send-changelog');
+    if (button.disabled) return;
+
+    const entry = {
+        v: document.getElementById('cl-v').value.trim(),
+        name: document.getElementById('cl-title').value.trim(),
+        mini: document.getElementById('cl-mini').value.trim(),
+        large: document.getElementById('cl-large').value
+    };
+
+    if (!entry.v || !entry.large.trim()) {
+        showStatus('Version and detailed changelog are required!', true);
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        await ensureFluxDataLoaded();
+
+        const changelog = window.fluxChangelog;
+        const index = changelog.findIndex(item => String(item.v) === entry.v);
+
+        if (index >= 0) {
+            if (!confirm('This version already exists. Replace its changelog entry?')) {
+                return;
+            }
+
+            changelog[index] = { ...changelog[index], ...entry };
+        } else {
+            changelog.unshift(entry);
+        }
+
+        await saveFluxData('changelog', changelog);
+
+        ['cl-v', 'cl-title', 'cl-mini', 'cl-large'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+
+        updateChangelogPreview();
+        showStatus('Changelog saved successfully to changelogData.js.');
+    } catch (error) {
+        console.error('Changelog save failed:', error);
+        showStatus('Could not publish changelog: ' + error.message, true);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+/* ---------- Reports ---------- */
+
+function loadReports() {
+    const container = document.getElementById('reports-container');
+    let reports = [];
+
+    try {
+        reports = JSON.parse(localStorage.getItem('aggw_reports') || '[]');
+    } catch (error) {
+        console.error(error);
+    }
+
+    const pending = reports.filter(report => report.status === 'pending');
+
+    if (!pending.length) {
+        container.innerHTML = '<p class="empty-msg">No pending reports found.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+
+    const labels = {
+        offensive: 'Offensive Content',
+        doesnt_work: "Doesn't Work",
+        sexual: 'Sexual Content',
+        copyright: 'Copyright Violation',
+        other: 'Other'
+    };
+
+    pending.forEach(report => {
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+
+        const gameThumb = escapeHtml(report.gameThumb || 'Fluxlogo.svg');
+        const gameName = escapeHtml(report.gameName || 'Unknown game');
+        const reason = escapeHtml(labels[report.reason] || report.reason || 'Unknown');
+        const reporter = escapeHtml(report.reporter || 'Unknown');
+        const date = escapeHtml(new Date(report.timestamp).toLocaleString());
+        const details = report.details
+            ? '<p>Details: ' + escapeHtml(report.details) + '</p>'
+            : '';
+        const actionLabel = report.reason === 'doesnt_work'
+            ? 'Delete Temporarily'
+            : 'Delete Permanently';
+
+        card.innerHTML =
+            '<img src="' + gameThumb + '" alt="" onerror="this.style.visibility=\'hidden\'">' +
+            '<div class="grow"><h3>' + gameName + '</h3>' +
+            '<p>Reason: ' + reason + '</p>' +
+            '<p>Reported by: ' + reporter + '</p>' +
+            '<p>Date: ' + date + '</p>' + details +
+            '<div class="button-row" style="margin-top:15px">' +
+            '<button class="btn btn-secondary btn-sm ignore-report-btn" data-report-id="' +
+            escapeHtml(report.id) + '">Ignore Report</button>' +
+            '<button class="btn btn-danger btn-sm delete-report-btn" data-report-id="' +
+            escapeHtml(report.id) + '">' + actionLabel + '</button></div></div>';
+
+        container.appendChild(card);
+    });
+}
+
+function ignoreReport(id) {
+    let reports = [];
+
+    try {
+        reports = JSON.parse(localStorage.getItem('aggw_reports') || '[]');
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    const index = reports.findIndex(report => String(report.id) === String(id));
+    if (index < 0) return;
+
+    reports[index].status = 'ignored';
+    localStorage.setItem('aggw_reports', JSON.stringify(reports));
+    loadReports();
+    showStatus('Report ignored');
+}
+
+function deleteGameFromReport(id) {
+    let reports = [];
+
+    try {
+        reports = JSON.parse(localStorage.getItem('aggw_reports') || '[]');
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    const report = reports.find(item => String(item.id) === String(id));
+    if (!report) return;
+
+    const key = report.reason === 'doesnt_work'
+        ? 'aggw_commented_games'
+        : 'aggw_deleted_games';
+
+    let games = [];
+    try {
+        games = JSON.parse(localStorage.getItem(key) || '[]');
+    } catch (_) {}
+
+    if (!games.includes(report.gameFile)) games.push(report.gameFile);
+    localStorage.setItem(key, JSON.stringify(games));
+
+    report.status = report.reason === 'doesnt_work' ? 'temp_deleted' : 'deleted';
+    localStorage.setItem('aggw_reports', JSON.stringify(reports));
+
+    loadReports();
+    showStatus(report.reason === 'doesnt_work'
+        ? 'Game temporarily marked deleted'
+        : 'Game marked permanently deleted');
+}
+
+/* ---------- Memorial manager ---------- */
+
+async function loadMemorialEntries() {
+    const container = document.getElementById('memorial-entries-container');
+    container.innerHTML = '<p class="empty-msg">Loading memorial entries…</p>';
+
+    if (!(await loadFirebase())) {
+        container.innerHTML = '<p class="empty-msg error-msg">Failed to load Firebase.</p>';
+        return;
+    }
+
+    try {
+        const snapshot = await getDocs(collection(db, memorialCollection));
+        const entries = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+
+        document.getElementById('stat-total-entries').textContent = entries.length;
+        document.getElementById('stat-removed-by-ai').textContent =
+            entries.filter(entry => entry.removedByAI).length;
+
+        let reports = [];
+        try {
+            reports = JSON.parse(localStorage.getItem('aggw_memorial_reports') || '[]');
+        } catch (_) {}
+
+        document.getElementById('stat-pending-reports').textContent =
+            reports.filter(report => report.status === 'pending').length;
+
+        if (!entries.length) {
+            container.innerHTML = '<p class="empty-msg">No memorial entries found.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        entries.forEach(entry => {
+            const card = document.createElement('div');
+            card.className = 'entry-card' + (entry.removedByAI ? ' removed' : '');
+
+            const added = entry.addedAt
+                ? new Date(entry.addedAt).toLocaleString()
+                : 'Unknown';
+
+            card.innerHTML =
+                '<div class="grow"><h4>' + escapeHtml(entry.name || 'Unnamed') + '</h4>' +
+                '<p>' + escapeHtml(entry.note || 'No message') + '</p>' +
+                '<p>Added: ' + escapeHtml(added) + '</p>' +
+                (entry.removedByAI ? '<p class="error-msg">Removed by moderation</p>' : '') +
+                '</div><div class="button-row">' +
+                '<button class="btn btn-danger btn-sm" data-entry-id="' +
+                escapeHtml(entry.id) + '"><i class="fa-solid fa-trash"></i> Delete</button>' +
+                '</div>';
+
+            container.appendChild(card);
+        });
+    } catch (error) {
+        console.error(error);
+        container.innerHTML =
+            '<p class="empty-msg error-msg">Failed to load entries: ' +
+            escapeHtml(error.message) + '</p>';
+    }
+}
+
+async function deleteMemorialEntry(id) {
+    if (!confirm('Are you sure you want to delete this memorial entry?')) return;
+    if (!(await loadFirebase())) {
+        showStatus('Firebase not loaded', true);
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, memorialCollection, id));
+        showStatus('Memorial entry deleted');
+        await loadMemorialEntries();
+    } catch (error) {
+        showStatus('Failed to delete entry: ' + error.message, true);
+    }
+}
+
+function detectHateSpeechPatterns(text) {
+    const value = String(text || '').toLowerCase();
+
+    const patterns = [
+        /\b(all |every |these )+(people|folks|humans|ones)+\s+(should|must|need to|deserve to)\s+(die|be killed|be eliminated|go away)/i,
+        /\b(i hate|i despise|i loathe)\s+(all|every|these)\s+(people|folks|humans|ones)/i,
+        /\b(white power|black power|race war|ethnic cleansing|neo.nazi|supremacist)/i,
+        /\b(kill|murder|shoot|lynch|hang)\s+(them|all|everyone|these people)/i
+    ];
+
+    return patterns.some(pattern => pattern.test(value));
+}
+
+function detectThreats(text) {
+    const value = String(text || '').toLowerCase();
+
+    return [
+        /\b(i will|i'm going to|i plan to)\s+(kill|murder|hurt|harm|attack|shoot|bomb)/i,
+        /\b(destroy|eliminate|exterminate)\s+(all|everyone|them|these people)/i,
+        /\b(death to|kill all|murder all)\s+(them|everyone|these)/i,
+        /\b(make them (die|suffer|pay|burn))/i
+    ].some(pattern => pattern.test(value));
+}
+
+async function runAISweep() {
+    const button = document.getElementById('btn-run-ai-sweep');
+    if (button.disabled) return;
+
+    if (!confirm('Run the moderation sweep? Flagged memorial entries will be permanently deleted.')) {
+        return;
+    }
+
+    button.disabled = true;
+
+    const status = document.getElementById('ai-sweep-status');
+    status.style.display = 'block';
+    status.textContent = 'Running moderation sweep…';
+
+    try {
+        if (!(await loadFirebase())) throw new Error('Failed to load Firebase');
+
+        const snapshot = await getDocs(collection(db, memorialCollection));
+        const entries = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+
+        let removed = 0;
+        let processed = 0;
+
+        for (const entry of entries) {
+            processed++;
+            status.textContent = `Processing ${processed}/${entries.length} entries…`;
+
+            if (entry.removedByAI) continue;
+
+            if (
+                detectHateSpeechPatterns(entry.name) ||
+                detectThreats(entry.name) ||
+                detectHateSpeechPatterns(entry.note) ||
+                detectThreats(entry.note)
+            ) {
+                await deleteDoc(doc(db, memorialCollection, entry.id));
+                removed++;
+            }
+        }
+
+        status.textContent = `Sweep complete. Removed ${removed} flagged entries.`;
+        showStatus(`Moderation sweep complete: ${removed} entries removed`);
+        await loadMemorialEntries();
+    } catch (error) {
+        console.error(error);
+        status.textContent = 'Sweep failed: ' + error.message;
+        showStatus('Sweep failed: ' + error.message, true);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+/* ---------- Changelog preview ---------- */
+
+function updateChangelogPreview() {
+    const version = document.getElementById('cl-v').value.trim();
+    const title = document.getElementById('cl-title').value.trim();
+    const mini = document.getElementById('cl-mini').value.trim();
+    const large = document.getElementById('cl-large').value;
+
+    document.getElementById('cl-preview').innerHTML =
+        '<div class="head"><span class="cl-ver">v' + escapeHtml(version || '0.0.0') +
+        '</span><strong>' + escapeHtml(title || 'Untitled update') + '</strong></div>' +
+        '<p>' + escapeHtml(mini || 'The mini description appears on the home screen.') + '</p>' +
+        '<div class="cl-body">' + escapeHtml(large || 'The full changelog appears here.') + '</div>';
+}
+
+/* ---------- Event listeners ---------- */
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.nav-item').forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab, button));
+    });
+
+    document.getElementById('btn-send-game').addEventListener('click', sendGame);
+    document.getElementById('btn-send-record').addEventListener('click', sendRecord);
+    document.getElementById('btn-send-changelog').addEventListener('click', sendChangelog);
+    document.getElementById('btn-run-ai-sweep').addEventListener('click', runAISweep);
+    document.getElementById('btn-refresh-entries').addEventListener('click', loadMemorialEntries);
+
+    document.getElementById('memorial-entries-container').addEventListener('click', event => {
+        const button = event.target.closest('button[data-entry-id]');
+        if (button) deleteMemorialEntry(button.dataset.entryId);
+    });
+
+    document.getElementById('reports-container').addEventListener('click', event => {
+        const button = event.target.closest('button[data-report-id]');
+        if (!button) return;
+
+        if (button.classList.contains('ignore-report-btn')) {
+            ignoreReport(button.dataset.reportId);
+        }
+        if (button.classList.contains('delete-report-btn')) {
+            deleteGameFromReport(button.dataset.reportId);
+        }
+    });
+
+    document.getElementById('req-filter').addEventListener('click', event => {
+        const button = event.target.closest('button[data-f]');
+        if (!button) return;
+
+        reqFilter = button.dataset.f;
+        renderRequests();
+    });
+
+    document.getElementById('req-sort').addEventListener('change', event => {
+        reqSort = event.target.value;
+        renderRequests();
+    });
+
+    document.getElementById('req-search').addEventListener('input', event => {
+        reqSearch = event.target.value.trim();
+        renderRequests();
+    });
+
+    document.getElementById('req-list').addEventListener('click', event => {
+        const button = event.target.closest('button[data-act]');
+        const card = button?.closest('.rq');
+
+        if (!button || !card) return;
+
+        const id = card.dataset.id;
+        const action = button.dataset.act;
+
+        if (action === 'use') {
+            useRequest(id);
+        } else if (action === 'delete') {
+            deleteRequest(id);
+        } else {
+            setRequestStatus(id, action);
+        }
+    });
+
+    document.getElementById('btn-clear-filled').addEventListener('click', () => {
+        clearFilled();
+        ['game-name', 'game-desc'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+    });
+
+    ['cl-v', 'cl-title', 'cl-mini', 'cl-large'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateChangelogPreview);
+    });
+
+    updateChangelogPreview();
+    loadReports();
+    startRequests();
+
+    ensureFluxDataLoaded().catch(error => {
+        console.error('Flux data loading failed:', error);
+        setConn(false, 'Data files unavailable');
+        showStatus('Could not load Flux data: ' + error.message, true);
+    });
+});
+
+/* ---------- Background particles ---------- */
+
+(function setupParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+
+    const context = canvas.getContext('2d');
+    let dots = [];
+
+    function build() {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+        dots = [];
+
+        for (let x = 0; x < canvas.width; x += 40) {
+            for (let y = 0; y < canvas.height; y += 40) {
+                dots.push([x, y]);
+            }
+        }
+
+        draw();
+    }
+
+    function draw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (window.__fluxParticles === false) return;
+
+        context.fillStyle = 'rgba(148,163,184,.12)';
+        dots.forEach(([x, y]) => context.fillRect(x, y, 1.5, 1.5));
+    }
+
+    addEventListener('resize', build);
+    addEventListener('focus', draw);
+    build();
+})();
+
+Object.assign(window, {
+    switchTab,
+    startRequests,
+    showStatus,
+    sendGame,
+    sendRecord,
+    sendChangelog,
+    loadReports,
+    ignoreReport,
+    deleteGameFromReport,
+    loadMemorialEntries,
+    deleteMemorialEntry,
+    runAISweep,
+    loadFluxData: ensureFluxDataLoaded,
+    saveFluxData
+});
+</script>
+</body>
+</html>
