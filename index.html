@@ -294,6 +294,38 @@
             overflow-y: auto;
         }
 
+/* Keep Flux's scrollbars in step with the selected theme. */
+@supports (-moz-appearance: none) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb), 0.55) var(--surface);
+    }
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--surface);
+    border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgba(var(--accent-rgb), 0.55);
+    border: 2px solid var(--surface);
+    border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+*::-webkit-scrollbar-button {
+    display: none;
+}
+
         .nav-item {
             display: flex;
             align-items: center;
