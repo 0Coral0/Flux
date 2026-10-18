@@ -6,6 +6,7 @@ StartLimitIntervalSec=0
 Type=simple
 WorkingDirectory=%h/Flux/proxy
 Environment=FLUX_SYSTEMD=1
+Environment=FLUX_AUTO_PUBLISH=1
 ExecStartPre=/usr/bin/mkdir -p %h/Flux/proxy/.runtime
 ExecStart=/usr/bin/flock --no-fork --nonblock %h/Flux/proxy/.runtime/service.lock /usr/bin/node %h/Flux/proxy/tunnel-launcher.mjs
 Restart=always

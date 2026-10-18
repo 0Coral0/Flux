@@ -1719,7 +1719,11 @@ main { min-width: 0; }
 
         <main tabindex="-1" aria-label="Page content">
             <div id="view-browser" class="container">
-                <iframe id="flux-browser-frame" title="Flux Browser" referrerpolicy="no-referrer"></iframe>
+                <div id="flux-browser-tools" class="flux-browser-tools" hidden>
+                    <span>Having trouble signing in?</span>
+                    <a id="flux-browser-external" target="_blank" rel="noopener noreferrer">Open Browser in a new tab</a>
+                </div>
+                <iframe id="flux-browser-frame" title="Flux Browser" referrerpolicy="no-referrer" hidden></iframe>
                 <div id="flux-browser-setup" class="flux-browser-setup" hidden>
                     <h2>Browser service setup</h2>
                     <p>Connect the proxy service in js/browser-config.js to browse here.</p>

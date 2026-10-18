@@ -4,15 +4,14 @@ import { mkdir, readFile, writeFile, unlink, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
+import { browserConfig, publishAddress } from './address-publisher.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const repo = join(root, '..');
 const runtime = join(root, '.runtime');
 const binary = '/usr/local/bin/cloudflared';
 const config = JSON.parse(await readFile(join(root, 'tunnel-settings.local.json'), 'utf8'));
-if (process.env.FLUX_SYSTEMD === '1' && config.autoPublish !== false) {
-  throw new Error('The systemd service requires autoPublish to be false.');
-}
+const autoPublish = config.autoPublish === true || process.env.FLUX_AUTO_PUBLISH === '1';
 if (typeof config.accessCode !== 'string' || config.accessCode.trim().length < 16 || config.accessCode === 'REPLACE_WITH_A_LONG_RANDOM_PRIVATE_CODE') {
   throw new Error('Set a private accessCode of at least 16 characters in tunnel-settings.local.json (never commit it).');
 }
@@ -21,6 +20,7 @@ let stopping = false;
 let tunnel;
 let backend;
 let site;
+let publishQueue = Promise.resolve();
 await mkdir(runtime, { recursive: true });
 try {
   await access(binary, constants.X_OK);
@@ -69,30 +69,23 @@ async function waitForBackend(child) {
 }
 
 async function publish(origin) {
-  const relative = 'js/browser-config.js';
-  const value = `// Updated automatically by the PC-hosted proxy launcher.\nwindow.FLUX_BROWSER_ORIGIN = ${JSON.stringify(origin)};\n`;
-  await writeFile(join(repo, relative), value);
-  if (!config.autoPublish) {
-    console.log('Local Flux has been updated. GitHub auto-publishing is disabled.');
-    return false;
-  }
   try {
-    const branch = await run('git', ['branch', '--show-current']);
-    if (branch !== 'main') throw new Error('Automatic publishing is only enabled on main.');
-    await run('git', ['add', '--', relative]);
-    const changes = await run('git', ['diff', '--cached', '--name-only', '--', relative]);
-    if (changes) await run('git', ['commit', '--only', '-m', 'Update Flux proxy tunnel address', '--', relative]);
+    let remote = await run('git', ['remote', 'get-url', 'origin']);
+    let gitOptions = [];
     if (config.useDeployKey) {
       const key = join(root, '.tools', 'flux-tunnel-key').replaceAll('\\', '/');
       const hosts = join(root, '.tools', 'known_hosts').replaceAll('\\', '/');
-      await run('git', ['-c', `core.sshCommand=ssh -i "${key}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="${hosts}"`, 'push', 'git@github.com:0Coral0/Flux.git', 'HEAD:main']);
-    } else await run('git', ['push', 'origin', 'HEAD:main']);
-    console.log('New address pushed to GitHub. Vercel will use it after its deployment finishes.');
+      const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
+      remote = 'git@github.com:0Coral0/Flux.git';
+      gitOptions = ['-c', `core.sshCommand=ssh -i ${quote(key)} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ${quote(`UserKnownHostsFile=${hosts}`)}`];
+    }
+    const changed = await publishAddress({ repo, remote, origin, gitOptions });
+    console.log(changed ? 'New address pushed to GitHub. Vercel will use it after its deployment finishes.' : 'GitHub already has the current proxy address.');
     return true;
   } catch (error) {
     console.error('The proxy is running, but the live Flux address could not be updated.');
     console.error(error.message);
-    console.error('Sign in to GitHub, then push the current main branch. No force-push is performed.');
+    console.error('Check GitHub access; the launcher will retry automatically.');
     return false;
   }
 }
@@ -136,13 +129,33 @@ try {
       console.log(`Proxy address: ${origin}`);
       console.log('Open that address and sign in using your private access code.');
       console.log('Local Flux: http://127.0.0.1:3031/ — choose Browser.');
-      await publish(origin);
+      await writeFile(join(repo, 'js/browser-config.js'), browserConfig(origin));
+      const currentTunnel = tunnel;
+      let published = !autoPublish;
+      let publishing = false;
+      if (!autoPublish) console.log('Local Flux has been updated. GitHub auto-publishing is disabled.');
+      const sync = async () => {
+        if (published || publishing || stopping || tunnel.exitCode !== null) return;
+        publishing = true;
+        try {
+          const attempt = publishQueue.then(() => {
+            if (stopping || currentTunnel.exitCode !== null || tunnel !== currentTunnel) return false;
+            return publish(origin);
+          });
+          publishQueue = attempt.catch(() => {});
+          published = await attempt;
+        }
+        finally { publishing = false; }
+      };
+      await sync();
       console.log('Keep this launcher open. Press Ctrl+C to stop sharing.');
       const watch = setInterval(() => {
         if (stopping || backend.exitCode !== null) tunnel.kill();
       }, 1000);
+      const retryPublish = setInterval(sync, 30_000);
       if (tunnel.exitCode === null) await once(tunnel, 'exit');
       clearInterval(watch);
+      clearInterval(retryPublish);
     } catch (error) { console.error(error.message); }
     finally { backend?.kill(); tunnel?.kill(); }
     if (!stopping) { console.log('Reconnecting in 10 seconds...'); await pause(10000); }

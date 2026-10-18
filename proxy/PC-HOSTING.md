@@ -8,25 +8,25 @@ The launcher checks that `/usr/local/bin/cloudflared` is executable. It does not
 
 ## Access
 
-Copy `tunnel-settings.example.json` to `tunnel-settings.local.json` if needed, then enter your own long, random private `accessCode` (at least 16 characters). The example placeholder is rejected. Keep `autoPublish` and `useDeployKey` false for manual publishing. Restrict the file with `chmod 600 tunnel-settings.local.json`; it is ignored by Git and must never be committed. Open the printed proxy address directly and sign in with your private access code.
+Copy `tunnel-settings.example.json` to `tunnel-settings.local.json` if needed, then enter your own long, random private `accessCode` (at least 16 characters). The example placeholder is rejected. Restrict the file with `chmod 600 tunnel-settings.local.json`; it is ignored by Git and must never be committed. Open the printed proxy address directly and sign in with your private access code.
 
-Some browsers block sign-in inside an embedded frame. Complete sign-in at the proxy address first. If the embedded browser still cannot authenticate, use the direct proxy address in its own tab.
+Embedded sign-in uses a secure partitioned cookie. Browsers that do not support it may need the direct proxy address in a separate tab; the Flux Browser page provides a link.
 
 ## Updating the deployed Flux site
 
-With `autoPublish` enabled in the local settings, the launcher commits **only** `js/browser-config.js` and pushes `main` to the Flux GitHub repository. This assumes the initial Browser integration has already been committed and pushed. Other staged files are excluded from the address commit; all existing commits on main are included in the push. It does not force-push or merge remote changes automatically.
+The systemd service enables automatic publishing. For a manually started launcher, set `autoPublish` to `true` in the local settings to enable it. Set it to `false` for manual updates. The automatic publisher fetches the latest GitHub `main`, creates a commit changing **only** `js/browser-config.js`, and pushes that commit without force. It uses a separate temporary Git index, so local staged files, local commits and the checked-out branch are not included. It accepts only the `0Coral0/Flux` GitHub repository and a valid Quick Tunnel address. This assumes the initial Browser integration has already been deployed.
 
 When `useDeployKey` is enabled, the launcher uses the repository-specific SSH key at `proxy/.tools/flux-tunnel-key` and the verified GitHub host keys at `proxy/.tools/known_hosts`. The private key stays on this PC and is ignored by Git. Revoke it under the Flux repository's GitHub **Settings → Deploy keys** if the PC or key is compromised.
 
-When GitHub receives a new address commit, a connected Vercel Git deployment needs to finish before the new address appears on the live Flux site. Refresh Flux afterward. If publishing fails, the launcher keeps the proxy running and displays the error; sign in or resolve the Git issue and push main manually. Reopen the launcher to resume automated publishing after a fix.
+The Chromebook needs non-interactive GitHub write access to this repository; for GitHub CLI, sign in and run `gh auth setup-git` before starting the service. Branch protection can also prevent updates. When GitHub receives an address commit, the connected Vercel deployment needs to finish before it appears on the live site; an open Browser panel checks for the updated address every 30 seconds. If publishing fails, the proxy keeps running and retries every 30 seconds. Check the service logs and fix GitHub access if it continues failing.
 
 ## Stopping and restarting
 
 ### Debian systemd user service
 
-The unit in `systemd/flux-tunnel.service` is configured for `~/Flux/proxy` and `/usr/bin/node`. Install it in `~/.config/systemd/user/`, run `systemctl --user daemon-reload`, then `systemctl --user enable --now flux-tunnel.service`. Stop any manually launched copy first. The service supervises the existing launcher, which owns the preview, backend and cloudflared; do not enable a separate cloudflared service for the same proxy.
+The unit in `systemd/flux-tunnel.service` is configured for `~/Flux/proxy` and `/usr/bin/node`. Install or update it in `~/.config/systemd/user/`, run `systemctl --user daemon-reload`, then `systemctl --user enable --now flux-tunnel.service` (or restart the service if it was already running). Stop any manually launched copy first. The service supervises the existing launcher, which owns the preview, backend and cloudflared; do not enable a separate cloudflared service for the same proxy.
 
-The service restarts after exits with a 10-second delay, uses a nonblocking file lock plus the launcher's PID lock to prevent duplicate launchers, and stops the whole process group before restarting. A preview failure stops the launcher so systemd can recover it. Tunnel and backend failures are retried by the launcher. Service mode requires `autoPublish: false`. Private settings stay in the ignored local JSON file, outside the unit; new service files use a restrictive umask.
+The service restarts after exits with a 10-second delay, uses a nonblocking file lock plus the launcher's PID lock to prevent duplicate launchers, and stops the whole process group before restarting. A preview failure stops the launcher so systemd can recover it. Tunnel and backend failures are retried by the launcher. The service sets `FLUX_AUTO_PUBLISH=1`, enabling updates even if the local `autoPublish` setting is false; remove that environment setting from the installed unit and restart it to disable service publishing. Private settings stay in the ignored local JSON file, outside the unit; new service files use a restrictive umask.
 
 Use `systemctl --user status flux-tunnel.service` for status, `journalctl --user -u flux-tunnel.service -f` for logs, and `systemctl --user stop flux-tunnel.service` to stop sharing. Use `systemctl --user disable --now flux-tunnel.service` to stop sharing and disable startup. The current public URL is in `.runtime/current-address.txt` once the backend is ready; it changes when a Quick Tunnel is recreated. Logs use the host journal's retention policy and may not survive a Linux reboot if its journal is volatile.
 
