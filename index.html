@@ -241,10 +241,53 @@
         .brand-box {
             display: flex;
             align-items: center;
-            gap: 14px;
+            justify-content: space-between;
+            gap: 8px;
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border);
+        }
+
+        .brand-home {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            gap: 9px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            text-align: left;
             cursor: pointer;
+        }
+
+        .brand-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .header-action.nav-item {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            min-height: 36px;
+            padding: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .header-action img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
+
+        .header-action.nav-item.profile-shortcut {
+            border-radius: 50%;
         }
 
         .brand-logo-code {
@@ -272,14 +315,15 @@
             color: #fff;
         }
 
-        .brand-text h1 {
+        .brand-text .brand-name {
+            display: block;
             font-size: 1.05rem;
             font-weight: 700;
             margin: 0;
             letter-spacing: -0.2px;
         }
 
-        .brand-text span {
+        .brand-text .brand-subtitle {
             font-size: 0.72rem;
             color: var(--accent);
             font-family: 'JetBrains Mono', monospace;
@@ -1466,6 +1510,7 @@ main { min-width: 0; }
     .mobile-menu-close { display: grid; position: absolute; right: 16px; top: calc(20px + env(safe-area-inset-top, 0px)); }
     #flux-sidebar .nav-list { overflow: visible; flex: 1 0 auto; margin-top: 16px; padding-bottom: 16px; }
     #flux-sidebar .nav-item, #flux-sidebar .external-link { min-height: 44px; }
+    #flux-sidebar .header-action { min-height: 36px; }
     .mobile-menu-backdrop:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 30; border: 0; padding: 0; background: rgba(0, 0, 0, .65); backdrop-filter: blur(4px); cursor: pointer; }
     .container, .container > *, .settings-wrap, .tab-panel, .lounge-chat-pane, .msg-details { min-width: 0; }
     .module-banner, .movie-hero { padding: 24px; margin-bottom: 20px; }
@@ -1531,6 +1576,7 @@ main { min-width: 0; }
 }
 @media (max-width: 380px) {
     main { padding-left: 12px; padding-right: 12px; }
+    .brand-box .brand-subtitle { display: none; }
     .metrics-grid { grid-template-columns: 1fr; }
     .metric-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .metric-label { margin-bottom: 0; }
@@ -1614,46 +1660,50 @@ main { min-width: 0; }
         <button class="mobile-menu-backdrop" id="mobile-menu-backdrop" hidden tabindex="-1" aria-label="Close navigation menu"></button>
         <sidebar id="flux-sidebar" aria-label="Main navigation">
             <button class="mobile-icon-button mobile-menu-close" id="mobile-menu-close" aria-label="Close navigation menu"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-            <div class="brand-box" onclick="showPage('dashboard')">
-                <div class="brand-logo-code">
-                    <span class="prompt">></span><span class="letter">F</span>
-                </div>
-                <div class="brand-text">
-                    <h1>Flux<span style="color: #22c55e;">.</span></h1>
-                    <span class="unscramble" data-text="// gateway">// gateway</span>
+            <div class="brand-box">
+                <button class="brand-home" type="button" onclick="showPage('dashboard')" aria-label="Flux home">
+                    <span class="brand-logo-code" aria-hidden="true">
+                        <span class="prompt">&gt;</span><span class="letter">F</span>
+                    </span>
+                    <span class="brand-text">
+                        <span class="brand-name">Flux<span style="color: #22c55e;">.</span></span>
+                        <span class="brand-subtitle unscramble" data-text="// gateway">// gateway</span>
+                    </span>
+                </button>
+                <div class="brand-actions">
+                    <button class="nav-item header-action profile-shortcut" id="btn-account" type="button" onclick="showPage('account')" aria-label="Profile" title="Profile">
+                        <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    </button>
+                    <button class="nav-item header-action" id="btn-changelog" type="button" onclick="showPage('changelog')" aria-label="Changelog" title="Changelog">
+                        <i class="fas fa-history" aria-hidden="true"></i>
+                    </button>
                 </div>
             </div>
 
-            <nav class="nav-list">
+            <nav class="nav-list" aria-label="Pages">
+                <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')">
+                    <i class="fa-solid fa-house"></i> Dashboard
+                </button>
                 <button class="nav-item" id="btn-browser" onclick="showPage('browser')">
                     <i class="fa-solid fa-globe"></i> Browser
                 </button>
-                <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')">
-                    <i class="fas fa-terminal"></i> Dashboard
-                </button>
-                <button class="nav-item" id="btn-changelog" onclick="showPage('changelog')">
-                    <i class="fas fa-history"></i> Changelog
+                <button class="nav-item" id="btn-chat" onclick="showPage('chat')">
+                    <i class="fa-solid fa-comments"></i> Chat
                 </button>
                 <button class="nav-item" id="btn-archives" onclick="showPage('archives')">
-                    <i class="fas fa-box-archive"></i> Game Library
+                    <i class="fa-solid fa-gamepad"></i> Games
                 </button>
                 <button class="nav-item" id="btn-movies" onclick="showPage('movies')">
-                    <i class="fa-solid fa-film"></i> Movies
-                </button>
-                <button class="nav-item" id="btn-chat" onclick="showPage('chat')">
-                    <i class="fa-solid fa-comments"></i> Lounge & DMs
+                    <i class="fa-solid fa-clapperboard"></i> Movies
                 </button>
                 <button class="nav-item" id="btn-records" onclick="showPage('records')">
                     <i class="fa-solid fa-medal"></i> Records
                 </button>
                 <button class="nav-item" id="btn-settings" onclick="showPage('settings')">
-                    <i class="fa-solid fa-sliders"></i> Preferences
-                </button>
-                <button class="nav-item" id="btn-account" onclick="showPage('account')">
-                    <i class="fa-regular fa-user"></i> Profile
+                    <i class="fa-solid fa-gear"></i> Settings
                 </button>
                 <button class="nav-item" id="btn-credits" onclick="showPage('credits')">
-                    <i class="fa-solid fa-code"></i> Credits
+                    <i class="fa-solid fa-users"></i> Credits
                 </button>
             </nav>
 
@@ -1793,7 +1843,7 @@ main { min-width: 0; }
                         <div class="lounge-nav-list">
                             <button class="lounge-nav-btn active" id="btn-room-general"
                                 onclick="switchChatRoom('global_general', this)">
-                                <i class="fa-solid fa-globe"></i> Global Lounge
+                                <i class="fa-solid fa-globe"></i> Global Chat
                             </button>
                         </div>
 
@@ -1810,8 +1860,7 @@ main { min-width: 0; }
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <i class="fa-solid fa-comments" style="color: var(--accent); font-size: 1.1rem;"></i>
                                 <h3 id="current-chat-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">
-                                    Global
-                                    Lounge</h3>
+                                    Global Chat</h3>
                             </div>
                             <div style="font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;"
                                 id="backend-status-indicator">Mode: Local/Firebase</div>
@@ -2101,7 +2150,7 @@ main { min-width: 0; }
         <nav class="mobile-bottom-nav" aria-label="Quick navigation">
             <button class="mobile-nav-button" data-page="dashboard" aria-current="page" onclick="showPage('dashboard')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></button>
             <button class="mobile-nav-button" data-page="archives" onclick="showPage('archives')"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span>Games</span></button>
-            <button class="mobile-nav-button" data-page="movies" onclick="showPage('movies')"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Movies</span></button>
+            <button class="mobile-nav-button" data-page="movies" onclick="showPage('movies')"><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><span>Movies</span></button>
             <button class="mobile-nav-button" data-page="more" data-mobile-menu aria-controls="flux-sidebar" aria-expanded="false"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i><span>More</span></button>
         </nav>
     </div>
@@ -2397,7 +2446,7 @@ main { min-width: 0; }
 
             const titleEl = document.getElementById('current-chat-title');
             if (titleEl) {
-                titleEl.innerText = titleOverride || (roomKey === 'global_general' ? 'Global Lounge' : roomKey.replace('dm_', 'DM: '));
+                titleEl.innerText = titleOverride || (roomKey === 'global_general' ? 'Global Chat' : roomKey.replace('dm_', 'DM: '));
             }
 
             document.getElementById('lounge-message-input').placeholder = `Message ${titleEl.innerText}...`;
@@ -2781,12 +2830,24 @@ main { min-width: 0; }
         function updateProfilePreview(profile) {
             document.getElementById('profile-preview-name').innerText = profile.name;
             document.getElementById('profile-preview-status').innerText = profile.status || 'Ready to play.';
-            const avatarBox = document.getElementById('profile-preview-avatar');
-            if (profile.avatar) {
-                avatarBox.innerHTML = `<img src="${profile.avatar}" alt="Avatar">`;
-            } else {
-                avatarBox.innerHTML = `<i class="fa-solid fa-user"></i>`;
-            }
+            renderProfileAvatar(document.getElementById('profile-preview-avatar'), profile.avatar);
+            renderProfileAvatar(document.getElementById('btn-account'), profile.avatar);
+        }
+
+        function renderProfileAvatar(container, avatar) {
+            const fallback = document.createElement('i');
+            fallback.className = 'fa-solid fa-user';
+            fallback.setAttribute('aria-hidden', 'true');
+            container.replaceChildren(fallback);
+            if (!avatar) return;
+
+            const image = document.createElement('img');
+            image.alt = 'Profile picture';
+            image.addEventListener('error', () => {
+                if (image.parentNode === container) container.replaceChildren(fallback);
+            }, { once: true });
+            image.src = avatar;
+            container.replaceChildren(image);
         }
 
         let currentGame = null;
@@ -3103,7 +3164,7 @@ main { min-width: 0; }
     const closeButton = document.getElementById('mobile-menu-close');
     let returnFocus = null;
     let open = false;
-    const titles = {browser:'Browser',dashboard:'Dashboard',archives:'Game Library',movies:'Movies',changelog:'Changelog',chat:'Lounge & DMs',records:'Records',settings:'Preferences',account:'Profile',credits:'Credits'};
+    const titles = {browser:'Browser',dashboard:'Dashboard',archives:'Games',movies:'Movies',changelog:'Changelog',chat:'Chat',records:'Records',settings:'Settings',account:'Profile',credits:'Credits'};
     function setMenu(value, restoreFocus = true) {
         open = media.matches && value;
         document.body.classList.toggle('mobile-menu-open', open);
