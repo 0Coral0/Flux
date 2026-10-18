@@ -1,5 +1,6 @@
 {
   "accessCode": "REPLACE_WITH_A_LONG_RANDOM_PRIVATE_CODE",
+  "publicAccess": false,
   "autoPublish": false,
   "useDeployKey": false
 }
