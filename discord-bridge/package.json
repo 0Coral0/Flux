@@ -1,0 +1,17 @@
+{
+  "name": "flux-discord-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "node --env-file=.env index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "firebase-admin": "^13.4.0"
+  }
+}
