@@ -1,0 +1,18 @@
+[Unit]
+Description=Flux community service
+After=network-online.target
+
+[Service]
+Type=simple
+User=flux
+WorkingDirectory=/opt/flux/discord-bridge
+ExecStart=/usr/bin/node --env-file=.env server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target
