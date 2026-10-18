@@ -61,14 +61,15 @@ test('anonymous service works without code and still restricts Wisp connections'
     assert.equal(login.status, 302);
     assert.equal(login.headers.get('location'), '/');
 
-    function connect(origin) {
-      const ws = new WebSocket(`ws://127.0.0.1:${port}/wisp/`, { origin });
+    function connect(origin, path = '/wisp/') {
+      const ws = new WebSocket(`ws://127.0.0.1:${port}${path}`, { origin });
       return new Promise(resolve => {
         ws.once('open', () => { openSockets.push(ws); resolve(true); });
         ws.once('error', () => resolve(false));
       });
     }
     assert.equal(await connect('https://wrong.example'), false);
+    assert.equal(await connect(publicOrigin, '/wisp/?example.com:80'), false, 'alternate Wisp routing is rejected');
     for (let i = 0; i < 4; i++) assert.equal(await connect(publicOrigin), true);
     assert.equal(await connect(publicOrigin), false, 'fifth simultaneous connection is rejected');
     const ws = openSockets[0];

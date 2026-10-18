@@ -110,11 +110,12 @@ app.use(express.static(join(root, 'public'), {
 const server = createServer(app);
 const allowPublicConnection = createPublicLimiter();
 server.on('upgrade', (req, socket, head) => {
-  const requestPath = new URL(req.url || '/', 'http://localhost').pathname;
   // A browser's WebSocket Origin must be the proxy origin, including behind a reverse proxy.
   const host = req.headers.host || '';
   const localOrigin = /^localhost:\d+$|^127\.0\.0\.1:\d+$/i.test(host) ? `http://${host}` : null;
-  if (requestPath !== '/wisp/' || !authenticated(req) || !req.headers.origin || req.headers.origin !== (publicOrigin || localOrigin)) {
+  // Wisp selects a different proxy implementation when the raw URL does not
+  // end in a slash. Require the exact endpoint so all traffic uses our socket.
+  if (req.url !== '/wisp/' || !authenticated(req) || !req.headers.origin || req.headers.origin !== (publicOrigin || localOrigin)) {
     socket.destroy();
     return;
   }
