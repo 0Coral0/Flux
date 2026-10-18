@@ -4,10 +4,12 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { server as wisp, logging } from '@mercuryworkshop/wisp-js/server';
+import { PublicTCPSocket, createPublicLimiter } from './public-safety.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 3030);
 const publicOrigin = process.env.PUBLIC_ORIGIN ? new URL(process.env.PUBLIC_ORIGIN).origin : null;
+const publicAccess = process.env.FLUX_PUBLIC_ACCESS === '1';
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be a valid TCP port.');
 if (publicOrigin && !publicOrigin.startsWith('https://')) throw new Error('PUBLIC_ORIGIN must use HTTPS.');
@@ -19,7 +21,7 @@ Object.assign(wisp.options, {
   allow_loopback_ips: false,
   allow_udp_streams: false,
   port_whitelist: [80, 443],
-  stream_limit_total: 100,
+  stream_limit_total: publicAccess ? 24 : 100,
   parse_real_ip: false,
   dns_result_order: 'ipv4first',
   hostname_blacklist: [/^localhost\.?$/i, /(^|\.)local\.?$/i, /(^|\.)internal\.?$/i],
@@ -27,7 +29,7 @@ Object.assign(wisp.options, {
 logging.set_level(logging.WARN);
 
 const accessCode = process.env.FLUX_ACCESS_CODE;
-if (publicOrigin && (!accessCode || accessCode.length < 16)) throw new Error('Set FLUX_ACCESS_CODE (at least 16 characters) for public access.');
+if (publicOrigin && !publicAccess && (!accessCode || accessCode.length < 16)) throw new Error('Set FLUX_ACCESS_CODE (at least 16 characters) for private access.');
 const sessionToken = randomBytes(32).toString('hex');
 const sessionHash = createHash('sha256').update(sessionToken).digest();
 const attempts = new Map();
@@ -37,6 +39,7 @@ function equals(a, b) {
   return timingSafeEqual(x, y);
 }
 function authenticated(req) {
+  if (publicAccess) return true;
   if (!accessCode) return true; // Local-only development.
   return (req.headers.cookie || '').split(';').some(part => {
     const [name, ...value] = part.trim().split('=');
@@ -46,10 +49,12 @@ function authenticated(req) {
 const app = express();
 app.use(express.urlencoded({ extended: false, limit: '2kb' }));
 app.get('/login', (req, res) => {
+  if (publicAccess) return res.redirect(302, req.query.embed === '1' ? '/?embed=1' : '/');
   const embed = req.query.embed === '1' ? '?embed=1' : '';
   res.type('html').send(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flux access</title></head><body style="font:16px system-ui;background:#111;color:white;display:grid;place-items:center;min-height:90vh"><form method="POST" action="/login${embed}"><h1>Flux Browser</h1><p>Enter your private access code.</p><input name="code" type="password" required autocomplete="off"><button>Unlock</button></form></body></html>`);
 });
 app.post('/login', (req, res) => {
+  if (publicAccess) return res.redirect(303, req.query.embed === '1' ? '/?embed=1' : '/');
   const embed = req.query.embed === '1';
   const suffix = embed ? '?embed=1' : '';
   const ip = req.socket.remoteAddress || 'unknown';
@@ -103,6 +108,7 @@ app.use(express.static(join(root, 'public'), {
 }));
 
 const server = createServer(app);
+const allowPublicConnection = createPublicLimiter();
 server.on('upgrade', (req, socket, head) => {
   const requestPath = new URL(req.url || '/', 'http://localhost').pathname;
   // A browser's WebSocket Origin must be the proxy origin, including behind a reverse proxy.
@@ -112,7 +118,12 @@ server.on('upgrade', (req, socket, head) => {
     socket.destroy();
     return;
   }
-  wisp.routeRequest(req, socket, head);
+  if (publicAccess && !allowPublicConnection(req, socket)) {
+    socket.end('HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\n');
+    return;
+  }
+  try { wisp.routeRequest(req, socket, head, { TCPSocket: PublicTCPSocket }); }
+  catch { socket.destroy(); }
 });
 
 server.listen(port, '127.0.0.1', () => {

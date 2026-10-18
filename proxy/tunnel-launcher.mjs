@@ -12,7 +12,8 @@ const runtime = join(root, '.runtime');
 const binary = '/usr/local/bin/cloudflared';
 const config = JSON.parse(await readFile(join(root, 'tunnel-settings.local.json'), 'utf8'));
 const autoPublish = config.autoPublish === true || process.env.FLUX_AUTO_PUBLISH === '1';
-if (typeof config.accessCode !== 'string' || config.accessCode.trim().length < 16 || config.accessCode === 'REPLACE_WITH_A_LONG_RANDOM_PRIVATE_CODE') {
+const publicAccess = config.publicAccess === true || process.env.FLUX_PUBLIC_ACCESS === '1';
+if (!publicAccess && (typeof config.accessCode !== 'string' || config.accessCode.trim().length < 16 || config.accessCode === 'REPLACE_WITH_A_LONG_RANDOM_PRIVATE_CODE')) {
   throw new Error('Set a private accessCode of at least 16 characters in tunnel-settings.local.json (never commit it).');
 }
 const port = 3040;
@@ -101,7 +102,7 @@ try {
   site.on('error', previewFailed);
   site.on('exit', previewFailed);
   while (!stopping) {
-    console.log('Starting a Cloudflare tunnel with proxy-side access protection...');
+    console.log(publicAccess ? 'Starting a public Cloudflare tunnel with connection limits...' : 'Starting a Cloudflare tunnel with proxy-side access protection...');
     const args = ['tunnel', '--no-autoupdate', '--protocol', 'http2', '--url', `http://127.0.0.1:${port}`];
     tunnel = spawn(binary, args, { cwd: runtime, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     let cloudOutput = '';
@@ -122,12 +123,12 @@ try {
       if (stopping) break;
       backend = spawn(process.execPath, ['server.mjs'], {
         cwd: root, windowsHide: true, stdio: 'inherit',
-        env: { ...process.env, PORT: String(port), PUBLIC_ORIGIN: origin, FLUX_ACCESS_CODE: config.accessCode },
+        env: { ...process.env, PORT: String(port), PUBLIC_ORIGIN: origin, FLUX_PUBLIC_ACCESS: publicAccess ? '1' : '0', FLUX_ACCESS_CODE: publicAccess ? '' : config.accessCode },
       });
       await waitForBackend(backend);
       await writeFile(join(runtime, 'current-address.txt'), origin + '\n');
       console.log(`Proxy address: ${origin}`);
-      console.log('Open that address and sign in using your private access code.');
+      console.log(publicAccess ? 'The browser is available without a sign-in.' : 'Open that address and sign in using your private access code.');
       console.log('Local Flux: http://127.0.0.1:3031/ — choose Browser.');
       await writeFile(join(repo, 'js/browser-config.js'), browserConfig(origin));
       const currentTunnel = tunnel;
