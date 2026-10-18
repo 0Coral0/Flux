@@ -38,13 +38,20 @@ function equals(a, b) {
 }
 function authenticated(req) {
   if (!accessCode) return true; // Local-only development.
-  const cookie = (req.headers.cookie || '').split(';').map(x => x.trim()).find(x => x.startsWith('flux_session='));
-  return Boolean(cookie && equals(cookie.slice('flux_session='.length), sessionToken));
+  return (req.headers.cookie || '').split(';').some(part => {
+    const [name, ...value] = part.trim().split('=');
+    return (name === 'flux_session' || name === 'flux_embed_session') && equals(value.join('='), sessionToken);
+  });
 }
 const app = express();
 app.use(express.urlencoded({ extended: false, limit: '2kb' }));
-app.get('/login', (_req, res) => res.type('html').send(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flux access</title></head><body style="font:16px system-ui;background:#111;color:white;display:grid;place-items:center;min-height:90vh"><form method="POST" action="/login"><h1>Flux Browser</h1><p>Enter your private access code.</p><input name="code" type="password" required autocomplete="off"><button>Unlock</button></form></body></html>`));
+app.get('/login', (req, res) => {
+  const embed = req.query.embed === '1' ? '?embed=1' : '';
+  res.type('html').send(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flux access</title></head><body style="font:16px system-ui;background:#111;color:white;display:grid;place-items:center;min-height:90vh"><form method="POST" action="/login${embed}"><h1>Flux Browser</h1><p>Enter your private access code.</p><input name="code" type="password" required autocomplete="off"><button>Unlock</button></form></body></html>`);
+});
 app.post('/login', (req, res) => {
+  const embed = req.query.embed === '1';
+  const suffix = embed ? '?embed=1' : '';
   const ip = req.socket.remoteAddress || 'unknown';
   const now = Date.now();
   const entry = attempts.get(ip) || { count: 0, until: now + 15 * 60_000 };
@@ -52,15 +59,20 @@ app.post('/login', (req, res) => {
   if (entry.count >= 8) return res.status(429).send('Too many attempts. Try again later.');
   if (!accessCode || !equals(req.body?.code || '', accessCode)) {
     entry.count++; attempts.set(ip, entry);
-    return res.status(401).send('Incorrect access code. <a href="/login">Try again</a>');
+    return res.status(401).send(`Incorrect access code. <a href="/login${suffix}">Try again</a>`);
   }
   attempts.delete(ip);
-  res.setHeader('Set-Cookie', `flux_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; ${publicOrigin ? 'Secure; ' : ''}Max-Age=86400`);
-  res.redirect(303, '/');
+  // A separate partitioned cookie permits embedded sign-in without relaxing the
+  // direct site's SameSite=Strict cookie. Secure is required for partitioning.
+  const cookie = embed && publicOrigin
+    ? `flux_embed_session=${sessionToken}; HttpOnly; Secure; SameSite=None; Partitioned; Path=/; Max-Age=86400`
+    : `flux_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; ${publicOrigin ? 'Secure; ' : ''}Max-Age=86400`;
+  res.setHeader('Set-Cookie', cookie);
+  res.redirect(303, `/${suffix}`);
 });
 app.use((req, res, next) => {
   if (req.path === '/healthz' || authenticated(req)) return next();
-  if (req.method === 'GET' && (req.accepts('html') || req.path === '/')) return res.redirect(302, '/login');
+  if (req.method === 'GET' && (req.accepts('html') || req.path === '/')) return res.redirect(302, req.query.embed === '1' ? '/login?embed=1' : '/login');
   return res.status(401).send('Authentication required');
 });
 app.disable('x-powered-by');

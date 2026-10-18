@@ -1,5 +1,7 @@
 #view-browser { max-width: none; height: calc(100dvh - 80px); min-height: 380px; }
 #view-browser.active { display: flex; flex-direction: column; }
+#flux-browser-tools:not([hidden]) { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 0 8px; color: var(--text-dim); font-size: .85rem; flex-wrap: wrap; }
+#flux-browser-external { color: var(--accent, #3bd58e); }
 #flux-browser-frame { width: 100%; height: 100%; flex: 1; min-height: 0; border: 0; border-radius: var(--radius, 10px); background: var(--bg); }
 .flux-browser-setup { margin: auto; max-width: 420px; text-align: center; padding: 24px; color: var(--text-dim); }
 .flux-browser-setup h2 { color: var(--text); font-size: 20px; }
