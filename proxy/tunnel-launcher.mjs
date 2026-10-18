@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { constants } from 'node:fs';
 import { mkdir, readFile, writeFile, unlink, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,9 +8,12 @@ import { once } from 'node:events';
 const root = dirname(fileURLToPath(import.meta.url));
 const repo = join(root, '..');
 const runtime = join(root, '.runtime');
-const binary = join(root, '.tools', 'cloudflared.exe');
+const binary = '/usr/local/bin/cloudflared';
 const config = JSON.parse(await readFile(join(root, 'tunnel-settings.local.json'), 'utf8'));
-if (!config.accessCode || typeof config.accessCode !== 'string' || config.accessCode.length < 16) {
+if (process.env.FLUX_SYSTEMD === '1' && config.autoPublish !== false) {
+  throw new Error('The systemd service requires autoPublish to be false.');
+}
+if (typeof config.accessCode !== 'string' || config.accessCode.trim().length < 16 || config.accessCode === 'REPLACE_WITH_A_LONG_RANDOM_PRIVATE_CODE') {
   throw new Error('Set a private accessCode of at least 16 characters in tunnel-settings.local.json (never commit it).');
 }
 const port = 3040;
@@ -18,14 +22,12 @@ let tunnel;
 let backend;
 let site;
 await mkdir(runtime, { recursive: true });
-try { await access(binary); }
-catch {
-  console.log('Downloading the official Cloudflare tunnel tool...');
-  const response = await fetch('https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe');
-  if (!response.ok) throw new Error(`Cloudflare download failed: HTTP ${response.status}`);
-  await mkdir(dirname(binary), { recursive: true });
-  await writeFile(binary, Buffer.from(await response.arrayBuffer()));
+try {
+  await access(binary, constants.X_OK);
+} catch {
+  throw new Error('cloudflared is missing or not executable. Install the Linux ARM64 version at /usr/local/bin/cloudflared.');
 }
+
 let lock;
 try { lock = await writeFile(join(runtime, 'tunnel.lock'), String(process.pid), { flag: 'wx' }).then(() => true); }
 catch {
@@ -97,7 +99,14 @@ async function publish(origin) {
 
 try {
   site = spawn(process.execPath, ['serve-flux.mjs'], { cwd: root, windowsHide: true, stdio: 'inherit' });
-  site.on('error', error => console.error('Local Flux preview:', error.message));
+  const previewFailed = () => {
+    if (stopping) return;
+    console.error('Local Flux preview stopped; stopping the launcher for restart.');
+    process.exitCode = 1;
+    stop();
+  };
+  site.on('error', previewFailed);
+  site.on('exit', previewFailed);
   while (!stopping) {
     console.log('Starting a Cloudflare tunnel with proxy-side access protection...');
     const args = ['tunnel', '--no-autoupdate', '--protocol', 'http2', '--url', `http://127.0.0.1:${port}`];

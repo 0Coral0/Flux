@@ -4,5 +4,8 @@ npm-debug.log*
 .tools/
 .runtime/
 tunnel-settings.local.json
+.tunnel-settings.local.json.swp
+.tunnel-settings.local.json.swo
+tunnel-settings.local.json~
 public/public/
 tests/tests/

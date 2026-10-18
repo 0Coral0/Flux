@@ -1,2 +1,2 @@
-// Current address of the Flux proxy hosted in the VM.
-window.FLUX_BROWSER_ORIGIN = "https://readers-less-unlimited-framework.trycloudflare.com";
+// Updated automatically by the PC-hosted proxy launcher.
+window.FLUX_BROWSER_ORIGIN = "https://spider-frost-born-persian.trycloudflare.com";
