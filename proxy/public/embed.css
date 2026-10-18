@@ -1,18 +1,10 @@
-/* Compact mode for Flux: only browser controls and the page viewport. */
+/* Fill the Flux panel while keeping the browser controls in view. */
 .flux-embedded, .flux-embedded body { height: 100%; min-height: 0; overflow: hidden; }
 .flux-embedded .app { height: 100%; min-height: 0; background: var(--bg); }
 .flux-embedded .topline,
 .flux-embedded .browser-heading,
 .flux-embedded .footline { display: none; }
 .flux-embedded .browser { width: 100%; height: 100%; margin: 0; }
-.flux-embedded .window { height: 100%; display: flex; flex-direction: column; border-radius: 10px; box-shadow: none; }
+.flux-embedded .window { height: 100%; display: flex; flex-direction: column; border-radius: 12px; box-shadow: none; }
 .flux-embedded .tab-row, .flux-embedded .toolbar, .flux-embedded .loading-track { flex-shrink: 0; }
 .flux-embedded .viewport { flex: 1; min-height: 0; height: auto; }
-.flux-embedded .start { background: var(--bg); }
-.flux-embedded .start-grid,
-.flux-embedded .orbit,
-.flux-embedded .start-kicker,
-.flux-embedded .quick-links,
-.flux-embedded .start-bottom { display: none; }
-.flux-embedded .start-content { padding: 24px; }
-.flux-embedded .start h2 { font-size: 20px; margin: 0 0 8px; }

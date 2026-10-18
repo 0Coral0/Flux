@@ -6,6 +6,7 @@ const tabsElement = $('#tabs');
 const frames = $('#frames');
 const startPage = $('#start-page');
 const address = $('#address');
+const newTabAddress = $('#new-tab-address');
 const notice = $('#notice');
 const status = $('#engine-status');
 const statusDot = $('#status-dot');
@@ -35,6 +36,8 @@ function setStatus(text, state = '') {
 
 function render() {
   const active = currentTab();
+  const scrollLeft = tabsElement.scrollLeft;
+  const hadTabFocus = tabsElement.contains(document.activeElement);
   tabsElement.replaceChildren();
   for (const tab of tabs) {
     const item = document.createElement('div');
@@ -56,7 +59,16 @@ function render() {
     item.append(close);
     item.addEventListener('click', () => activateTab(tab.id));
     item.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activateTab(tab.id); }
+      if (event.target !== item) return;
+      const index = tabs.findIndex(candidate => candidate.id === tab.id);
+      let next = null;
+      if (event.key === 'ArrowRight') next = tabs[(index + 1) % tabs.length];
+      if (event.key === 'ArrowLeft') next = tabs[(index - 1 + tabs.length) % tabs.length];
+      if (event.key === 'Home') next = tabs[0];
+      if (event.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { event.preventDefault(); activateTab(next.id, true); }
+      else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activateTab(tab.id, true); }
+      else if (event.key === 'Delete') { event.preventDefault(); closeTab(tab.id); }
     });
     tabsElement.append(item);
     if (tab.element) tab.element.hidden = tab.id !== activeId;
@@ -64,25 +76,45 @@ function render() {
   const hasPage = Boolean(active?.url);
   startPage.hidden = hasPage;
   frames.hidden = !hasPage;
-  address.value = active?.url || '';
+  tabsElement.scrollLeft = scrollLeft;
+  if (hadTabFocus) tabsElement.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
+  if (document.activeElement !== address) address.value = active?.url || '';
   for (const button of Object.values(controls)) button.disabled = !active?.frame;
   $('#loading-bar').classList.toggle('active', Boolean(active?.loading));
   if (active?.loading) setStatus('LOADING PAGE', 'busy');
   else setStatus(engineReady ? 'ENGINE READY' : 'READY TO CONNECT');
 }
 
+function showActiveTab() {
+  const item = tabsElement.querySelector('[aria-selected="true"]');
+  if (!item) return;
+  const strip = tabsElement.getBoundingClientRect();
+  const tab = item.getBoundingClientRect();
+  if (tab.left < strip.left) tabsElement.scrollLeft += tab.left - strip.left;
+  else if (tab.right > strip.right) tabsElement.scrollLeft += tab.right - strip.right;
+}
+
 function createTab(initialUrl) {
   const tab = { id: crypto.randomUUID(), label: 'New tab', url: '', frame: null, framePromise: null, element: null, loading: false, timer: null, sequence: 0 };
   tabs.push(tab);
   activeId = tab.id;
+  address.value = '';
+  newTabAddress.value = '';
   hideNotice();
   render();
+  showActiveTab();
   if (initialUrl) navigate(initialUrl, tab);
   else address.focus();
   return tab;
 }
 
-function activateTab(id) { activeId = id; hideNotice(); render(); }
+function activateTab(id, focus = false) {
+  activeId = id;
+  hideNotice();
+  render();
+  showActiveTab();
+  if (focus) tabsElement.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
+}
 
 function closeTab(id) {
   const index = tabs.findIndex(tab => tab.id === id);
@@ -96,8 +128,10 @@ function closeTab(id) {
   }
   if (!tabs.length) { createTab(); return; }
   if (activeId === id) activeId = tabs[Math.max(0, index - 1)].id;
+  address.value = currentTab()?.url || '';
   hideNotice();
   render();
+  showActiveTab();
 }
 
 function updateUrl(tab, url) {
@@ -161,6 +195,8 @@ async function navigate(input, tab = currentTab()) {
   hideNotice();
   tab.url = url;
   tab.label = new URL(url).hostname.replace(/^www\./, '');
+  if (tab.id === activeId) address.value = url;
+  newTabAddress.value = '';
   startLoading(tab);
   try {
     const frame = await ensureFrame(tab);
@@ -178,6 +214,7 @@ async function navigate(input, tab = currentTab()) {
 }
 
 $('#address-form').addEventListener('submit', event => { event.preventDefault(); navigate(address.value); });
+$('#new-tab-form').addEventListener('submit', event => { event.preventDefault(); navigate(newTabAddress.value); });
 $('#new-tab').addEventListener('click', () => createTab());
 $('#dismiss-notice').addEventListener('click', hideNotice);
 for (const button of document.querySelectorAll('[data-url]')) button.addEventListener('click', () => navigate(button.dataset.url));
@@ -192,8 +229,13 @@ for (const [action, button] of Object.entries(controls)) {
   });
 }
 document.addEventListener('keydown', event => {
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'l') {
+  if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+  if (event.key.toLowerCase() === 'l') {
     event.preventDefault(); address.focus(); address.select();
+  } else if (event.key.toLowerCase() === 't') {
+    event.preventDefault(); createTab();
+  } else if (event.key.toLowerCase() === 'w') {
+    event.preventDefault(); closeTab(activeId);
   }
 });
 
