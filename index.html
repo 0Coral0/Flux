@@ -1595,6 +1595,7 @@ main { min-width: 0; }
 
     </style>
     <link rel="stylesheet" href="css/browser.css">
+    <link rel="stylesheet" href="css/flux-customization.css">
 </head>
 
 <body>
@@ -1641,7 +1642,7 @@ main { min-width: 0; }
             <div class="terminal-box">
                 <span class="prompt-icon">&gt;</span>
                 <div class="slide-container">
-                    <span id="flux-target" class="flux-text">Flu<span class="green-accent">x</span></span>
+                    <span id="flux-target" class="flux-text">Flux<span class="green-accent">.</span></span>
                 </div>
                 <div id="x-glow" class="x-glow-layer"></div>
             </div>
@@ -1649,12 +1650,20 @@ main { min-width: 0; }
         </div>
     </div>
 
+    <dialog id="profile-crop-dialog" class="profile-crop-dialog" aria-labelledby="profile-crop-title">
+        <form method="dialog" class="profile-crop-card" onsubmit="return false;">
+            <div class="profile-crop-header"><div><h3 id="profile-crop-title">Adjust your image</h3><p>Move and zoom until it looks just right.</p></div><button type="button" class="profile-crop-close" onclick="closeProfileCrop()" aria-label="Close">&times;</button></div>
+            <canvas id="profile-crop-canvas" aria-label="Image crop preview"></canvas>
+            <div class="profile-crop-sliders"><label>Zoom <input id="crop-zoom" type="range" min="1" max="3" step="0.01" value="1"></label><label>Horizontal <input id="crop-x" type="range" min="0" max="100" value="50"></label><label>Vertical <input id="crop-y" type="range" min="0" max="100" value="50"></label></div>
+            <div class="profile-crop-actions"><button type="button" class="action-btn btn-outline" onclick="closeProfileCrop()">Cancel</button><button type="button" class="action-btn" onclick="applyProfileCrop()">Use image</button></div>
+        </form>
+    </dialog>
     <canvas id="particle-canvas"></canvas>
 
     <div class="app-layout">
         <header class="mobile-header" aria-label="Flux mobile header">
             <button class="mobile-brand" onclick="showPage('dashboard')" aria-label="Flux home"><span class="mobile-brand-mark" aria-hidden="true"><span><b>&gt;</b>F</span></span><span>Flux<span class="brand-period">.</span></span></button>
-            <span class="mobile-page-name" id="mobile-page-name">Dashboard</span>
+            <span class="mobile-page-name" id="mobile-page-name">Home</span>
             <button class="mobile-icon-button" data-mobile-menu aria-controls="flux-sidebar" aria-expanded="false" aria-label="Open navigation menu"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
         </header>
         <button class="mobile-menu-backdrop" id="mobile-menu-backdrop" hidden tabindex="-1" aria-label="Close navigation menu"></button>
@@ -1682,11 +1691,12 @@ main { min-width: 0; }
 
             <nav class="nav-list" aria-label="Pages">
                 <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')">
-                    <i class="fa-solid fa-house"></i> Dashboard
+                    <i class="fa-solid fa-house"></i> Home
                 </button>
                 <button class="nav-item" id="btn-browser" onclick="showPage('browser')">
                     <i class="fa-solid fa-globe"></i> Browser
                 </button>
+                <button class="nav-item" id="btn-ai" onclick="showPage('ai')"><i class="fa-solid fa-wand-magic-sparkles"></i> Assistant</button>
                 <button class="nav-item" id="btn-chat" onclick="showPage('chat')">
                     <i class="fa-solid fa-comments"></i> Chat
                 </button>
@@ -1714,16 +1724,16 @@ main { min-width: 0; }
                 <a href="requests.html" target="_blank" class="external-link">
                     <i class="fa-solid fa-plus"></i> Submit Game
                 </a>
+                <div class="sidebar-status" aria-label="Device status">
+                    <span class="sidebar-status-item" aria-label="Local time"><i class="fa-regular fa-clock" aria-hidden="true"></i><time id="sidebar-clock">--:--</time></span>
+                    <span class="sidebar-status-item" aria-label="Battery"><i class="fa-solid fa-battery-half" id="sidebar-battery-icon" aria-hidden="true"></i><span id="sidebar-battery">N/A</span></span>
+                </div>
             </div>
         </sidebar>
 
         <main tabindex="-1" aria-label="Page content">
             <div id="view-browser" class="container">
-                <div id="flux-browser-tools" class="flux-browser-tools" hidden>
-                    <span>Having trouble loading?</span>
-                    <a id="flux-browser-external" target="_blank" rel="noopener noreferrer">Open Browser in a new tab</a>
-                </div>
-                <iframe id="flux-browser-frame" title="Flux Browser" referrerpolicy="no-referrer" hidden></iframe>
+                <iframe id="flux-browser-frame" title="Flux Browser" referrerpolicy="no-referrer"></iframe>
                 <div id="flux-browser-setup" class="flux-browser-setup" hidden>
                     <h2>Browser service setup</h2>
                     <p>Connect the proxy service in js/browser-config.js to browse here.</p>
@@ -1755,57 +1765,29 @@ main { min-width: 0; }
             </div>
 
             <!-- Movies Streaming View -->
-            <!-- Movies Streaming View -->
             <div id="view-movies" class="container">
                 <div class="movie-hero">
-                    <span style="
-            display: inline-block;
-            margin-bottom: 14px;
-            color: var(--accent, #22c55e);
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 3px;
-        ">FLUX CINEMA</span>
-
-                    <h2 style="
-            max-width: 650px;
-            font-size: clamp(2.5rem, 5vw, 4.5rem);
-            line-height: 1.05;
-            letter-spacing: -2px;
-            margin: 0 0 18px;
-        ">
-                        Your next movie night<span style="color: var(--accent, #22c55e);">.</span>
-                    </h2>
-
-                    <p style="max-width: 500px; margin-bottom: 24px;">
-                        Discover sci-fi worlds, animated adventures, and stories
-                        worth staying up for. Find your next watch.
-                    </p>
-
-                    <button class="movie-hero-btn" onclick="playFeaturedMovie()">
-                        <i class="fa-solid fa-play" aria-hidden="true"></i>
-                        Play Featured
-                    </button>
+                    <div class="movie-backdrop" aria-hidden="true"><img id="movie-feature-backdrop" alt=""></div>
+                    <div class="movie-hero-content">
+                        <span class="cinema-eyebrow">FLUX CINEMA · FEATURED</span>
+                        <h2 id="movie-feature-title">Your next movie night.</h2>
+                        <div class="movie-feature-meta"><span>Featured film</span><span id="movie-feature-genre">Cinema</span></div>
+                        <p id="movie-feature-description">Find something to watch and settle in.</p>
+                        <button class="movie-hero-btn" id="movie-feature-play" type="button" onclick="playFeaturedMovie()"><i class="fa-solid fa-play" aria-hidden="true"></i> Watch now</button>
+                    </div>
+                    <img class="movie-feature-poster" id="movie-feature-poster" alt="" hidden>
                 </div>
 
-                <div class="library-header-row" style="margin-bottom: 28px;">
-                    <div class="search-box">
+                <div class="cinema-library-header">
+                    <div><h3>Explore movies</h3><p>Find your next watch in the Flux collection.</p></div>
+                    <div class="cinema-search">
                         <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
                         <input type="search" id="movie-search" placeholder="Find your next movie..."
                             aria-label="Search movies by title or genre" oninput="refreshMovies()">
                     </div>
                 </div>
-
-                <div style="margin-bottom: 20px;">
-                    <div class="section-title" style="margin-bottom: 6px;">
-                        <i class="fa-solid fa-film" aria-hidden="true"></i>
-                        Find Your Next Watch
-                    </div>
-                    <p style="margin: 0; color: var(--text-dim, #94a3b8); font-size: 0.9rem;">
-                        Explore the collection. Pick a poster. Press play.
-                    </p>
-                </div>
-
+                <div class="movie-filters" id="movie-filters" aria-label="Filter movies by genre"></div>
+                <p class="movie-results-label" id="movie-results-count" aria-live="polite"></p>
                 <div class="movie-grid" id="movies-grid"></div>
             </div>
 
@@ -1849,6 +1831,8 @@ main { min-width: 0; }
                                 onclick="switchChatRoom('global_general', this)">
                                 <i class="fa-solid fa-globe"></i> Global Chat
                             </button>
+                            <button class="lounge-nav-btn" id="btn-room-discord" onclick="switchChatRoom('discord', this, 'Discord Chat')"><i class="fa-brands fa-discord"></i> Discord Chat</button>
+                            <button class="lounge-nav-btn" onclick="switchChatRoom('discord_dm', this, 'Discord Direct Message')"><i class="fa-solid fa-envelope"></i> Discord DM</button>
                         </div>
 
                         <div class="lounge-section-title" style="margin-top: 10px;">
@@ -1870,7 +1854,8 @@ main { min-width: 0; }
                                 id="backend-status-indicator">Mode: Local/Firebase</div>
                         </div>
 
-                        <div class="lounge-messages-feed" id="lounge-messages-feed"></div>
+                        <div id="discord-controls" class="discord-controls" hidden><span id="discord-connection-note"></span><button type="button" class="action-btn btn-outline" id="discord-pair">Invite Discord contact</button><button type="button" class="action-btn btn-outline" id="discord-unlink">Disconnect contact</button></div>
+                        <div class="lounge-messages-feed" id="lounge-messages-feed" aria-live="polite"></div>
 
                         <div class="lounge-input-bar">
                             <input type="text" id="lounge-message-input" class="lounge-text-input"
@@ -2080,58 +2065,64 @@ main { min-width: 0; }
             </div>
 
             <!-- Profile Customization -->
+            <div id="view-ai" class="container"><div class="settings-wrap ai-wrap"><div class="section-title">Flux Assistant</div><p class="page-description">Ask a question. Powered by the model running on the Flux server.</p><div id="ai-messages" class="ai-messages" aria-live="polite"></div><form id="flux-ai-form" class="ai-compose"><label class="sr-only" for="ai-prompt">Your message</label><textarea id="ai-prompt" placeholder="What would you like to know?" maxlength="4000" required></textarea><button class="action-btn" type="submit">Send</button></form><p id="ai-status" role="status"></p></div></div>
             <div id="view-account" class="container">
-                <div class="settings-wrap">
-                    <h3 style="margin-top:0; font-size: 1.25rem;">Profile Customization</h3>
-                    <p style="color: var(--text-dim); margin-bottom: 24px;">Personalize how your profile card appears
-                        across the
-                        gateway.</p>
+                <div class="settings-wrap profile-page">
+                    <div class="profile-page-heading"><h3>Make it yours.</h3><p>Customize your Flux profile. Your changes are saved on this device.</p></div>
 
-                    <div class="profile-card-preview">
+                    <div class="profile-card-preview" id="profile-card-preview">
+                        <div class="profile-banner" id="profile-preview-banner" aria-hidden="true"></div>
+                        <div class="profile-preview-body">
                         <div class="profile-avatar-lg" id="profile-preview-avatar">
-                            <i class="fa-solid fa-user"></i>
+                            <i class="fa-solid fa-user" aria-hidden="true"></i>
                         </div>
-                        <div>
-                            <h4 id="profile-preview-name" style="margin:0 0 4px 0; font-size:1.1rem;">Gamer</h4>
-                            <p id="profile-preview-status" style="margin:0; font-size:0.85rem; color:var(--text-dim);">
-                                Ready to
-                                play.</p>
+                        <div class="profile-preview-details">
+                            <div class="profile-name-line"><h4 id="profile-preview-name">Gamer</h4><span id="profile-preview-pronouns" class="profile-pronouns" hidden></span></div>
+                            <p id="profile-preview-status" class="profile-preview-status">Ready to play.</p>
+                            <p id="profile-preview-bio" class="profile-preview-bio" hidden></p>
                         </div>
-                    </div>
-
-                    <div class="settings-row">
-                        <div>
-                            <strong>Display Name</strong>
-                            <div style="font-size:0.82rem; color:var(--text-dim);">Your public display name</div>
-                        </div>
-                        <input type="text" id="profile-name-input" class="settings-input" placeholder="Your Name"
-                            oninput="saveProfileData()">
-                    </div>
-
-                    <div class="settings-row">
-                        <div>
-                            <strong>Avatar Image URL or Upload</strong>
-                            <div style="font-size:0.82rem; color:var(--text-dim);">Direct link or upload from your
-                                device</div>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" id="profile-avatar-input" class="settings-input"
-                                placeholder="https://..." oninput="saveProfileData()" style="width: 160px;">
-                            <button class="action-btn btn-outline"
-                                onclick="document.getElementById('profile-avatar-file').click()"><i
-                                    class="fa-solid fa-upload"></i> Upload PFP</button>
-                            <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;"
-                                onchange="uploadAvatarFile(this)">
                         </div>
                     </div>
-
+                    <section class="flux-signin" aria-label="Flux account"><h4>Your Flux account</h4><p>Sign in to send Discord messages and use the server assistant.</p><form id="flux-auth-form"><label>Email<input type="email" id="flux-auth-email" autocomplete="email" required></label><label>Password<input type="password" id="flux-auth-password" autocomplete="current-password" minlength="6" required></label><div class="flux-auth-actions"><button class="action-btn" type="submit">Sign in</button><button class="action-btn btn-outline" type="button" id="flux-auth-register">Create account</button><button class="action-btn btn-outline" type="button" id="flux-auth-logout">Sign out</button></div><p id="flux-auth-status" role="status">Connecting to accounts…</p></form></section><div class="profile-form">
                     <div class="settings-row">
-                        <div>
-                            <strong>Status Message</strong>
-                            <div style="font-size:0.82rem; color:var(--text-dim);">Short bio or mood</div>
+                        <div><label class="profile-field-label" for="profile-name-input">Display name</label><div class="profile-field-help">The name shown in Flux.</div></div>
+                        <input type="text" id="profile-name-input" class="settings-input" placeholder="Your name" maxlength="40" oninput="saveProfileData()">
+                    </div>
+                    <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-avatar-input">Profile picture</label><div class="profile-field-help">Paste an image URL or upload a picture.</div></div>
+                        <div class="profile-avatar-controls">
+                            <input type="text" id="profile-avatar-input" class="settings-input" placeholder="https://..." oninput="delete this.dataset.upload;saveProfileData()">
+                            <button class="action-btn btn-outline" type="button" onclick="document.getElementById('profile-avatar-file').click()"><i class="fa-solid fa-upload" aria-hidden="true"></i> Upload</button>
+                            <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;" onchange="uploadProfileImage(this, 'avatar')">
                         </div>
-                        <input type="text" id="profile-status-input" class="settings-input"
-                            placeholder="Chasing high scores..." oninput="saveProfileData()">
+                    </div>
+                    <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-banner-input">Profile banner</label><div class="profile-field-help">Add a banner image and choose its crop.</div></div>
+                        <div class="profile-avatar-controls">
+                            <input type="text" id="profile-banner-input" class="settings-input" placeholder="https://..." oninput="delete this.dataset.upload;saveProfileData()">
+                            <button class="action-btn btn-outline" type="button" onclick="document.getElementById('profile-banner-file').click()"><i class="fa-solid fa-upload" aria-hidden="true"></i> Upload</button>
+                            <button class="action-btn btn-outline" type="button" onclick="setProfileImageInput(document.getElementById('profile-banner-input'), '');saveProfileData()">Remove</button>
+                            <input type="file" id="profile-banner-file" accept="image/*" hidden onchange="uploadProfileImage(this, 'banner')">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-status-input">Status</label><div class="profile-field-help">A quick mood or message.</div></div>
+                        <input type="text" id="profile-status-input" class="settings-input" placeholder="Chasing high scores..." maxlength="80" oninput="saveProfileData()">
+                    </div>
+                    <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-pronouns-input">Pronouns</label><div class="profile-field-help">Optional, shown next to your name.</div></div>
+                        <input type="text" id="profile-pronouns-input" class="settings-input" placeholder="e.g. they/them" maxlength="32" oninput="saveProfileData()">
+                    </div>
+                    <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-bio-input">About me</label><div class="profile-field-help">A little more about you.</div></div>
+                        <textarea id="profile-bio-input" class="settings-input" placeholder="Tell us a little about yourself..." maxlength="180" oninput="saveProfileData()"></textarea>
+                    </div>
+                    <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-color-input">Profile color</label><div class="profile-field-help">Colors your banner and avatar border.</div></div>
+                        <input type="color" id="profile-color-input" class="profile-color-input" value="#22c55e" oninput="saveProfileData()">
+                    </div>
+                    <input type="hidden" id="profile-shape-input" value="circle">
+                    <p class="profile-save-status" id="profile-save-status" role="status">Changes save automatically.</p>
                     </div>
                 </div>
             </div>
@@ -2175,7 +2166,7 @@ main { min-width: 0; }
         </div>
         <div class="theater-main-grid">
             <div class="theater-viewport-box">
-                <iframe id="theater-iframe" src="" title="Game Viewport"></iframe>
+                <iframe id="theater-iframe" src="" title="Game Viewport" allow="fullscreen" allowfullscreen></iframe>
             </div>
             <div class="theater-desc-panel">
                 <h4>Description</h4>
@@ -2197,45 +2188,109 @@ main { min-width: 0; }
         let activeChatRoom = 'global_general';
         let unsubscribeFirestore = null;
 
+        let movieGenre = 'All';
+        function movieGenres(movie) {
+            return String(movie.genre || '').split(/\s*,\s*(?:and\s+)?|\s+and\s+/i).map(value => value.trim()).filter(Boolean);
+        }
         function refreshMovies() {
             const grid = document.getElementById('movies-grid');
-            const search = document.getElementById('movie-search')?.value.toLowerCase() || '';
-            if (!grid) return;
-            grid.innerHTML = '';
+            const filters = document.getElementById('movie-filters');
+            const search = (document.getElementById('movie-search')?.value || '').trim().toLowerCase();
+            const list = typeof movieData !== 'undefined' && Array.isArray(movieData) ? movieData : [];
+            if (!grid || !filters) return;
 
-            const list = (typeof movieData !== 'undefined' ? movieData : []);
-            if (list.length === 0) {
-                grid.innerHTML = `<div style="color: var(--text-dim); padding: 20px;">No movies found in movieData.js file.</div>`;
+            const featured = list[0];
+            const featurePoster = document.getElementById('movie-feature-poster');
+            const featureBackdrop = document.getElementById('movie-feature-backdrop');
+            document.getElementById('movie-feature-title').textContent = featured?.name || 'Your next movie night.';
+            document.getElementById('movie-feature-genre').textContent = featured?.genre || 'Cinema';
+            document.getElementById('movie-feature-description').textContent = featured?.description || 'Find something to watch and settle in.';
+            document.getElementById('movie-feature-play').disabled = !featured?.url;
+            if (featured?.thumb) {
+                if (featurePoster.getAttribute('src') !== featured.thumb) featurePoster.setAttribute('src', featured.thumb);
+                if (featureBackdrop.getAttribute('src') !== featured.thumb) featureBackdrop.setAttribute('src', featured.thumb);
+                featurePoster.hidden = false;
+                featureBackdrop.hidden = false;
+            } else {
+                featurePoster.hidden = true;
+                featureBackdrop.hidden = true;
+            }
+            featurePoster.onerror = () => { featurePoster.hidden = true; };
+            featureBackdrop.onerror = () => { featureBackdrop.hidden = true; };
+
+            const genres = ['All', ...new Set(list.flatMap(movieGenres))];
+            if (!genres.includes(movieGenre)) movieGenre = 'All';
+            filters.replaceChildren();
+            genres.forEach(genre => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'movie-filter';
+                button.textContent = genre;
+                button.setAttribute('aria-pressed', String(genre === movieGenre));
+                button.addEventListener('click', () => {
+                    movieGenre = genre;
+                    refreshMovies();
+                    filters.querySelector('[aria-pressed="true"]')?.focus();
+                });
+                filters.appendChild(button);
+            });
+            const matches = list.filter(movie => {
+                const matchesSearch = `${movie.name || ''} ${movie.genre || ''}`.toLowerCase().includes(search);
+                return matchesSearch && (movieGenre === 'All' || movieGenres(movie).includes(movieGenre));
+            });
+            document.getElementById('movie-results-count').textContent = `${matches.length} ${matches.length === 1 ? 'movie' : 'movies'}`;
+            grid.replaceChildren();
+            if (!matches.length) {
+                const empty = document.createElement('div');
+                empty.className = 'movie-empty';
+                empty.textContent = list.length ? 'No movies match your search. Try another title or genre.' : 'No movies are in the collection yet.';
+                grid.appendChild(empty);
                 return;
             }
-
-            list.forEach(movie => {
-                const nameMatch = movie.name.toLowerCase().includes(search);
-                const genreMatch = (movie.genre || '').toLowerCase().includes(search);
-
-                if (nameMatch || genreMatch) {
-                    const card = document.createElement('div');
-                    card.className = 'movie-card';
-                    card.onclick = () => openGame(movie.url, movie.name, movie.description);
-                    card.innerHTML = `
-                        <img src="${movie.thumb || 'Fluxlogo.svg'}" class="movie-card-thumb" alt="${movie.name}" loading="lazy">
-                        <div class="movie-card-info">
-                            <div class="movie-card-title">${escapeHtml(movie.name)}</div>
-                            <div class="movie-card-genre">${escapeHtml(movie.genre || 'Film')}</div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                }
+            matches.forEach(movie => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'movie-card';
+                card.setAttribute('aria-label', `Watch ${movie.name}`);
+                card.addEventListener('click', () => openMovie(movie));
+                const poster = document.createElement('span');
+                poster.className = 'movie-poster-wrap';
+                const image = document.createElement('img');
+                image.className = 'movie-card-thumb';
+                image.src = movie.thumb || 'Fluxlogo.svg';
+                image.alt = '';
+                image.loading = 'lazy';
+                image.onerror = () => { image.onerror = null; image.src = 'Fluxlogo.svg'; };
+                const play = document.createElement('span');
+                play.className = 'movie-play-badge';
+                play.setAttribute('aria-hidden', 'true');
+                play.innerHTML = '<i class="fa-solid fa-play"></i>';
+                poster.append(image, play);
+                const info = document.createElement('span');
+                info.className = 'movie-card-info';
+                const title = document.createElement('span');
+                title.className = 'movie-card-title';
+                title.textContent = movie.name || 'Untitled';
+                const subtitle = document.createElement('span');
+                subtitle.className = 'movie-card-genre';
+                subtitle.textContent = movie.genre || 'Film';
+                info.append(title, subtitle);
+                card.append(poster, info);
+                grid.appendChild(card);
             });
         }
 
         function playFeaturedMovie() {
             const list = (typeof movieData !== 'undefined' ? movieData : []);
             if (list.length > 0) {
-                openGame(list[0].url, list[0].name, list[0].description);
+                openMovie(list[0]);
             } else {
                 alert("No featured movie available.");
             }
+        }
+
+        function openMovie(movie) {
+            openGame(movie.url, movie.name, movie.description, 'movie');
         }
 
         function renderChangelogFeed() {
@@ -2467,14 +2522,20 @@ main { min-width: 0; }
             }
 
             const statusIndicator = document.getElementById('backend-status-indicator');
+            if (window.fluxDiscord) window.fluxDiscord.stop();
+            if (activeChatRoom === 'discord' || activeChatRoom === 'discord_dm') {
+                if (window.fluxDiscord) window.fluxDiscord.start(activeChatRoom === 'discord_dm' ? 'dm' : 'public');
+                return;
+            }
 
             if (window.fluxFirebaseDb) {
                 if (statusIndicator) statusIndicator.innerText = "Mode: Firebase Live Sync";
                 try {
                     import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js").then(({ collection, query, where, orderBy, onSnapshot }) => {
+                        if (activeChatRoom !== subscribedRoom) return;
                         const q = query(
                             collection(window.fluxFirebaseDb, "messages"),
-                            where("room", "==", activeChatRoom),
+                            where("room", "==", subscribedRoom),
                             orderBy("timestamp", "asc")
                         );
 
@@ -2526,20 +2587,17 @@ main { min-width: 0; }
             }
 
             messages.forEach(m => {
-                const row = document.createElement('div');
-                row.className = 'chat-message-row';
-                const avatarContent = m.avatar ? `<img src="${m.avatar}" alt="Avatar">` : `<i class="fa-solid fa-user"></i>`;
-                row.innerHTML = `
-                    <div class="msg-user-avatar">${avatarContent}</div>
-                    <div class="msg-details">
-                        <div class="msg-header-line">
-                            <span class="msg-author-name">${escapeHtml(m.username || 'Gamer')}</span>
-                            <span class="msg-time-stamp">${m.time || ''}</span>
-                        </div>
-                        <p class="msg-body-text">${escapeHtml(m.text || '')}</p>
-                    </div>
-                `;
-                feed.appendChild(row);
+                const row = document.createElement('div'); row.className = 'chat-message-row';
+                const avatar = document.createElement('div'); avatar.className = 'msg-user-avatar';
+                if (/^(https?:|data:image\/)/i.test(m.avatar || '')) {
+                    const image = document.createElement('img'); image.src = m.avatar; image.alt = 'Avatar'; avatar.append(image);
+                } else { const icon = document.createElement('i'); icon.className = 'fa-solid fa-user'; avatar.append(icon); }
+                const details = document.createElement('div'); details.className = 'msg-details';
+                const header = document.createElement('div'); header.className = 'msg-header-line';
+                const name = document.createElement('span'); name.className = 'msg-author-name'; name.textContent = m.username || 'Gamer';
+                const time = document.createElement('span'); time.className = 'msg-time-stamp'; time.textContent = m.time || '';
+                const body = document.createElement('p'); body.className = 'msg-body-text'; body.textContent = m.text || '';
+                header.append(name,time); details.append(header,body); row.append(avatar,details); feed.append(row);
             });
             feed.scrollTop = feed.scrollHeight;
         }
@@ -2549,6 +2607,10 @@ main { min-width: 0; }
             if (!input) return;
             const text = input.value.trim();
             if (!text) return;
+            if (activeChatRoom === 'discord' || activeChatRoom === 'discord_dm') {
+                if (window.fluxDiscord) await window.fluxDiscord.send(text, getProfileData());
+                return;
+            }
 
             const profile = JSON.parse(localStorage.getItem('flux_profile')) || { name: 'Gamer', avatar: '' };
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -2802,38 +2864,62 @@ main { min-width: 0; }
             refreshArchives();
         }
 
+        function getProfileData() {
+            try { return JSON.parse(localStorage.getItem('flux_profile')) || {}; }
+            catch (_) { return {}; }
+        }
+
         function loadProfileData() {
-            const profile = JSON.parse(localStorage.getItem('flux_profile')) || { name: 'Gamer', avatar: '', status: 'Ready to play.' };
-            document.getElementById('profile-name-input').value = profile.name;
-            document.getElementById('profile-avatar-input').value = profile.avatar;
-            document.getElementById('profile-status-input').value = profile.status;
+            const profile = getProfileData();
+            document.getElementById('profile-name-input').value = profile.name || '';
+            setProfileImageInput(document.getElementById('profile-avatar-input'), profile.avatar || '');
+            setProfileImageInput(document.getElementById('profile-banner-input'), profile.banner || '');
+            document.getElementById('profile-status-input').value = profile.status || '';
+            document.getElementById('profile-pronouns-input').value = profile.pronouns || '';
+            document.getElementById('profile-bio-input').value = profile.bio || '';
+            document.getElementById('profile-color-input').value = /^#[0-9a-f]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e';
+            document.getElementById('profile-shape-input').value = ['rounded', 'square', 'circle'].includes(profile.shape) ? profile.shape : 'circle';
             updateProfilePreview(profile);
         }
 
         function saveProfileData() {
             const profile = {
-                name: document.getElementById('profile-name-input').value || 'Gamer',
-                avatar: document.getElementById('profile-avatar-input').value,
-                status: document.getElementById('profile-status-input').value
+                ...getProfileData(),
+                name: document.getElementById('profile-name-input').value.trim() || 'Gamer',
+                avatar: getProfileImageInput(document.getElementById('profile-avatar-input')),
+                banner: getProfileImageInput(document.getElementById('profile-banner-input')),
+                status: document.getElementById('profile-status-input').value.trim(),
+                pronouns: document.getElementById('profile-pronouns-input').value.trim(),
+                bio: document.getElementById('profile-bio-input').value.trim(),
+                color: document.getElementById('profile-color-input').value,
+                shape: 'circle'
             };
-            localStorage.setItem('flux_profile', JSON.stringify(profile));
-            updateProfilePreview(profile);
-        }
-
-        function uploadAvatarFile(input) {
-            if (!input.files || !input.files[0]) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                const dataUrl = e.target.result;
-                document.getElementById('profile-avatar-input').value = dataUrl;
-                saveProfileData();
-            };
-            reader.readAsDataURL(input.files[0]);
+            const status = document.getElementById('profile-save-status');
+            try {
+                localStorage.setItem('flux_profile', JSON.stringify(profile));
+                status.textContent = 'Changes saved on this device.';
+                status.classList.remove('error');
+                updateProfilePreview(profile);
+            } catch (_) {
+                status.textContent = 'Could not save. Try a smaller profile picture.';
+                status.classList.add('error');
+            }
         }
 
         function updateProfilePreview(profile) {
-            document.getElementById('profile-preview-name').innerText = profile.name;
-            document.getElementById('profile-preview-status').innerText = profile.status || 'Ready to play.';
+            document.getElementById('profile-preview-name').textContent = profile.name || 'Gamer';
+            document.getElementById('profile-preview-status').textContent = profile.status || 'Ready to play.';
+            const pronouns = document.getElementById('profile-preview-pronouns');
+            pronouns.textContent = profile.pronouns || '';
+            pronouns.hidden = !profile.pronouns;
+            const bio = document.getElementById('profile-preview-bio');
+            bio.textContent = profile.bio || '';
+            bio.hidden = !profile.bio;
+            document.getElementById('profile-card-preview').style.setProperty('--profile-accent', /^#[0-9a-f]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e');
+            const banner = document.getElementById('profile-preview-banner');
+            const bannerValue = profile.banner || '';
+            banner.style.backgroundImage = /^(https?:|data:image\/)/i.test(bannerValue) ? `linear-gradient(transparent, rgba(0,0,0,.18)), url(${JSON.stringify(bannerValue)})` : '';
+            document.getElementById('profile-preview-avatar').dataset.shape = 'circle';
             renderProfileAvatar(document.getElementById('profile-preview-avatar'), profile.avatar);
             renderProfileAvatar(document.getElementById('btn-account'), profile.avatar);
         }
@@ -2856,7 +2942,7 @@ main { min-width: 0; }
 
         let currentGame = null;
 
-        function openGame(gameUrl, gameName, gameDesc) {
+        function openGame(gameUrl, gameName, gameDesc, mediaType = 'game') {
             currentGame = { url: gameUrl, name: gameName, description: gameDesc };
             const overlay = document.getElementById('theater-overlay');
             const iframe = document.getElementById('theater-iframe');
@@ -2870,15 +2956,22 @@ main { min-width: 0; }
 
             title.innerText = gameName;
             iframe.src = gameUrl;
+            iframe.title = mediaType === 'movie' ? 'Movie player' : 'Game Viewport';
             desc.innerText = gameDesc || 'No description provided.';
             overlay.style.display = 'flex';
+            overlay.dataset.mediaType = mediaType;
 
-            populateRecommended(gameName);
-            localStorage.setItem('flux_last_played', JSON.stringify({ name: gameName, url: gameUrl, description: gameDesc }));
-            renderQuickResume();
+            if (mediaType === 'movie') {
+                populateRecommendedMovies(gameName);
+            } else {
+                populateRecommended(gameName);
+                localStorage.setItem('flux_last_played', JSON.stringify({ name: gameName, url: gameUrl, description: gameDesc }));
+                renderQuickResume();
+            }
         }
 
         function closeTheater() {
+            if (document.fullscreenElement) document.exitFullscreen().catch(console.warn);
             document.getElementById('theater-overlay').style.display = 'none';
             document.getElementById('theater-iframe').src = '';
         }
@@ -2889,10 +2982,13 @@ main { min-width: 0; }
         }
 
         function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.error(err));
-            } else {
+            const viewport = document.querySelector('.theater-viewport-box');
+            if (document.fullscreenElement) {
                 if (document.exitFullscreen) document.exitFullscreen();
+            } else if (viewport.requestFullscreen) {
+                viewport.requestFullscreen().catch(err => console.error('Fullscreen unavailable:', err));
+            } else if (viewport.webkitRequestFullscreen) {
+                viewport.webkitRequestFullscreen();
             }
         }
 
@@ -2912,6 +3008,36 @@ main { min-width: 0; }
                 card.className = 'rec-card';
                 card.onclick = () => openGame(game.url || game.file || game.link, game.name, game.description);
                 card.innerHTML = `<img src="${game.thumb}"><div class="rec-card-name">${game.name}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function populateRecommendedMovies(currentName) {
+            const grid = document.getElementById('recommended-grid');
+            if (!grid) return;
+            grid.replaceChildren();
+            const list = typeof movieData !== 'undefined' && Array.isArray(movieData) ? movieData : [];
+            const recommendations = list.filter(movie => movie.name !== currentName).slice(0, 4);
+            if (!recommendations.length) {
+                const message = document.createElement('p');
+                message.className = 'movie-recommendation-empty';
+                message.textContent = 'More movies coming soon.';
+                grid.appendChild(message);
+                return;
+            }
+            recommendations.forEach(movie => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'rec-card movie-rec-card';
+                card.addEventListener('click', () => openMovie(movie));
+                const image = document.createElement('img');
+                image.src = movie.thumb || 'Fluxlogo.svg';
+                image.alt = '';
+                image.onerror = () => { image.onerror = null; image.src = 'Fluxlogo.svg'; };
+                const name = document.createElement('div');
+                name.className = 'rec-card-name';
+                name.textContent = movie.name;
+                card.append(image, name);
                 grid.appendChild(card);
             });
         }
@@ -2951,6 +3077,7 @@ main { min-width: 0; }
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('view-' + id).classList.add('active');
             document.getElementById('btn-' + id).classList.add('active');
+            if (id !== 'chat') { window.fluxDiscord?.stop(); if (unsubscribeFirestore) { unsubscribeFirestore(); unsubscribeFirestore = null; } }
             if (id === 'archives') refreshArchives();
             if (id === 'movies') refreshMovies();
             if (id === 'records') refreshRecords();
@@ -3168,7 +3295,7 @@ main { min-width: 0; }
     const closeButton = document.getElementById('mobile-menu-close');
     let returnFocus = null;
     let open = false;
-    const titles = {browser:'Browser',dashboard:'Dashboard',archives:'Games',movies:'Movies',changelog:'Changelog',chat:'Chat',records:'Records',settings:'Settings',account:'Profile',credits:'Credits'};
+    const titles = {browser:'Browser',dashboard:'Home',archives:'Games',movies:'Movies',changelog:'Changelog',chat:'Chat',ai:'Assistant',records:'Records',settings:'Settings',account:'Profile',credits:'Credits'};
     function setMenu(value, restoreFocus = true) {
         open = media.matches && value;
         document.body.classList.toggle('mobile-menu-open', open);
@@ -3220,6 +3347,12 @@ main { min-width: 0; }
 })();
 
 </script>
+<script src="js/flux-status.js"></script>
+<script src="js/flux-profile-crop.js"></script>
+<script src="js/discord-config.js"></script>
+<script type="module" src="js/flux-auth.js"></script>
+<script src="js/discord-chat.js"></script>
+<script src="js/flux-ai.js"></script>
 <script src="js/browser-config.js"></script>
 <script src="js/browser.js"></script>
 </body>
