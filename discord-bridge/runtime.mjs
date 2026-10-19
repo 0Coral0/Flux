@@ -5,6 +5,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { createBridge } from './server.mjs';
 import { createStore } from './store.mjs';
 import { createDiscordTransport } from './discord-channels.mjs';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { gameList } = require('../data.js');
 
 export async function start() {
   for (const key of ['DISCORD_BOT_TOKEN','DISCORD_GUILD_ID','FIREBASE_PROJECT_ID','BRIDGE_FIRESTORE_DATABASE','FLUX_SITE_ORIGIN']) if (!process.env[key]) throw Error('Missing ' + key);
@@ -54,7 +57,8 @@ export async function start() {
       } catch(error) { await message.reply(error.message.includes('invitation') || error.message.includes('already connected') ? error.message : 'Could not process that message. Please try again.').catch(()=>{}); }
     }).catch(()=>{});
   });
-  const server = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL});
+  const creatorUids = (process.env.FLUX_CREATOR_UIDS || '').split(',').map(uid => uid.trim()).filter(Boolean);
+  const server = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL,creatorUids,gameCatalog:gameList});
   const port = Number(process.env.PORT || 3032);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('Invalid PORT.');
   server.listen(port,'127.0.0.1',()=>console.log('Flux community service ready on 127.0.0.1:' + port));

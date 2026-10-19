@@ -4,14 +4,25 @@ import {createStore} from './store.mjs';
 function memoryDb() {
   const data = new Map();
   const snapshot = key => ({exists:data.has(key),data:()=>data.get(key)});
-  const doc = key => ({key,get:async()=>snapshot(key),set:async v=>data.set(key,v),collection:name=>collection(key+'/'+name)});
-  const collection = key => ({doc:name=>doc(key+'/'+name)});
+  const doc = key => ({key,get:async()=>snapshot(key),set:async (v,options)=>{
+    const next=options?.merge ? {...data.get(key)} : {};
+    for(const [field,value] of Object.entries(v)) next[field]=value?.__increment ? (next[field]||0)+value.__increment : value;
+    data.set(key,next);
+  },collection:name=>collection(key+'/'+name)});
+  const collection = key => ({doc:name=>doc(key+'/'+name),orderBy:()=>({limit:n=>({get:async()=>({docs:[...data.entries()].filter(([name])=>name.startsWith(key+'/')&&!name.slice(key.length+1).includes('/')).map(([,value])=>value).sort((a,b)=>b.plays-a.plays).slice(0,n).map(value=>({data:()=>value}))})})})});
   return {data,collection,getAll:async(...refs)=>refs.map(ref=>snapshot(ref.key)),runTransaction:async work=>{
     const writes=[];
     const result=await work({get:async ref=>snapshot(ref.key),set:(ref,v)=>writes.push(()=>data.set(ref.key,v)),delete:ref=>writes.push(()=>data.delete(ref.key))});
     writes.forEach(write=>write());return result;
   }};
 }
+
+test('game popularity is an aggregate without storing user identity',async()=>{
+  const db=memoryDb(),store=createStore(db,{increment:value=>({__increment:value})});
+  await store.recordPlay('Games/a.html');await store.recordPlay('Games/b.html');await store.recordPlay('Games/a.html');
+  assert.deepEqual(await store.hotGames(),[{id:'Games/a.html',plays:2},{id:'Games/b.html',plays:1}]);
+  assert.deepEqual([...db.data.values()].map(item=>Object.keys(item).sort()),[['id','plays'],['id','plays']]);
+});
 
 test('message profiles are returned only with the matching channel history',async()=>{
   const store=createStore(memoryDb());

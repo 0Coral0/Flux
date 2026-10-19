@@ -38,6 +38,10 @@ Gemini is not required. Install Ollama from its official site on the VM and pull
 
 The local model has no per-request provider API charge, but the VM's compute/storage still cost whatever your host charges. CPU inference works but may be slow or compete with the browser proxy. I have not inspected the VM's hardware, so performance is unverified. If necessary, move Ollama to a more capable machine and use a private network connection. This implementation limits requests to 512 output tokens and one active model request per worker. Leave `OLLAMA_MODEL` blank to keep Assistant unavailable until ready. No cloud fallback is configured.
 
+To have Flux AI recognize the creator, set `FLUX_CREATOR_UIDS` in the bridge's private `.env` to a comma-separated list of the creator's Firebase Authentication UIDs. The service checks these against the verified sign-in token, not the user-supplied display name or chat text. The AI receives only whether the signed-in account is recognized, not the UIDs themselves. Leave the setting empty to recognize no accounts. This changes conversational context only and grants no administrative permissions.
+
+The Home page's Hot list uses aggregate game-open counts stored under the server-only `bridgePrivate/game_statistics/games` collection. Both signed-in visitors and guests contribute; only a known catalog game ID is stored, not an account ID or IP address. Counts start when this feature is enabled; old site-wide counts are not available. The public read and recording endpoints are origin-checked and rate-limited, though automated traffic can still affect popularity. A Firestore write occurs for each recorded opening, so review usage and costs before enabling the service publicly. Keep the complete Flux game catalog (`data.js`) beside the `discord-bridge` folder on any host running this service.
+
 References: https://docs.ollama.com/faq and https://docs.ollama.com/api/chat
 
 ## How private Discord conversations work

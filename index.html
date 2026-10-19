@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Flux // Gateway</title>
     <link id="favicon" rel="icon" type="image/x-icon" href="Fluxlogo.svg">
+    <link rel="stylesheet" href="css/flux-ai-redesign.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1596,6 +1597,7 @@ main { min-width: 0; }
     </style>
     <link rel="stylesheet" href="css/browser.css">
     <link rel="stylesheet" href="css/flux-customization.css">
+    <link rel="stylesheet" href="css/flux-dashboard.css">
 </head>
 
 <body>
@@ -1755,26 +1757,36 @@ main { min-width: 0; }
             <!-- Dashboard -->
             <div id="view-dashboard" class="container active">
                 <div class="module-banner">
+                    <div class="home-eyebrow"><span></span> YOUR FLUX DASHBOARD</div>
                     <h2 id="dynamic-greeting" class="unscramble" data-text="Welcome back">Welcome back</h2>
-                    <p>Your local game archive is ready. Pick up where you left off or browse the catalog below.</p>
+                    <p>Your corner of the internet. Find something new or jump back in.</p>
+                    <button class="home-banner-button" type="button" onclick="showPage('archives')"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> Explore games <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
                 </div>
 
                 <div id="quick-resume-container"></div>
 
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="metric-label">INDEXED GAMES</div>
-                        <div class="metric-value unscramble" id="stat-count" data-text="0">0</div>
+                        <div class="home-metric-heading"><span class="metric-label">Added games</span><i class="fa-solid fa-gamepad" aria-hidden="true"></i></div>
+                        <div class="metric-value" id="stat-count">—</div>
+                        <span class="home-metric-note">Ready to play in the archives</span>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-label">SESSION TIME</div>
-                        <div class="metric-value unscramble" id="stat-runtime" data-text="0m">0m</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">FAVORITED ITEMS</div>
-                        <div class="metric-value unscramble" id="stat-favorites-count" data-text="0">0</div>
-                    </div>
+                    <button class="metric-card home-account-card" type="button" onclick="showPage('account')">
+                        <div class="home-metric-heading"><span class="metric-label">Login status</span><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+                        <span class="home-login-value" id="home-login-status" aria-live="polite">Checking account…</span>
+                        <span class="home-metric-note">Manage your profile <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                    </button>
                 </div>
+
+                <section class="home-section" aria-labelledby="home-recent-title">
+                    <div class="home-section-heading"><div><span class="home-section-kicker">FRESH FROM THE ARCHIVES</span><h3 id="home-recent-title">Recently added<span>.</span></h3><p>The latest additions, ready when you are.</p></div><button class="home-text-link" type="button" onclick="showPage('archives')">View all <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
+                    <div class="home-game-grid" id="home-recent-games"></div>
+                </section>
+
+                <section class="home-section home-hot-section" aria-labelledby="home-hot-title">
+                    <div class="home-section-heading"><div><span class="home-section-kicker">PLAYED BY THE COMMUNITY</span><h3 id="home-hot-title"><i class="fa-solid fa-fire" aria-hidden="true"></i> Hot<span>.</span></h3><p>The most played games on Flux.</p></div></div>
+                    <div class="home-game-grid" id="home-hot-games" aria-live="polite"><p class="home-empty">Loading community plays…</p></div>
+                </section>
             </div>
 
             <!-- Movies Streaming View -->
@@ -1816,6 +1828,7 @@ main { min-width: 0; }
 
             <!-- Library -->
             <div id="view-archives" class="container">
+                <div class="flux-page-heading"><span class="home-section-kicker">THE FLUX ARCHIVES</span><h2>Find your next game<span>.</span></h2><p>Your whole collection, all in one place.</p></div>
                 <div class="library-header-row">
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -2081,7 +2094,165 @@ main { min-width: 0; }
             </div>
 
             <!-- Profile Customization -->
-            <div id="view-ai" class="container"><div class="settings-wrap ai-wrap"><div class="section-title">Flux Assistant</div><p class="page-description">Ask a question. Powered by the model running on the Flux server.</p><div id="ai-messages" class="ai-messages" aria-live="polite"></div><form id="flux-ai-form" class="ai-compose"><label class="sr-only" for="ai-prompt">Your message</label><textarea id="ai-prompt" placeholder="What would you like to know?" maxlength="4000" required></textarea><button class="action-btn" type="submit">Send</button></form><p id="ai-status" role="status"></p></div></div>
+            <div id="view-ai" class="container">
+<div class="settings-wrap ai-wrap fxa" id="fxa-root" data-state="empty" data-busy="false">
+
+    <header class="fxa-head">
+        <div class="fxa-ident">
+            <span class="fxa-mark fxa-logo" aria-hidden="true"><span class="fxa-tp">&gt;</span><span class="fxa-tl">F</span></span>
+            <div class="fxa-ident-text">
+                <h2 class="fxa-title">Flux Assistant</h2>
+                <p class="fxa-sub" id="fxa-subline">Runs on the Flux server</p>
+            </div>
+        </div>
+        <button type="button" class="action-btn btn-outline fxa-new" id="fxa-new" disabled>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i><span>New chat</span>
+        </button>
+    </header>
+
+    <div class="fxa-stage">
+        <div class="fxa-scroll" id="fxa-scroll" tabindex="-1">
+
+            <!-- Welcome screen: shown while the chat is empty -->
+            <section class="fxa-welcome is-intro" id="fxa-welcome" aria-labelledby="fxa-hello">
+                <div class="fxa-welcome-core" data-fxa-core aria-hidden="true"></div>
+                <h3 class="fxa-hello" id="fxa-hello">What can Flux help with?</h3>
+                <p class="fxa-lede">Ask about games, code, homework, or anything you're stuck on.</p>
+
+                <div class="fxa-prompts" role="group" aria-label="Suggested prompts">
+                    <button type="button" class="fxa-prompt"
+                        data-prompt="I like fast platformers with tight controls. What kinds of games should I try next?">
+                        <span class="fxa-prompt-ico"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span>
+                        <span class="fxa-prompt-text"><b>Pick my next game</b><span>Tell it what you like, get ideas</span></span>
+                    </button>
+                    <button type="button" class="fxa-prompt"
+                        data-prompt="Explain recursion in JavaScript with a short example.">
+                        <span class="fxa-prompt-ico"><i class="fa-solid fa-code" aria-hidden="true"></i></span>
+                        <span class="fxa-prompt-text"><b>Explain some code</b><span>See recursion with a worked example</span></span>
+                    </button>
+                    <button type="button" class="fxa-prompt"
+                        data-prompt="Make me a 5-day study plan for a history test. I have about an hour each day.">
+                        <span class="fxa-prompt-ico"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+                        <span class="fxa-prompt-text"><b>Plan my studying</b><span>A five-day plan for your next test</span></span>
+                    </button>
+                    <button type="button" class="fxa-prompt"
+                        data-prompt="My JavaScript for loop prints undefined for every array item. What am I doing wrong?">
+                        <span class="fxa-prompt-ico"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
+                        <span class="fxa-prompt-text"><b>Fix a bug</b><span>Find out why a loop misbehaves</span></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Conversation -->
+            <div class="fxa-thread" id="fxa-thread" role="log" aria-live="polite" aria-label="Conversation"></div>
+        </div>
+
+        <button type="button" class="fxa-jump" id="fxa-jump" hidden>
+            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i><span>Latest</span>
+        </button>
+    </div>
+
+    <form class="fxa-compose" id="fxa-form" autocomplete="off">
+        <div class="fxa-field">
+            <label class="fxa-sr" for="fxa-input">Message Flux Assistant</label>
+            <textarea id="fxa-input" rows="1" maxlength="4000" placeholder="Message Flux" enterkeyhint="send"></textarea>
+            <button type="button" class="fxa-stop" id="fxa-stop" hidden aria-label="Stop generating">
+                <i class="fa-solid fa-stop" aria-hidden="true"></i>
+            </button>
+            <button type="submit" class="fxa-send" id="fxa-send" aria-label="Send message" disabled>
+                <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="fxa-foot">
+            <span class="fxa-hint">Enter sends. Shift+Enter adds a line. Your profile display name is shared with Flux AI when you chat.</span>
+            <span class="fxa-count" id="fxa-count" aria-live="off"></span>
+        </div>
+        <p class="fxa-sr" id="fxa-status" role="status"></p>
+    </form>
+
+    <!-- Templates (cloned by flux-ai-page.js) -->
+    <template id="fxa-tpl-core">
+        <svg class="fxa-core" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <g transform="rotate(0 24 24)">
+                <g class="fxa-orbit fxa-orbit--a">
+                    <ellipse cx="24" cy="24" rx="20" ry="7.5" />
+                    <circle class="fxa-electron" r="2.1">
+                        <animateMotion dur="2.8s" repeatCount="indefinite"
+                            path="M44 24a20 7.5 0 1 1-40 0a20 7.5 0 1 1 40 0" />
+                    </circle>
+                </g>
+            </g>
+            <g transform="rotate(60 24 24)">
+                <g class="fxa-orbit fxa-orbit--b">
+                    <ellipse cx="24" cy="24" rx="20" ry="7.5" />
+                    <circle class="fxa-electron" r="2.1">
+                        <animateMotion dur="3.6s" repeatCount="indefinite"
+                            path="M44 24a20 7.5 0 1 0-40 0a20 7.5 0 1 0 40 0" />
+                    </circle>
+                </g>
+            </g>
+            <g transform="rotate(120 24 24)">
+                <g class="fxa-orbit fxa-orbit--c">
+                    <ellipse cx="24" cy="24" rx="20" ry="7.5" />
+                    <circle class="fxa-electron" r="2.1">
+                        <animateMotion dur="3.1s" repeatCount="indefinite"
+                            path="M44 24a20 7.5 0 1 1-40 0a20 7.5 0 1 1 40 0" />
+                    </circle>
+                </g>
+            </g>
+            <g class="fxa-pulse">
+                <circle class="fxa-glow" cx="24" cy="24" r="15" />
+            </g>
+            <!-- The site's actual logo stays at the centre of the animated orbits. -->
+            <image class="fxa-core-logo" href="Fluxlogo.svg" x="12" y="12" width="24" height="24" />
+        </svg>
+    </template>
+
+    <template id="fxa-tpl-thinking">
+        <div class="fxa-think" role="status" aria-label="Flux is thinking">
+            <span class="fxa-think-core" data-fxa-core></span>
+            <div class="fxa-think-col" aria-hidden="true">
+                <span class="fxa-think-label">Reading your message</span>
+                <span class="fxa-trace"></span>
+            </div>
+        </div>
+    </template>
+
+    <template id="fxa-tpl-assistant">
+        <article class="fxa-msg fxa-msg--ai">
+            <span class="fxa-avatar fxa-logo" aria-hidden="true"><span class="fxa-tp">&gt;</span><span class="fxa-tl">F</span></span>
+            <div class="fxa-body">
+                <div class="fxa-bubble fxa-md"></div>
+                <div class="fxa-actions">
+                    <button type="button" class="fxa-act" data-act="copy">
+                        <i class="fa-regular fa-copy" aria-hidden="true"></i><span>Copy</span>
+                    </button>
+                    <button type="button" class="fxa-act" data-act="retry">
+                        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>Try again</span>
+                    </button>
+                </div>
+            </div>
+        </article>
+    </template>
+
+    <template id="fxa-tpl-error">
+        <article class="fxa-msg fxa-msg--ai fxa-msg--error" role="alert">
+            <span class="fxa-avatar fxa-avatar--error" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <div class="fxa-body">
+                <div class="fxa-bubble">
+                    <strong class="fxa-err-title"></strong>
+                    <p class="fxa-err-text"></p>
+                </div>
+                <div class="fxa-actions fxa-actions--show">
+                    <button type="button" class="fxa-act" data-act="retry-error">
+                        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>Try again</span>
+                    </button>
+                </div>
+            </div>
+        </article>
+    </template>
+</div>
+            </div>
             <div id="view-account" class="container">
                 <div class="settings-wrap profile-page">
                     <div class="profile-page-heading"><h3>Make it yours.</h3><p>Customize your Flux profile. Your changes are saved on this device. Your profile details are shared with new chat messages. Click a person’s name or picture in chat to view their profile.</p></div>
@@ -2188,6 +2359,7 @@ main { min-width: 0; }
     <!-- External Data Scripts -->
     <script src="recordsData.js"></script>
     <script src="data.js"></script>
+    <script src="js/flux-dashboard.js"></script>
     <script>
         let panicKey = ']';
         let particlesEnabled = true;
@@ -2913,6 +3085,7 @@ main { min-width: 0; }
             const status = document.getElementById('profile-save-status');
             try {
                 localStorage.setItem('flux_profile', JSON.stringify(profile));
+                window.dispatchEvent(new Event('flux-profile-changed'));
                 status.textContent = 'Changes saved on this device.';
                 status.classList.remove('error');
                 updateProfilePreview(profile);
@@ -2980,6 +3153,7 @@ main { min-width: 0; }
                 populateRecommended(gameName);
                 localStorage.setItem('flux_last_played', JSON.stringify({ name: gameName, url: gameUrl, description: gameDesc }));
                 renderQuickResume();
+                window.fluxDashboard?.recordPlay(gameUrl);
             }
         }
 
@@ -3056,25 +3230,7 @@ main { min-width: 0; }
         }
 
         function renderQuickResume() {
-            const container = document.getElementById('quick-resume-container');
-            const last = JSON.parse(localStorage.getItem('flux_last_played'));
-            if (!last) {
-                container.innerHTML = '';
-                return;
-            }
-            const list = (typeof gameList !== 'undefined' ? gameList : []);
-            const match = list.find(g => g.name === last.name);
-            const thumb = match ? match.thumb : 'AggwLogo.png';
-
-            container.innerHTML = `
-                <div class="quick-resume-card" onclick="openGame('${last.url}', '${last.name.replace(/'/g, "\\'")}', '${(last.description || '').replace(/'/g, "\\'")}')">
-                    <img src="${thumb}" class="quick-resume-thumb" alt="${last.name}">
-                    <div>
-                        <div style="font-size:0.75rem; color:var(--accent); font-family:'JetBrains Mono',monospace; margin-bottom:4px;">QUICK RESUME</div>
-                        <div style="font-size:1.1rem; font-weight:700;">${last.name}</div>
-                    </div>
-                </div>
-            `;
+            window.fluxDashboard?.renderQuickResume();
         }
 
         function switchTab(tabName) {
@@ -3092,6 +3248,7 @@ main { min-width: 0; }
             document.getElementById('btn-' + id).classList.add('active');
             if (id !== 'chat') stopChatSubscription();
             if (id === 'archives') refreshArchives();
+            if (id === 'dashboard') window.fluxDashboard?.loadHot();
             if (id === 'movies') refreshMovies();
             if (id === 'records') refreshRecords();
             if (id === 'changelog') renderChangelogFeed();
@@ -3114,10 +3271,6 @@ main { min-width: 0; }
 
             const list = (typeof gameList !== 'undefined' ? gameList : []);
             const favorites = getFavorites();
-
-            document.getElementById('stat-count').innerText = list.length;
-            const favCountEl = document.getElementById('stat-favorites-count');
-            if (favCountEl) favCountEl.innerText = favorites.length;
 
             let hasFavoritesShown = false;
 
@@ -3195,13 +3348,6 @@ main { min-width: 0; }
             }
         });
 
-        let sessionStart = Date.now();
-        setInterval(() => {
-            const mins = Math.floor((Date.now() - sessionStart) / 60000);
-            const runtimeEl = document.getElementById('stat-runtime');
-            if (runtimeEl) runtimeEl.innerText = mins + "m";
-        }, 1000);
-
         function previewLoaderSelection() {
             const selectedStyle = document.getElementById('set-loader-style').value;
             const overlay = document.getElementById('loader-overlay');
@@ -3234,6 +3380,8 @@ main { min-width: 0; }
                 }, 500);
             }, 2500);
         }
+
+        window.fluxDashboard.start({ games: typeof gameList !== 'undefined' ? gameList : [], openGame, getProfileData });
 
         window.addEventListener('load', () => {
             loadConfiguration();
@@ -3365,9 +3513,11 @@ main { min-width: 0; }
 <script src="js/flux-profile-crop.js"></script>
 <script src="js/flux-profiles.js"></script>
 <script src="js/discord-config.js"></script>
+<script src="js/flux-auth-guard.js"></script>
 <script type="module" src="js/flux-auth.js"></script>
 <script src="js/discord-chat.js"></script>
-<script src="js/flux-ai.js"></script>
+<script src="js/flux-ai-site.js"></script>
+<script src="js/flux-ai-redesign.js"></script>
 <script src="js/browser-config.js"></script>
 <script src="js/browser.js"></script>
 </body>

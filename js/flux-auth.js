@@ -9,6 +9,7 @@ try {
     return auth.currentUser.getIdToken();
   };
   onAuthStateChanged(auth, user => {
+    window.fluxAuthState = user ? { status: 'signed-in', name: user.displayName || (user.email || '').split('@')[0] || 'Gamer' } : { status: 'signed-out' };
     status.textContent = user ? `Signed in as ${user.email}` : 'Sign in to connect to Discord and the assistant.';
     document.getElementById('flux-auth-password').value = '';
     window.dispatchEvent(new Event('flux-auth-changed'));
@@ -23,4 +24,5 @@ try {
   document.getElementById('flux-auth-form').addEventListener('submit', event => { event.preventDefault(); login(); });
   document.getElementById('flux-auth-register').onclick = () => login(true);
   document.getElementById('flux-auth-logout').onclick = () => signOut(auth).catch(error => { status.textContent = error.message; });
-} catch (_) { status.textContent = 'Accounts are unavailable. Please reload or try again later.'; }
+  window.fluxAuthReady = true;
+} catch (_) { window.fluxAuthState = { status: 'unavailable' }; window.dispatchEvent(new Event('flux-auth-changed')); status.textContent = 'Accounts are unavailable. Please reload or try again later.'; }

@@ -1,14 +1,18 @@
 import { createHash, randomBytes } from 'node:crypto';
+import { FieldValue } from 'firebase-admin/firestore';
 const hash = value => createHash('sha256').update(value).digest('hex');
 // All collections below are server-only. Never grant browser access to bridgePrivate.
-export function createStore(db) {
+export function createStore(db, { increment = FieldValue.increment } = {}) {
   const root = db.collection('bridgePrivate');
   const userRef = uid => root.doc('user_' + uid);
   const recipientRef = id => root.doc('discord_' + id);
   const invites = uid => root.doc('invite_' + uid);
   const codes = code => root.doc('code_' + hash(code));
   const messageRef = thread => root.doc('thread_' + thread).collection('messages');
+  const gameStats = root.doc('game_statistics').collection('games');
   return {
+    async recordPlay(id) { await gameStats.doc(hash(id)).set({id, plays:increment(1)}, {merge:true}); },
+    async hotGames() { return (await gameStats.orderBy('plays','desc').limit(20).get()).docs.map(doc => doc.data()); },
     async saveMessageProfile(channelId, messageId, profile) {
       await root.doc('profile_' + messageId).set({ channelId, profile });
     },
