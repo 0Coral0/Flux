@@ -1,15 +1,19 @@
 import { spawn } from 'node:child_process';
+import { constants } from 'node:fs';
 import { mkdir, readFile, writeFile, unlink, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
+import { browserConfig, publishAddress } from './address-publisher.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const repo = join(root, '..');
 const runtime = join(root, '.runtime');
-const binary = join(root, '.tools', 'cloudflared.exe');
+const binary = '/usr/local/bin/cloudflared';
 const config = JSON.parse(await readFile(join(root, 'tunnel-settings.local.json'), 'utf8'));
-if (!config.accessCode || typeof config.accessCode !== 'string' || config.accessCode.length < 16) {
+const autoPublish = config.autoPublish === true || process.env.FLUX_AUTO_PUBLISH === '1';
+const publicAccess = config.publicAccess === true || process.env.FLUX_PUBLIC_ACCESS === '1';
+if (!publicAccess && (typeof config.accessCode !== 'string' || config.accessCode.trim().length < 16 || config.accessCode === 'REPLACE_WITH_A_LONG_RANDOM_PRIVATE_CODE')) {
   throw new Error('Set a private accessCode of at least 16 characters in tunnel-settings.local.json (never commit it).');
 }
 const port = 3040;
@@ -17,15 +21,14 @@ let stopping = false;
 let tunnel;
 let backend;
 let site;
+let publishQueue = Promise.resolve();
 await mkdir(runtime, { recursive: true });
-try { await access(binary); }
-catch {
-  console.log('Downloading the official Cloudflare tunnel tool...');
-  const response = await fetch('https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe');
-  if (!response.ok) throw new Error(`Cloudflare download failed: HTTP ${response.status}`);
-  await mkdir(dirname(binary), { recursive: true });
-  await writeFile(binary, Buffer.from(await response.arrayBuffer()));
+try {
+  await access(binary, constants.X_OK);
+} catch {
+  throw new Error('cloudflared is missing or not executable. Install the Linux ARM64 version at /usr/local/bin/cloudflared.');
 }
+
 let lock;
 try { lock = await writeFile(join(runtime, 'tunnel.lock'), String(process.pid), { flag: 'wx' }).then(() => true); }
 catch {
@@ -67,39 +70,39 @@ async function waitForBackend(child) {
 }
 
 async function publish(origin) {
-  const relative = 'js/browser-config.js';
-  const value = `// Updated automatically by the PC-hosted proxy launcher.\nwindow.FLUX_BROWSER_ORIGIN = ${JSON.stringify(origin)};\n`;
-  await writeFile(join(repo, relative), value);
-  if (!config.autoPublish) {
-    console.log('Local Flux has been updated. GitHub auto-publishing is disabled.');
-    return false;
-  }
   try {
-    const branch = await run('git', ['branch', '--show-current']);
-    if (branch !== 'main') throw new Error('Automatic publishing is only enabled on main.');
-    await run('git', ['add', '--', relative]);
-    const changes = await run('git', ['diff', '--cached', '--name-only', '--', relative]);
-    if (changes) await run('git', ['commit', '--only', '-m', 'Update Flux proxy tunnel address', '--', relative]);
+    let remote = await run('git', ['remote', 'get-url', 'origin']);
+    let gitOptions = [];
     if (config.useDeployKey) {
       const key = join(root, '.tools', 'flux-tunnel-key').replaceAll('\\', '/');
       const hosts = join(root, '.tools', 'known_hosts').replaceAll('\\', '/');
-      await run('git', ['-c', `core.sshCommand=ssh -i "${key}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="${hosts}"`, 'push', 'git@github.com:0Coral0/Flux.git', 'HEAD:main']);
-    } else await run('git', ['push', 'origin', 'HEAD:main']);
-    console.log('New address pushed to GitHub. Vercel will use it after its deployment finishes.');
+      const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
+      remote = 'git@github.com:0Coral0/Flux.git';
+      gitOptions = ['-c', `core.sshCommand=ssh -i ${quote(key)} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ${quote(`UserKnownHostsFile=${hosts}`)}`];
+    }
+    const changed = await publishAddress({ repo, remote, origin, gitOptions });
+    console.log(changed ? 'New address pushed to GitHub. Vercel will use it after its deployment finishes.' : 'GitHub already has the current proxy address.');
     return true;
   } catch (error) {
     console.error('The proxy is running, but the live Flux address could not be updated.');
     console.error(error.message);
-    console.error('Sign in to GitHub, then push the current main branch. No force-push is performed.');
+    console.error('Check GitHub access; the launcher will retry automatically.');
     return false;
   }
 }
 
 try {
   site = spawn(process.execPath, ['serve-flux.mjs'], { cwd: root, windowsHide: true, stdio: 'inherit' });
-  site.on('error', error => console.error('Local Flux preview:', error.message));
+  const previewFailed = () => {
+    if (stopping) return;
+    console.error('Local Flux preview stopped; stopping the launcher for restart.');
+    process.exitCode = 1;
+    stop();
+  };
+  site.on('error', previewFailed);
+  site.on('exit', previewFailed);
   while (!stopping) {
-    console.log('Starting a Cloudflare tunnel with proxy-side access protection...');
+    console.log(publicAccess ? 'Starting a public Cloudflare tunnel with connection limits...' : 'Starting a Cloudflare tunnel with proxy-side access protection...');
     const args = ['tunnel', '--no-autoupdate', '--protocol', 'http2', '--url', `http://127.0.0.1:${port}`];
     tunnel = spawn(binary, args, { cwd: runtime, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     let cloudOutput = '';
@@ -120,20 +123,40 @@ try {
       if (stopping) break;
       backend = spawn(process.execPath, ['server.mjs'], {
         cwd: root, windowsHide: true, stdio: 'inherit',
-        env: { ...process.env, PORT: String(port), PUBLIC_ORIGIN: origin, FLUX_ACCESS_CODE: config.accessCode },
+        env: { ...process.env, PORT: String(port), PUBLIC_ORIGIN: origin, FLUX_PUBLIC_ACCESS: publicAccess ? '1' : '0', FLUX_ACCESS_CODE: publicAccess ? '' : config.accessCode },
       });
       await waitForBackend(backend);
       await writeFile(join(runtime, 'current-address.txt'), origin + '\n');
       console.log(`Proxy address: ${origin}`);
-      console.log('Open that address and sign in using your private access code.');
+      console.log(publicAccess ? 'The browser is available without a sign-in.' : 'Open that address and sign in using your private access code.');
       console.log('Local Flux: http://127.0.0.1:3031/ — choose Browser.');
-      await publish(origin);
+      await writeFile(join(repo, 'js/browser-config.js'), browserConfig(origin));
+      const currentTunnel = tunnel;
+      let published = !autoPublish;
+      let publishing = false;
+      if (!autoPublish) console.log('Local Flux has been updated. GitHub auto-publishing is disabled.');
+      const sync = async () => {
+        if (published || publishing || stopping || tunnel.exitCode !== null) return;
+        publishing = true;
+        try {
+          const attempt = publishQueue.then(() => {
+            if (stopping || currentTunnel.exitCode !== null || tunnel !== currentTunnel) return false;
+            return publish(origin);
+          });
+          publishQueue = attempt.catch(() => {});
+          published = await attempt;
+        }
+        finally { publishing = false; }
+      };
+      await sync();
       console.log('Keep this launcher open. Press Ctrl+C to stop sharing.');
       const watch = setInterval(() => {
         if (stopping || backend.exitCode !== null) tunnel.kill();
       }, 1000);
+      const retryPublish = setInterval(sync, 30_000);
       if (tunnel.exitCode === null) await once(tunnel, 'exit');
       clearInterval(watch);
+      clearInterval(retryPublish);
     } catch (error) { console.error(error.message); }
     finally { backend?.kill(); tunnel?.kill(); }
     if (!stopping) { console.log('Reconnecting in 10 seconds...'); await pause(10000); }

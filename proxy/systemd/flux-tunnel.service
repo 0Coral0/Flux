@@ -1,0 +1,24 @@
+[Unit]
+Description=Flux authenticated Cloudflare tunnel and local preview
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Flux/proxy
+Environment=FLUX_SYSTEMD=1
+Environment=FLUX_AUTO_PUBLISH=1
+Environment=FLUX_PUBLIC_ACCESS=1
+ExecStartPre=/usr/bin/mkdir -p %h/Flux/proxy/.runtime
+ExecStart=/usr/bin/flock --no-fork --nonblock %h/Flux/proxy/.runtime/service.lock /usr/bin/node %h/Flux/proxy/tunnel-launcher.mjs
+Restart=always
+RestartSec=10
+KillMode=control-group
+TimeoutStopSec=20
+UMask=0077
+NoNewPrivileges=yes
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=flux-tunnel
+
+[Install]
+WantedBy=default.target
