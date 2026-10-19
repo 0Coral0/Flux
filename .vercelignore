@@ -2,3 +2,7 @@
 proxy/
 Start Flux Browser.cmd
 Start Public Flux Proxy.cmd
+discord-bridge/
+Start Flux Community.cmd
+.env*
+*service-account*.json

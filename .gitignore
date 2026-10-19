@@ -5,3 +5,7 @@ out/
 *.zip
 .DS_Store
 electron.exe
+.env
+.env.*
+!.env.example
+*service-account*.json

@@ -1,12 +1,15 @@
 import express from 'express';
-import { dirname, join } from 'node:path';
+import { dirname, join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // A separate localhost origin keeps the proxy worker away from Flux's app data.
 const app = express();
 const fluxRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 app.use((req, res, next) => {
-  if (/^\/(?:proxy|node_modules|api)(?:\/|$)/i.test(req.path)) return res.sendStatus(404);
+  let publicPath;
+  try { publicPath = posix.normalize(decodeURIComponent(req.path).replaceAll('\\', '/')); }
+  catch { return res.sendStatus(400); }
+  if (/^\/(?:proxy|discord-bridge|node_modules|api)(?:\/|$)/i.test(publicPath)) return res.sendStatus(404);
   next();
 });
 app.use(express.static(fluxRoot, { dotfiles: 'deny' }));

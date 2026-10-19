@@ -1,0 +1,9 @@
+rules_version = '2';
+// Dedicated bridge database only. Do not replace the shared default database's rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deploy to the separate flux-community database ONLY.
+    // The service uses Admin SDK credentials; browsers use its authenticated API.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

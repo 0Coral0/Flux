@@ -1,2 +1,2 @@
-// Current address of the Flux proxy hosted in the VM.
-window.FLUX_BROWSER_ORIGIN = "https://readers-less-unlimited-framework.trycloudflare.com";
+// The launcher updates this public address whenever the Chromebook tunnel changes.
+window.FLUX_BROWSER_ORIGIN = "https://spider-frost-born-persian.trycloudflare.com";
