@@ -1,0 +1,10 @@
+# Replace bridge.example.com with a real hostname whose DNS points to the VM.
+# Caddy obtains and renews the HTTPS certificate automatically.
+bridge.example.com {
+    reverse_proxy 127.0.0.1:3032 {
+        # The bridge trusts this header only because Docker exposes its port
+        # solely on loopback and this proxy overwrites any client-supplied one.
+        header_up -X-Flux-Client-IP
+        header_up X-Flux-Client-IP {remote_host}
+    }
+}

@@ -3,7 +3,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 
 const fail = (status, message) => Object.assign(new Error(message), {status});
-export function createBridge({ siteOrigin, additionalSiteOrigins = [], publicUrl, verifyToken, store, discord, ollamaUrl = 'http://127.0.0.1:11434', ollamaModel, creatorUids = [], gameCatalog = [], fetchImpl = fetch }) {
+export function createBridge({ siteOrigin, additionalSiteOrigins = [], publicUrl, verifyToken, store, discord, ollamaUrl = 'http://127.0.0.1:11434', ollamaModel, creatorUids = [], gameCatalog = [], trustedProxyClientIp = false, fetchImpl = fetch }) {
   const creatorAccounts = new Set(creatorUids);
   const gameIds = new Set(gameCatalog.map(game => game.file || game.url || game.link).filter(id => typeof id === 'string' && id.length > 0 && id.length <= 500));
   const origins = new Set([siteOrigin, ...additionalSiteOrigins].map(value => {
@@ -12,6 +12,10 @@ export function createBridge({ siteOrigin, additionalSiteOrigins = [], publicUrl
     return origin;
   }));
   const counters = new Map(); let aiBusy = false;
+  const requestIp = req => {
+    const candidate = String(req.headers['cf-connecting-ip'] || (trustedProxyClientIp ? req.headers['x-flux-client-ip'] || '' : ''));
+    return /^[a-f0-9:.]{1,64}$/i.test(candidate) ? candidate : req.socket.remoteAddress || 'unknown';
+  };
   const limit = (uid, kind, max) => {
     const now = Date.now(); const key = uid + ':' + kind;
     let bucket = counters.get(key);
@@ -49,16 +53,12 @@ export function createBridge({ siteOrigin, additionalSiteOrigins = [], publicUrl
       res.setHeader('Access-Control-Allow-Origin',req.headers.origin); res.setHeader('Vary','Origin');
       if (req.method === 'OPTIONS') { res.writeHead(204,{'Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}); return res.end(); }
       if (url.pathname === '/api/games/hot' && req.method === 'GET') {
-        const forwarded = String(req.headers['cf-connecting-ip'] || '');
-        const peer = /^[a-f0-9:.]{1,64}$/i.test(forwarded) ? forwarded : req.socket.remoteAddress || 'unknown';
-        limit('public:' + peer, 'hot-read', 60);
+        limit('public:' + requestIp(req), 'hot-read', 60);
         const games = (await store.hotGames()).filter(game => gameIds.has(game.id) && Number.isSafeInteger(game.plays) && game.plays > 0).slice(0,5);
         return send(200,{games});
       }
       if (url.pathname === '/api/games/play' && req.method === 'POST') {
-        const forwarded = String(req.headers['cf-connecting-ip'] || '');
-        const peer = /^[a-f0-9:.]{1,64}$/i.test(forwarded) ? forwarded : req.socket.remoteAddress || 'unknown';
-        limit('public:' + peer, 'game-play', 30);
+        limit('public:' + requestIp(req), 'game-play', 30);
         if (!req.headers['content-type']?.startsWith('application/json')) throw fail(415,'Send JSON.');
         let raw = '', length = 0;
         for await (const chunk of req) { length += chunk.length; if (length > 2048) throw fail(413,'Request too large.'); raw += chunk.toString('utf8'); }

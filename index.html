@@ -1598,6 +1598,7 @@ main { min-width: 0; }
     <link rel="stylesheet" href="css/browser.css">
     <link rel="stylesheet" href="css/flux-customization.css">
     <link rel="stylesheet" href="css/flux-dashboard.css">
+    <link rel="stylesheet" href="css/flux-layout.css">
 </head>
 
 <body>
@@ -1900,6 +1901,7 @@ main { min-width: 0; }
                 <div class="settings-wrap">
                     <div class="tabs-header">
                         <button class="tab-btn active" onclick="switchTab('appearance')">Appearance</button>
+                        <button class="tab-btn" onclick="switchTab('layout')">Layout</button>
                         <button class="tab-btn" onclick="switchTab('portability')">Theme Portability</button>
                         <button class="tab-btn" onclick="switchTab('stealth')">Stealth & Cloak</button>
                         <button class="tab-btn" onclick="switchTab('security')">Security & System</button>
@@ -1989,6 +1991,27 @@ main { min-width: 0; }
                                 <span class="slider"></span>
                             </label>
                         </div>
+                    </div>
+
+                    <div id="tab-layout" class="tab-panel">
+                        <div class="settings-layout-intro">
+                            <span class="home-section-kicker">MAKE FLUX YOURS</span>
+                            <h3>Layout<span>.</span></h3>
+                            <p>Choose how the navigation looks and put your most-used pages first. These preferences stay on this device.</p>
+                        </div>
+                        <div class="settings-row">
+                            <div><strong>Navigation position</strong><div>Use the classic vertical sidebar or a horizontal top navigation on larger screens.</div></div>
+                            <select class="settings-input" id="set-nav-layout"><option value="vertical">Vertical sidebar</option><option value="horizontal">Horizontal top bar</option></select>
+                        </div>
+                        <div class="settings-row">
+                            <div><strong>Content density</strong><div>Give cards and page sections a little more room, or fit more on screen.</div></div>
+                            <select class="settings-input" id="set-content-density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option><option value="spacious">Spacious</option></select>
+                        </div>
+                        <div class="settings-row settings-order-row">
+                            <div><strong>Page order</strong><div>Move pages up or down. Your sidebar and horizontal navigation will follow this order.</div></div>
+                            <ol id="layout-page-order" class="layout-page-order" aria-label="Page order"></ol>
+                        </div>
+                        <div class="settings-row"><div><strong>Reset layout</strong><div>Return the navigation and spacing to Flux defaults.</div></div><button type="button" class="action-btn btn-outline" id="reset-layout-preferences">Reset layout</button></div>
                     </div>
 
                     <div id="tab-portability" class="tab-panel">
@@ -3520,6 +3543,7 @@ main { min-width: 0; }
 <script src="js/flux-ai-redesign.js"></script>
 <script src="js/browser-config.js"></script>
 <script src="js/browser.js"></script>
+<script src="js/flux-layout.js"></script>
 </body>
 
 </html>

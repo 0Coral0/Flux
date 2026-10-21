@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+**/node_modules
+*service-account*.json
+*.log
+dist
+out

@@ -145,6 +145,16 @@ test('community game play recording is rate-limited',async t=>{
   assert.equal(calls,30);
 });
 
+test('only an explicitly trusted reverse proxy can supply the public rate-limit address',async t=>{
+  const catalog=[{file:'Games/a.html'}];
+  const untrusted=await setup(t,{gameCatalog:catalog}); untrusted.store.recordPlay=async()=>{};
+  for(let i=0;i<30;i++) assert.equal((await untrusted.request('/api/games/play',{uid:null,body:{id:'Games/a.html'},headers:{'X-Flux-Client-IP':'203.0.113.' + i}})).status,200);
+  assert.equal((await untrusted.request('/api/games/play',{uid:null,body:{id:'Games/a.html'},headers:{'X-Flux-Client-IP':'198.51.100.1'}})).status,429);
+  const trusted=await setup(t,{gameCatalog:catalog,trustedProxyClientIp:true}); trusted.store.recordPlay=async()=>{};
+  for(let i=0;i<30;i++) assert.equal((await trusted.request('/api/games/play',{uid:null,body:{id:'Games/a.html'},headers:{'X-Flux-Client-IP':'203.0.113.7'}})).status,200);
+  assert.equal((await trusted.request('/api/games/play',{uid:null,body:{id:'Games/a.html'},headers:{'X-Flux-Client-IP':'198.51.100.7'}})).status,200);
+});
+
 test('channel directory and histories route independently; forged and read-only destinations reject sends',async t=>{
   const {request,sent}=await setup(t);
   assert.equal((await request('/api/chat/channels')).channels.length,2);

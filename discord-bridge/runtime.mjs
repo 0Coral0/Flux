@@ -1,5 +1,5 @@
 import { Client, Events, GatewayIntentBits, Partials, WebhookClient } from 'discord.js';
-import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { initializeApp, applicationDefault, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { createBridge } from './server.mjs';
@@ -9,9 +9,20 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { gameList } = require('../data.js');
 
+function firebaseCredential() {
+  // Render stores this as a secret environment value instead of a JSON file.
+  // Local/VM installs keep using GOOGLE_APPLICATION_CREDENTIALS unchanged.
+  const encoded = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!encoded) return applicationDefault();
+  let account;
+  try { account = JSON.parse(encoded); }
+  catch { throw Error('FIREBASE_SERVICE_ACCOUNT_JSON must contain valid service-account JSON.'); }
+  return cert(account);
+}
+
 export async function start() {
   for (const key of ['DISCORD_BOT_TOKEN','DISCORD_GUILD_ID','FIREBASE_PROJECT_ID','BRIDGE_FIRESTORE_DATABASE','FLUX_SITE_ORIGIN']) if (!process.env[key]) throw Error('Missing ' + key);
-  const app = initializeApp({credential:applicationDefault(),projectId:process.env.FIREBASE_PROJECT_ID});
+  const app = initializeApp({credential:firebaseCredential(),projectId:process.env.FIREBASE_PROJECT_ID});
   const db = getFirestore(app,process.env.BRIDGE_FIRESTORE_DATABASE); const store = createStore(db);
   const client = new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMessages,GatewayIntentBits.DirectMessages,GatewayIntentBits.MessageContent],partials:[Partials.Channel]});
   await client.login(process.env.DISCORD_BOT_TOKEN);
@@ -58,10 +69,12 @@ export async function start() {
     }).catch(()=>{});
   });
   const creatorUids = (process.env.FLUX_CREATOR_UIDS || '').split(',').map(uid => uid.trim()).filter(Boolean);
-  const server = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL,creatorUids,gameCatalog:gameList});
+  const server = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL,creatorUids,gameCatalog:gameList,trustedProxyClientIp:process.env.TRUST_PROXY_CLIENT_IP === 'true'});
   const port = Number(process.env.PORT || 3032);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('Invalid PORT.');
-  server.listen(port,'127.0.0.1',()=>console.log('Flux community service ready on 127.0.0.1:' + port));
+  const host = process.env.BRIDGE_BIND_HOST || '127.0.0.1';
+  if (!['127.0.0.1','::1','0.0.0.0','::'].includes(host)) throw Error('Invalid BRIDGE_BIND_HOST.');
+  server.listen(port,host,()=>console.log('Flux community service ready on ' + host + ':' + port));
   const stop = () => { server.close(async ()=>{ await incoming; client.destroy(); for (const webhook of webhooks.values()) webhook.destroy(); await db.terminate(); process.exit(0); }); };
   process.once('SIGINT',stop); process.once('SIGTERM',stop);
 }

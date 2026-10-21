@@ -1,0 +1,35 @@
+/* Personal layout controls. The default Flux sidebar remains untouched until a setting is chosen. */
+.settings-layout-intro { padding: 6px 0 8px; }
+.settings-layout-intro h3 { margin: 6px 0 7px; font-size: 1.35rem; }
+.settings-layout-intro h3 span { color: var(--accent); }
+.settings-layout-intro p, .settings-row > div > div { color: var(--text-dim); font-size: .82rem; line-height: 1.5; }
+.layout-page-order { width: min(100%, 330px); margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.layout-page-order li { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 9px 8px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-card); }
+.layout-page-order .layout-page-name { flex: 1; min-width: 0; font-size: .86rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layout-order-button { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 30px; color: var(--text-dim); background: transparent; border: 1px solid var(--border); border-radius: 7px; cursor: pointer; }
+.layout-order-button:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.layout-order-button:disabled { opacity: .38; cursor: not-allowed; }
+
+@media (min-width: 901px) {
+  body.flux-nav-horizontal .app-layout { display: flex; flex-direction: column; }
+  body.flux-nav-horizontal #flux-sidebar { box-sizing: border-box; width: 100%; min-width: 0; height: auto; min-height: 88px; padding: 9px 18px; flex-direction: row; align-items: center; gap: 16px; border-right: 0; border-bottom: 1px solid var(--border); box-shadow: 0 4px 25px rgba(0,0,0,.32); overflow: hidden; }
+  body.flux-nav-horizontal #flux-sidebar .brand-box { width: auto; min-width: max-content; padding-bottom: 0; border-bottom: 0; }
+  body.flux-nav-horizontal #flux-sidebar .brand-home { min-width: max-content; }
+  body.flux-nav-horizontal #flux-sidebar .nav-list { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: row; align-items: center; gap: 5px; padding-top: 0; overflow-x: auto; scrollbar-width: thin; }
+  /* Horizontal navigation is made of compact app tiles: icon first, then label. */
+  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item { min-width: 62px; min-height: 62px; padding: 7px 9px; flex-direction: column; justify-content: center; gap: 4px; text-align: center; font-size: .64rem; line-height: 1.1; white-space: nowrap; }
+  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item i { width: auto; font-size: .98rem; }
+  body.flux-nav-horizontal #flux-sidebar .sidebar-links { margin-left: auto; padding: 0; border: 0; flex: 0 0 auto; flex-direction: row; }
+  body.flux-nav-horizontal #flux-sidebar .external-link { min-width: max-content; padding: 8px 10px; }
+  body.flux-nav-horizontal #flux-sidebar .sidebar-status { display: none; }
+  body.flux-nav-horizontal main { width: 100%; height: calc(100vh - 88px); box-sizing: border-box; }
+  body.flux-density-compact main { padding: 26px; }
+  body.flux-density-compact .home-section, body.flux-density-compact .module-banner, body.flux-density-compact .movie-hero { margin-bottom: 18px; }
+  body.flux-density-spacious main { padding: 52px; }
+  body.flux-density-spacious .home-section, body.flux-density-spacious .module-banner, body.flux-density-spacious .movie-hero { margin-bottom: 34px; }
+}
+
+@media (max-width: 900px) {
+  .settings-order-row { align-items: stretch; }
+  .layout-page-order { width: 100%; }
+}
