@@ -1083,6 +1083,32 @@
             color: #fff;
         }
 
+        .chat-owner-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 7px;
+            border: 1px solid rgba(34, 197, 94, 0.55);
+            border-radius: 999px;
+            color: #a7f3d0;
+            background: rgba(34, 197, 94, 0.13);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            line-height: 1;
+        }
+
+        .chat-moderation-notice {
+            display: none;
+            margin: -5px 24px 10px;
+            color: #fecaca;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+
+        .chat-moderation-notice.is-visible { display: block; }
+
         .msg-time-stamp {
             font-size: 0.72rem;
             color: var(--text-dim);
@@ -1891,6 +1917,7 @@ main { min-width: 0; }
                         </div>
 
                         <div class="lounge-messages-feed" id="lounge-messages-feed" aria-live="polite"></div>
+                        <p id="chat-moderation-notice" class="chat-moderation-notice" role="status" aria-live="polite"></p>
 
                         <div class="lounge-input-bar">
                             <input type="text" id="lounge-message-input" class="lounge-text-input"
@@ -2398,6 +2425,7 @@ main { min-width: 0; }
     <script src="data.js"></script>
     <script src="js/flux-game-catalog-baseline.js"></script>
     <script src="js/flux-dashboard.js"></script>
+    <script src="js/flux-chat-moderation.js"></script>
     <script>
         let panicKey = ']';
         let particlesEnabled = true;
@@ -2762,9 +2790,19 @@ main { min-width: 0; }
                 const name = document.createElement('button'); name.className = 'msg-author-name'; name.textContent = m.username || 'Gamer';
                 const publicProfile = { ...m.profile, username: m.username, avatar: m.avatar };
                 window.fluxProfiles?.bind(avatar, publicProfile); window.fluxProfiles?.bind(name, publicProfile);
+                header.append(name);
+                if (m.owner === true) {
+                    const ownerBadge = document.createElement('span');
+                    ownerBadge.className = 'chat-owner-badge';
+                    ownerBadge.title = 'Verified Flux owner';
+                    ownerBadge.innerHTML = '<i class="fa-solid fa-crown" aria-hidden="true"></i> OWNER';
+                    header.append(ownerBadge);
+                }
                 const time = document.createElement('span'); time.className = 'msg-time-stamp'; time.textContent = m.time || '';
-                const body = document.createElement('p'); body.className = 'msg-body-text'; body.textContent = m.text || '';
-                header.append(name,time); details.append(header,body); row.append(avatar,details); feed.append(row);
+                const moderation = window.fluxChatModeration?.check(m.text || '');
+                const body = document.createElement('p'); body.className = 'msg-body-text';
+                body.textContent = moderation?.allowed === false ? 'Message removed by Flux moderation.' : (m.text || '');
+                header.append(time); details.append(header,body); row.append(avatar,details); feed.append(row);
             });
             feed.scrollTop = feed.scrollHeight;
         }
@@ -2774,6 +2812,12 @@ main { min-width: 0; }
             if (!input) return;
             const text = input.value.trim();
             if (!text) return;
+            const moderation = window.fluxChatModeration?.check(text);
+            if (moderation?.allowed === false) {
+                setChatModerationNotice('That message is blocked by Flux chat moderation. Please reword it.');
+                return;
+            }
+            setChatModerationNotice('');
             const profile = JSON.parse(localStorage.getItem('flux_profile')) || { name: 'Gamer', avatar: '' };
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -2784,7 +2828,8 @@ main { min-width: 0; }
                 text: text,
                 time: timeStr,
                 room: activeChatRoom,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                owner: window.fluxChatIdentity?.owner === true
             };
             const sendingRoom = activeChatRoom;
 
@@ -2812,6 +2857,13 @@ main { min-width: 0; }
             } catch (e) {
                 console.error("Failed to save message", e);
             }
+        }
+
+        function setChatModerationNotice(message) {
+            const notice = document.getElementById('chat-moderation-notice');
+            if (!notice?.classList) return;
+            notice.textContent = message || '';
+            notice.classList.toggle('is-visible', Boolean(message));
         }
 
         function handleChatKey(e) {
