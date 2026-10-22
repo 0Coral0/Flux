@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { listUnusedGameAssets } = require('./admin-library-files');
 const Database = require('better-sqlite3');
 const { OAuth2Client } = require('google-auth-library');
 const { google } = require('googleapis');
@@ -109,6 +110,8 @@ ipcMain.handle('flux:load-data', async () => {
     changelog: parseJsFile(path.join(__dirname, 'changelogData.js'))
   };
 });
+
+ipcMain.handle('flux:list-unused-game-assets', async () => listUnusedGameAssets(__dirname));
 
 ipcMain.handle('flux:save-data', async (event, { type, data }) => {
   let filePath, variableName;

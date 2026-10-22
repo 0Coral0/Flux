@@ -502,6 +502,24 @@ const gameList = [
         "file": "Games/clfruitninja.html",
         "thumb": "Game Images/fn.png",
         "description": "Slice flying fruits in this classic arcade game."
+    },
+    {
+        "name": "Escape Road 3",
+        "file": "Games/clescaperoad3.html",
+        "thumb": "Game Images/er3.png",
+        "description": "The 3rd Game In The Escape Road Series"
+    },
+    {
+        "name": "Granny 2",
+        "file": "Games/granny2.html",
+        "thumb": "Game Images/granny2.png",
+        "description": "The Second Game In The Granny Series"
+    },
+    {
+        "name": "Handulum",
+        "file": "Games/clhandulum.html",
+        "thumb": "Game Images/handulum.png",
+        "description": ""
     }
 ];
 

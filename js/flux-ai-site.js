@@ -2,6 +2,9 @@
 (function (global) {
     'use strict';
 
+    // AI navigation helpers are intentionally paused by integrations-config.js.
+    if (global && global.FLUX_INTEGRATIONS?.ai === false) return;
+
     const pages = [
         { id: 'dashboard', label: 'Home', aliases: ['home', 'dashboard', 'main page'] },
         { id: 'browser', label: 'Browser', aliases: ['browser', 'web browser'] },

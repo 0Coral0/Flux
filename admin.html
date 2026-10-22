@@ -134,6 +134,9 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
 .entry-card h3,.entry-card h4{margin:0 0 5px;color:var(--accent);overflow-wrap:anywhere}
 .entry-card p{margin:5px 0 0;font-size:.86rem;color:var(--text-dim);overflow-wrap:anywhere}
 .entry-card img{width:60px;height:60px;border-radius:8px;object-fit:cover;background:#000;border:1px solid var(--border)}
+.admin-auth-card{display:flex;flex-wrap:wrap;align-items:center;gap:16px;max-width:1240px;margin:0 auto 22px;padding:16px 18px;background:linear-gradient(110deg,rgba(var(--accent-rgb),.12),var(--surface) 42%);border:1px solid rgba(var(--accent-rgb),.34);border-radius:var(--radius);box-shadow:var(--shadow)}
+.admin-auth-copy{display:flex;align-items:center;gap:12px;flex:1 1 270px;min-width:0}.admin-auth-copy h2{margin:0 0 3px;font-size:1rem}.admin-auth-copy p{margin:0;color:var(--text-dim);font-size:.8rem;line-height:1.4}.admin-auth-form{display:flex;flex:2 1 520px;flex-wrap:wrap;align-items:center;gap:8px}.admin-auth-form input{flex:1 1 170px;padding:10px 12px;font-size:.84rem}.admin-auth-form .btn{min-height:38px;white-space:nowrap}.admin-auth-signout{min-height:38px;white-space:nowrap}.admin-auth-card.signed-in{border-color:rgba(var(--accent-rgb),.26);background:var(--surface)}
+.multifile-toggle{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-4px 0 18px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg);cursor:pointer}.multifile-toggle input{display:inline-block;width:auto;margin:0;accent-color:var(--accent)}.multifile-toggle span{color:var(--text);font:700 .82rem Inter,system-ui,sans-serif}.multifile-toggle small{flex:1 1 230px;color:var(--text-dim);font-size:.75rem;line-height:1.4}.multifile-toggle code{color:var(--accent);font:inherit}
 .status-msg{position:fixed;right:24px;bottom:24px;z-index:100;max-width:min(420px,calc(100vw - 48px));display:none;padding:13px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface-card);box-shadow:var(--shadow);font-size:.88rem;font-weight:600;line-height:1.4}
 @media(max-width:1080px){.split{grid-template-columns:1fr}}
 @media(max-width:760px){body{overflow:auto;height:auto;min-height:100vh;flex-direction:column}.sidebar{width:100%;min-width:0;height:auto;padding:14px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px}.sidebar-header{width:100%;margin-bottom:8px;padding-bottom:14px}.nav-group,.sidebar-footer{display:none}.nav-item{width:auto;flex:1 0 140px}.content{height:auto;min-height:70vh;padding:24px 16px 60px}}
@@ -161,6 +164,15 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
 </aside>
 
 <main class="content">
+<section class="admin-auth-card" id="admin-auth-card" aria-label="Firebase admin sign in">
+ <div class="admin-auth-copy"><div class="panel-icon"><i class="fa-solid fa-shield-halved"></i></div><div><h2>Firebase admin access</h2><p id="admin-auth-status">Sign in once to manage protected Firebase content. Electron remembers the session on later launches.</p></div></div>
+ <form class="admin-auth-form" id="admin-auth-form">
+  <input id="admin-auth-email" type="email" autocomplete="email" placeholder="Admin email" required>
+  <input id="admin-auth-password" type="password" autocomplete="current-password" placeholder="Password" required>
+  <button class="btn" id="admin-auth-submit" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Sign in</button>
+ </form>
+ <button class="btn btn-secondary admin-auth-signout" id="admin-auth-signout" type="button" hidden><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
+</section>
 <section id="tab-games" class="tab-content active">
  <div class="page-head">
   <div><div class="page-kicker">Library / Catalog</div><h2>Game manager</h2><p class="page-description">Add games to the Flux library and review player requests. Requests with the most votes appear first.</p></div>
@@ -172,9 +184,11 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
    <div class="filled-banner" id="filled-banner"><i class="fa-solid fa-link"></i><span id="filled-text"></span><button class="btn btn-secondary btn-sm" id="btn-clear-filled">Clear</button></div>
    <div class="form-group"><label for="game-name">Game name</label><input id="game-name" placeholder="e.g. RetroActive"></div>
    <div class="grid-2">
-    <div class="form-group"><label for="game-file">HTML file path</label><input id="game-file" placeholder="games/mygame.html"></div>
-    <div class="form-group"><label for="game-thumb">Thumbnail path</label><input id="game-thumb" placeholder="assets/thumb.png"></div>
+    <div class="form-group"><label id="game-file-label" for="game-file">Unused game HTML</label><select id="game-file" disabled><option value="">Loading unused game files…</option></select><div class="help" id="game-file-help">Scans Flux/Games and excludes files already in data.js.</div></div>
+    <div class="form-group"><label for="game-thumb">Unused game image</label><select id="game-thumb" disabled><option value="">Loading unused images…</option></select><div class="help" id="game-thumb-help">Scans Flux/Game Images and excludes images already in data.js.</div></div>
    </div>
+   <label class="multifile-toggle" for="game-multifile"><input id="game-multifile" type="checkbox"> <span>Multifile?</span><small>Choose an HTML entry file from <code>MultiFile Games</code>. Images still use <code>Game Images</code>.</small></label>
+   <div class="button-row" style="margin:-4px 0 18px"><button class="btn btn-secondary btn-sm" id="btn-refresh-game-assets" type="button"><i class="fa-solid fa-rotate"></i> Refresh file lists</button></div>
    <div class="form-group"><label for="game-desc">Description</label><textarea id="game-desc" rows="4" placeholder="A short description..."></textarea></div>
    <button class="btn btn-block" id="btn-send-game"><i class="fa-solid fa-floppy-disk"></i> Save game entry</button>
   </div>
@@ -372,11 +386,57 @@ async function saveFluxData(type, data) {
     return result;
 }
 
+function fillAssetDropdown(id, files, emptyText) {
+    const select = document.getElementById(id);
+    const previous = select.value;
+    select.replaceChildren();
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = files.length ? emptyText : 'No unused files found';
+    select.appendChild(placeholder);
+
+    for (const file of files) {
+        const option = document.createElement('option');
+        option.value = file;
+        option.textContent = file;
+        select.appendChild(option);
+    }
+
+    select.disabled = files.length === 0;
+    if (files.includes(previous)) select.value = previous;
+}
+
+async function refreshGameAssetDropdowns() {
+    if (!fluxBridge || typeof fluxBridge.listUnusedGameAssets !== 'function') {
+        throw new Error('Game file listing is unavailable. Check preload.js and main.js.');
+    }
+
+    const assets = await fluxBridge.listUnusedGameAssets();
+    const isMultifile = document.getElementById('game-multifile').checked;
+    const gameFiles = isMultifile
+        ? (Array.isArray(assets?.multifileGameFiles) ? assets.multifileGameFiles : [])
+        : (Array.isArray(assets?.gameFiles) ? assets.gameFiles : []);
+    const images = Array.isArray(assets?.images) ? assets.images : [];
+    fillAssetDropdown('game-file', gameFiles, isMultifile
+        ? 'Choose a multifile game entry HTML'
+        : 'Choose an unused game HTML');
+    fillAssetDropdown('game-thumb', images, 'Choose an unused game image');
+    document.getElementById('game-file-label').textContent = isMultifile
+        ? 'Unused multifile game entry HTML'
+        : 'Unused game HTML';
+    document.getElementById('game-file-help').textContent = `${gameFiles.length} unused HTML file${gameFiles.length === 1 ? '' : 's'} available from ${isMultifile ? 'Flux/MultiFile Games' : 'Flux/Games'}.`;
+    document.getElementById('game-thumb-help').textContent = `${images.length} unused image${images.length === 1 ? '' : 's'} available from Flux/Game Images.`;
+    return assets;
+}
+
 /* ---------- Firebase request queue ---------- */
 
 let initializeApp, getFirestore, collection, getDocs, deleteDoc, doc;
-let query, orderBy, limit, onSnapshot, updateDoc, fbApp;
-let db, memorialCollection, firebaseLoaded = false;
+let query, orderBy, limit, onSnapshot, updateDoc, getAuth, onAuthStateChanged;
+let signInWithEmailAndPassword, firebaseSignOut, fbApp, auth;
+let db, memorialCollection, firebaseLoaded = false, authStateUnsub = null;
+let adminUser = null;
 let reqItems = [], reqUnsub = null, reqFilter = 'pending', reqSort = 'top', reqSearch = '';
 let activeRequestId = null;
 
@@ -399,24 +459,82 @@ async function loadFirebase() {
         if (!initializeApp) {
             const appSdk = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js');
             const fsSdk = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js');
+            const authSdk = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js');
 
             ({ initializeApp } = appSdk);
             ({
                 getFirestore, collection, getDocs, deleteDoc, doc,
                 query, orderBy, limit, onSnapshot, updateDoc
             } = fsSdk);
+            ({ getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut: firebaseSignOut } = authSdk);
         }
 
         fbApp = initializeApp(firebaseConfig);
         db = getFirestore(fbApp);
+        auth = getAuth(fbApp);
         memorialCollection = 'memorial_entries';
         firebaseLoaded = true;
+        watchAdminAuth();
         return true;
     } catch (error) {
         console.error('Failed to load Firebase:', error);
         showStatus('Failed to load Firebase: ' + error.message, true);
         return false;
     }
+}
+
+function updateAdminAuthUI(message, isError = false) {
+    const card = document.getElementById('admin-auth-card');
+    const status = document.getElementById('admin-auth-status');
+    const form = document.getElementById('admin-auth-form');
+    const signOutButton = document.getElementById('admin-auth-signout');
+    const signedIn = Boolean(adminUser);
+
+    if (!card || !status || !form || !signOutButton) return;
+
+    card.classList.toggle('signed-in', signedIn);
+    form.hidden = signedIn;
+    signOutButton.hidden = !signedIn;
+    status.classList.toggle('error-msg', isError);
+    status.textContent = message || (signedIn
+        ? 'Signed in as ' + (adminUser.email || 'Firebase user') + '. Firebase changes are available.'
+        : 'Sign in once to manage protected Firebase content. Electron remembers the session on later launches.');
+}
+
+function showSignInRequired() {
+    updateAdminAuthUI('Sign in with the Firebase admin account to view or edit protected content.');
+    document.getElementById('req-sub').textContent = 'Sign in is required to view requests.';
+    document.getElementById('req-list').innerHTML =
+        '<p class="empty-msg"><i class="fa-solid fa-lock"></i>Sign in above to load the protected request queue.</p>';
+}
+
+function watchAdminAuth() {
+    if (authStateUnsub || !auth) return;
+
+    authStateUnsub = onAuthStateChanged(auth, user => {
+        adminUser = user || null;
+        updateAdminAuthUI();
+
+        if (!adminUser) {
+            if (reqUnsub) reqUnsub();
+            reqUnsub = null;
+            reqItems = [];
+            showSignInRequired();
+            setConn(false, 'Firebase sign-in required');
+            return;
+        }
+
+        setConn(true, 'Signed in to Firebase');
+        if (document.getElementById('tab-games')?.classList.contains('active')) startRequests();
+        if (document.getElementById('tab-memorial')?.classList.contains('active')) loadMemorialEntries();
+    });
+}
+
+async function ensureAdminAuthenticated() {
+    if (!(await loadFirebase())) return false;
+    if (auth?.currentUser) return true;
+    showSignInRequired();
+    return false;
 }
 
 function switchTab(tabId, button) {
@@ -474,11 +592,13 @@ function timeAgo(ms) {
 async function startRequests() {
     if (reqUnsub) return;
 
-    if (!(await loadFirebase())) {
+    if (!(await ensureAdminAuthenticated())) {
+        if (!firebaseLoaded) {
         document.getElementById('req-sub').textContent = 'Could not reach Firebase.';
         document.getElementById('req-list').innerHTML =
             '<p class="empty-msg error-msg">Failed to load Firebase. Requests are unavailable.</p>';
         setConn(false, 'Firebase offline');
+        }
         return;
     }
 
@@ -633,7 +753,7 @@ function reqError(error, operation) {
 }
 
 async function setRequestStatus(id, status, quiet = false) {
-    if (!(await loadFirebase())) return false;
+    if (!(await ensureAdminAuthenticated())) return false;
 
     try {
         await updateDoc(doc(db, REQ_COLLECTION, id), { status });
@@ -660,7 +780,7 @@ async function deleteRequest(id) {
         return;
     }
 
-    if (!(await loadFirebase())) return;
+    if (!(await ensureAdminAuthenticated())) return;
 
     try {
         await deleteDoc(doc(db, REQ_COLLECTION, id));
@@ -706,8 +826,8 @@ async function sendGame() {
         description: document.getElementById('game-desc').value.trim()
     };
 
-    if (!game.name || !game.file) {
-        showStatus('Name and file are required!', true);
+    if (!game.name || !game.file || !game.thumb) {
+        showStatus('Name, game HTML, and game image are required!', true);
         return;
     }
 
@@ -732,6 +852,7 @@ async function sendGame() {
         }
 
         await saveFluxData('games', games);
+        await refreshGameAssetDropdowns();
 
         if (activeRequestId) {
             const request = reqItems.find(item => item.id === activeRequestId);
@@ -1050,8 +1171,8 @@ async function loadMemorialEntries() {
     const container = document.getElementById('memorial-entries-container');
     container.innerHTML = '<p class="empty-msg">Loading memorial entries…</p>';
 
-    if (!(await loadFirebase())) {
-        container.innerHTML = '<p class="empty-msg error-msg">Failed to load Firebase.</p>';
+    if (!(await ensureAdminAuthenticated())) {
+        container.innerHTML = '<p class="empty-msg"><i class="fa-solid fa-lock"></i>Sign in above to load protected memorial entries.</p>';
         return;
     }
 
@@ -1108,8 +1229,8 @@ async function loadMemorialEntries() {
 
 async function deleteMemorialEntry(id) {
     if (!confirm('Are you sure you want to delete this memorial entry?')) return;
-    if (!(await loadFirebase())) {
-        showStatus('Firebase not loaded', true);
+    if (!(await ensureAdminAuthenticated())) {
+        showStatus('Sign in to Firebase before deleting an entry.', true);
         return;
     }
 
@@ -1161,7 +1282,7 @@ async function runAISweep() {
     status.textContent = 'Running moderation sweep…';
 
     try {
-        if (!(await loadFirebase())) throw new Error('Failed to load Firebase');
+        if (!(await ensureAdminAuthenticated())) throw new Error('Firebase admin sign-in is required');
 
         const snapshot = await getDocs(collection(db, memorialCollection));
         const entries = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
@@ -1220,7 +1341,52 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => switchTab(button.dataset.tab, button));
     });
 
+    document.getElementById('admin-auth-form').addEventListener('submit', async event => {
+        event.preventDefault();
+
+        const submit = document.getElementById('admin-auth-submit');
+        const email = document.getElementById('admin-auth-email').value.trim();
+        const passwordInput = document.getElementById('admin-auth-password');
+
+        if (!(await loadFirebase())) return;
+
+        submit.disabled = true;
+        updateAdminAuthUI('Signing in to Firebase…');
+
+        try {
+            await signInWithEmailAndPassword(auth, email, passwordInput.value);
+            passwordInput.value = '';
+            showStatus('Firebase admin session started.');
+        } catch (error) {
+            console.error('Firebase sign-in failed:', error);
+            updateAdminAuthUI('Sign-in failed. Check the email and password, then try again.', true);
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    document.getElementById('admin-auth-signout').addEventListener('click', async () => {
+        if (!auth || !firebaseSignOut) return;
+
+        try {
+            await firebaseSignOut(auth);
+            showStatus('Signed out of the Firebase admin session.');
+        } catch (error) {
+            console.error('Firebase sign-out failed:', error);
+            showStatus('Could not sign out: ' + error.message, true);
+        }
+    });
+
     document.getElementById('btn-send-game').addEventListener('click', sendGame);
+    document.getElementById('game-multifile').addEventListener('change', () => {
+        refreshGameAssetDropdowns()
+            .catch(error => showStatus('Could not switch game folders: ' + error.message, true));
+    });
+    document.getElementById('btn-refresh-game-assets').addEventListener('click', () => {
+        refreshGameAssetDropdowns()
+            .then(() => showStatus('Unused game files refreshed.'))
+            .catch(error => showStatus('Could not refresh game files: ' + error.message, true));
+    });
     document.getElementById('btn-send-movie').addEventListener('click', sendMovie);
     document.getElementById('btn-send-record').addEventListener('click', sendRecord);
     document.getElementById('btn-send-changelog').addEventListener('click', sendChangelog);
@@ -1295,11 +1461,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadReports();
     startRequests();
 
-    ensureFluxDataLoaded().catch(error => {
-        console.error('Flux data loading failed:', error);
-        setConn(false, 'Data files unavailable');
-        showStatus('Could not load Flux data: ' + error.message, true);
-    });
+    ensureFluxDataLoaded()
+        .then(refreshGameAssetDropdowns)
+        .catch(error => {
+            console.error('Flux data loading failed:', error);
+            setConn(false, 'Data files unavailable');
+            showStatus('Could not load Flux data: ' + error.message, true);
+        });
 });
 
 /* ---------- Background particles ---------- */

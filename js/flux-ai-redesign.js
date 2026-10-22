@@ -15,6 +15,9 @@
 (() => {
     'use strict';
 
+    // The AI client is retained but makes no requests while this integration is paused.
+    if (window.FLUX_INTEGRATIONS?.ai === false) return;
+
     const root = document.getElementById('fxa-root');
     if (!root) return;
 

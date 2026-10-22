@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Flux — Takedown request</title>
+  <link rel="icon" type="image/svg+xml" href="Fluxlogo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; --bg:#080a0d; --surface:#11141a; --surface-2:#171b22; --border:#282e3a; --text:#f3f6fa; --muted:#9aa8bd; --accent:#22c55e; }
+    * { box-sizing:border-box; } body { min-height:100vh; margin:0; color:var(--text); background:radial-gradient(circle at 15% 0%,#102019 0,transparent 32rem),var(--bg); font-family:Inter,system-ui,sans-serif; }
+    .shell { width:min(100% - 32px,820px); margin:0 auto; padding:clamp(26px,6vw,74px) 0 56px; }
+    .back { display:inline-flex; align-items:center; gap:8px; color:var(--muted); text-decoration:none; font-size:.86rem; font-weight:700; } .back:hover { color:var(--accent); }
+    .eyebrow { margin:42px 0 12px; color:var(--accent); font:700 .72rem/1 'JetBrains Mono',monospace; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:0; max-width:670px; font-size:clamp(2rem,6vw,3.5rem); letter-spacing:-.055em; line-height:1.02; } .lede { max-width:680px; margin:16px 0 30px; color:var(--muted); line-height:1.65; }
+    .notice { display:flex; gap:12px; padding:17px; margin-bottom:24px; border:1px solid #315342; border-radius:13px; background:rgba(34,197,94,.08); color:#d8f8e2; line-height:1.55; font-size:.88rem; } .notice b { color:#fff; }
+    form { display:grid; gap:22px; padding:clamp(20px,4vw,34px); border:1px solid var(--border); border-radius:18px; background:linear-gradient(145deg,var(--surface-2),var(--surface)); box-shadow:0 20px 70px #0005; }
+    .section-title { margin:0 0 4px; font-size:1rem; } .section-note { margin:0; color:var(--muted); font-size:.82rem; line-height:1.5; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; } label { display:grid; gap:7px; color:#e8edf5; font-size:.82rem; font-weight:700; } label span { color:var(--muted); font-weight:500; }
+    input,select,textarea { width:100%; border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--text); background:#0b0e13; font:inherit; font-size:.92rem; outline:none; } textarea { min-height:116px; resize:vertical; } input:focus,select:focus,textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(34,197,94,.15); } option { background:#11141a; }
+    .checks { display:grid; gap:12px; } .check { display:flex; align-items:flex-start; gap:10px; color:var(--muted); font-size:.82rem; font-weight:500; line-height:1.5; } .check input { width:17px; height:17px; flex:none; margin:1px 0 0; accent-color:var(--accent); }
+    button { justify-self:start; border:0; border-radius:10px; padding:12px 16px; color:#04210e; background:var(--accent); font:800 .86rem Inter,sans-serif; cursor:pointer; } button:hover { filter:brightness(1.08); } button:focus-visible,.back:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+    #status { min-height:1.4em; margin:0; color:var(--muted); font-size:.84rem; line-height:1.5; } #status.error { color:#fda4af; } #status.success { color:#86efac; } .foot { margin:22px 0 0; color:var(--muted); font-size:.76rem; line-height:1.6; }
+    @media (max-width:580px) { .grid { grid-template-columns:1fr; } .shell { width:min(100% - 24px,820px); } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <a class="back" href="index.html" aria-label="Return to Flux">← Back to Flux</a>
+    <p class="eyebrow">Rights-holder contact</p>
+    <h1>Request a game removal</h1>
+    <p class="lede">If you own, represent, or have authority over content listed on Flux, use this form to ask us to review and remove it.</p>
+    <aside class="notice"><span aria-hidden="true">✓</span><div><b>What happens next:</b> requests are reviewed manually. Sending a request does not automatically remove content, and Flux may ask for clarification before acting.</div></aside>
+    <form id="takedown-form" novalidate>
+      <div><h2 class="section-title">Your details</h2><p class="section-note">Use a contact address where we can reach you about this request.</p></div>
+      <div class="grid">
+        <label>Full name or organization<input id="name" name="name" autocomplete="name" maxlength="120" required></label>
+        <label>Contact email<input id="email" name="email" type="email" autocomplete="email" maxlength="254" required></label>
+      </div>
+      <label>Your relationship to the work<select id="role" name="role" required><option value="">Choose one</option><option>Copyright owner</option><option>Authorized representative</option><option>Trademark owner</option><option>Other rights holder</option></select></label>
+      <div><h2 class="section-title">Content to review</h2><p class="section-note">Please identify the Flux listing and the original work as clearly as possible.</p></div>
+      <label>Game or content title on Flux<input id="title" name="title" maxlength="160" required></label>
+      <label>Link to the Flux game or listing <span>Paste the page address, if available.</span><input id="flux-url" name="flux-url" type="url" inputmode="url" placeholder="https://…" maxlength="1000"></label>
+      <label>Link to the original work or ownership information<input id="source-url" name="source-url" type="url" inputmode="url" placeholder="https://…" maxlength="1000" required></label>
+      <label>Why should this be removed?<textarea id="reason" name="reason" maxlength="4000" required placeholder="Explain the ownership concern and the action you are requesting."></textarea></label>
+      <div class="checks">
+        <label class="check"><input id="authority" type="checkbox" required><span>I state that I own the rights involved or am authorized to act for the rights holder.</span></label>
+        <label class="check"><input id="accuracy" type="checkbox" required><span>I believe the information in this request is accurate.</span></label>
+      </div>
+      <label>Electronic signature <span>Type your full name or organization name.</span><input id="signature" name="signature" autocomplete="name" maxlength="120" required></label>
+      <button type="submit">Prepare removal request</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+    <p class="foot">This form is a contact method, not legal advice and not a guarantee of removal. Do not include passwords, payment details, or other sensitive information.</p>
+  </main>
+  <script src="js/takedown-config.js"></script>
+  <script>
+    (() => {
+      const form = document.getElementById('takedown-form');
+      const status = document.getElementById('status');
+      const inbox = String(window.FLUX_TAKEDOWN_EMAIL || '').trim();
+      const value = id => document.getElementById(id).value.trim();
+      const setStatus = (message, state = '') => { status.textContent = message; status.className = state; };
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        if (!inbox) { setStatus('The Flux takedown inbox is not configured yet. Please contact the site owner for a removal address.', 'error'); return; }
+        const subject = `Flux removal request: ${value('title')}`;
+        const body = ['Flux content removal request', '', `Name or organization: ${value('name')}`, `Contact email: ${value('email')}`, `Relationship to the work: ${value('role')}`, `Flux listing: ${value('flux-url') || 'Not supplied'}`, `Original work / ownership link: ${value('source-url')}`, '', 'Reason for request:', value('reason'), '', `Electronic signature: ${value('signature')}`, 'Authority and accuracy confirmations: checked'].join('\n');
+        setStatus('Opening your email app with the completed request…', 'success');
+        window.location.href = `mailto:${encodeURIComponent(inbox)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      });
+    })();
+  </script>
+</body>
+</html>

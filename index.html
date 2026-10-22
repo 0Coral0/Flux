@@ -454,6 +454,25 @@
             display: block;
         }
 
+        .flux-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            width: 100%;
+            max-width: 1280px;
+            margin: 52px auto 0;
+            padding: 22px 0 6px;
+            border-top: 1px solid var(--border);
+        }
+
+        .flux-footer-copy { min-width: 0; }
+        .flux-footer-title { display: block; margin-bottom: 4px; color: var(--text); font-size: .82rem; font-weight: 700; }
+        .flux-footer-note { margin: 0; color: var(--text-dim); font-size: .75rem; line-height: 1.5; }
+        .flux-footer-action { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; min-height: 40px; padding: 9px 13px; border: 1px solid var(--border); border-radius: 9px; color: var(--text-dim); background: var(--surface-hover); font-size: .78rem; font-weight: 700; text-decoration: none; transition: border-color .2s ease, color .2s ease, background .2s ease; }
+        .flux-footer-action:hover { color: var(--text); border-color: var(--accent); background: rgba(34, 197, 94, .08); }
+        .flux-footer-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -1504,6 +1523,7 @@ main { min-width: 0; }
     .mobile-nav-button { min-width: 0; min-height: 52px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font: inherit; font-size: .68rem; font-weight: 600; cursor: pointer; }
     .mobile-nav-button i { font-size: 1.1rem; }
     .mobile-nav-button[aria-current="page"] { color: var(--accent); background: rgba(var(--accent-rgb), .1); border-color: rgba(var(--accent-rgb), .2); }
+    .flux-footer { flex-direction: column; align-items: flex-start; margin-top: 36px; padding-bottom: 4px; }
     main { width: 100%; height: 100%; padding: calc(88px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) calc(94px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); overscroll-behavior-y: contain; scroll-padding-top: 18px; -webkit-overflow-scrolling: touch; }
     #flux-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; width: min(320px, calc(100vw - 44px)); min-width: 0; height: 100vh; height: 100dvh; padding: calc(22px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-105%); visibility: hidden; transition: transform .25s ease, visibility .25s; overflow-y: auto; }
     .mobile-menu-open #flux-sidebar { transform: translateX(0); visibility: visible; }
@@ -1705,11 +1725,11 @@ main { min-width: 0; }
                 <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')">
                     <i class="fa-solid fa-house"></i> Home
                 </button>
-                <button class="nav-item" id="btn-browser" onclick="showPage('browser')">
+                <button class="nav-item" id="btn-browser" onclick="showPage('browser')" hidden>
                     <i class="fa-solid fa-globe"></i> Browser
                 </button>
-                <button class="nav-item" id="btn-ai" onclick="showPage('ai')"><i class="fa-solid fa-wand-magic-sparkles"></i> Assistant</button>
-                <button class="nav-item" id="btn-chat" onclick="showPage('chat')">
+                <button class="nav-item" id="btn-ai" onclick="showPage('ai')" hidden><i class="fa-solid fa-wand-magic-sparkles"></i> Assistant</button>
+                <button class="nav-item" id="btn-chat" onclick="showPage('chat')" hidden>
                     <i class="fa-solid fa-comments"></i> Chat
                 </button>
                 <button class="nav-item" id="btn-archives" onclick="showPage('archives')">
@@ -1730,11 +1750,14 @@ main { min-width: 0; }
             </nav>
 
             <div class="sidebar-links">
-                <a href="https://discord.gg/sap5p56XC2" target="_blank" class="external-link">
+                <a href="https://discord.gg/sap5p56XC2" target="_blank" class="external-link" hidden>
                     <i class="fa-brands fa-discord"></i> Discord Server
                 </a>
                 <a href="requests.html" target="_blank" class="external-link">
                     <i class="fa-solid fa-plus"></i> Submit Game
+                </a>
+                <a href="takedown.html" target="_blank" rel="noopener" class="external-link">
+                    <i class="fa-regular fa-flag"></i> Copyright Takedown
                 </a>
                 <div class="sidebar-status" aria-label="Device status">
                     <span class="sidebar-status-item" aria-label="Local time"><i class="fa-regular fa-clock" aria-hidden="true"></i><time id="sidebar-clock">--:--</time></span>
@@ -2341,6 +2364,15 @@ main { min-width: 0; }
                     <p style="color: var(--text-dim);">Developed and structured by <strong>Coral</strong>.</p>
                 </div>
             </div>
+            <footer class="flux-footer" aria-label="Flux site information">
+                <div class="flux-footer-copy">
+                    <span class="flux-footer-title">Flux<span style="color: var(--accent);">.</span></span>
+                    <p class="flux-footer-note">Own or represent content listed here? Send a request for manual review.</p>
+                </div>
+                <a class="flux-footer-action" href="takedown.html" target="_blank" rel="noopener">
+                    <i class="fa-regular fa-flag" aria-hidden="true"></i> Copyright takedown
+                </a>
+            </footer>
         </main>
         <nav class="mobile-bottom-nav" aria-label="Quick navigation">
             <button class="mobile-nav-button" data-page="dashboard" aria-current="page" onclick="showPage('dashboard')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></button>
@@ -3535,6 +3567,7 @@ main { min-width: 0; }
 <script src="js/flux-status.js"></script>
 <script src="js/flux-profile-crop.js"></script>
 <script src="js/flux-profiles.js"></script>
+<script src="js/integrations-config.js"></script>
 <script src="js/discord-config.js"></script>
 <script src="js/flux-auth-guard.js"></script>
 <script type="module" src="js/flux-auth.js"></script>

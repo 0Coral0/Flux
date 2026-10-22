@@ -1,4 +1,6 @@
 (() => {
+  // Browser proxy integration is intentionally paused by integrations-config.js.
+  if (window.FLUX_INTEGRATIONS?.browser === false) return;
   const panel = document.getElementById('view-browser');
   const frame = document.getElementById('flux-browser-frame');
   const setup = document.getElementById('flux-browser-setup');

@@ -1,4 +1,6 @@
 (() => {
+  // Discord bridge integration is intentionally paused by integrations-config.js.
+  if (window.FLUX_INTEGRATIONS?.discord === false) return;
   const get = id => document.getElementById(id);
   const feed = get('lounge-messages-feed'), status = get('backend-status-indicator');
   const controls = get('discord-controls'), note = get('discord-connection-note');
