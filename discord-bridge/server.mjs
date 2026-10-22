@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { randomBytes, createHash } from 'node:crypto';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 const fail = (status, message) => Object.assign(new Error(message), {status});
 export function createBridge({ siteOrigin, additionalSiteOrigins = [], publicUrl, verifyToken, store, discord, ollamaUrl = 'http://127.0.0.1:11434', ollamaModel, creatorUids = [], gameCatalog = [], trustedProxyClientIp = false, fetchImpl = fetch }) {
@@ -162,7 +163,7 @@ You would rather not talk about AGGW and should not bring it up unprompted, but 
   return server;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   // Finish evaluating this module before runtime imports createBridge back from it.
   import('./runtime.mjs').then(({start}) => start()).catch(error => {
     console.error(error.message);
