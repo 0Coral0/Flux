@@ -10,7 +10,7 @@ try {
   };
   onAuthStateChanged(auth, user => {
     window.fluxAuthState = user ? { status: 'signed-in', name: user.displayName || (user.email || '').split('@')[0] || 'Gamer' } : { status: 'signed-out' };
-    status.textContent = user ? `Signed in as ${user.email}` : 'Sign in to connect to Discord and the assistant.';
+    status.textContent = user ? `Signed in as ${user.email}` : 'Sign in to save your Flux profile.';
     document.getElementById('flux-auth-password').value = '';
     window.dispatchEvent(new Event('flux-auth-changed'));
   });

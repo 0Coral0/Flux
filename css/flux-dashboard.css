@@ -56,6 +56,9 @@
 .flux-page-heading { margin-bottom: 23px; }
 .flux-page-heading h2 { font-size: 1.8rem; }
 .nav-item.active, .lounge-nav-btn.active { background: rgba(var(--accent-rgb), .1); border-color: rgba(var(--accent-rgb), .3); box-shadow: 0 0 20px rgba(var(--accent-rgb), .08); }
+.lounge-layout-grid.global-chat-only { grid-template-columns: minmax(0, 1fr); }
+.game-trend-badge { position: absolute; top: 10px; left: 10px; z-index: 6; padding: 5px 8px; border: 1px solid rgba(var(--accent-rgb), .48); border-radius: 6px; background: rgba(7, 12, 9, .92); color: var(--accent); font: 800 .62rem 'JetBrains Mono', monospace; letter-spacing: .06em; pointer-events: none; }
+.game-trend-badge.hot { border-color: rgba(251, 146, 60, .56); background: rgba(80, 27, 5, .9); color: #fb923c; }
 #archive-search:focus, #movie-search:focus, .lounge-text-input:focus { border-color: var(--accent); box-shadow: inset 0 2px 6px #0009, 0 0 15px rgba(var(--accent-rgb), .15); }
 .game-node:hover, .movie-card:hover { border-color: rgba(var(--accent-rgb), .45); }
 #view-movies .movie-hero { background-color: var(--surface); border-color: var(--border); }

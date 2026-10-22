@@ -18,6 +18,13 @@ test('hot games use only genuine counts for known catalog items', () => {
   assert.deepEqual(dashboard.popularGames(games,[]),[]);
 });
 
+test('new labels compare the current catalog with its saved baseline and stat ids are path-safe', () => {
+  const games = [{name:'Old',file:'Games/old.html'},{name:'New',file:'MultiFile Games\\new\\index.html'}];
+  assert.deepEqual(dashboard.newGames(games, ['Games/old.html']).map(game => game.name), ['New']);
+  assert.equal(dashboard.statDocumentId('Games/one.html'), 'game_Games_2Fone.html');
+  assert.equal(dashboard.statDocumentId('MultiFile Games\\new\\index.html'), 'game_MultiFile_20Games_2Fnew_2Findex.html');
+});
+
 test('account label uses authenticated state and the chosen display name', () => {
   assert.equal(dashboard.loginLabel({status:'signed-in',name:'account-name'},{name:'Coral'}),'Logged in as: Coral');
   assert.equal(dashboard.loginLabel({status:'signed-in',name:'account-name'},{}),'Logged in as: account-name');
@@ -47,6 +54,8 @@ test('dashboard keeps the site navigation and removes the favorites and session 
   assert.match(home,/id="home-recent-games"/); assert.match(home,/id="home-hot-games"/);
   assert.match(home,/id="home-login-status"/); assert.doesNotMatch(home,/FAVORITED ITEMS|SESSION TIME/);
   assert.match(html,/id="btn-archives"/); assert.match(html,/id="btn-ai"/);
+  assert.match(html,/js\/flux-game-catalog-baseline\.js/);
+  assert.match(fs.readFileSync(path.join(root, 'js', 'flux-dashboard.js'),'utf8'), /game_statistics/);
 });
 
 test('Hot explains why a directly opened file cannot connect', async () => {

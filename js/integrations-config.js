@@ -7,9 +7,11 @@ window.FLUX_INTEGRATIONS = Object.freeze({
   browser: false,
   discord: false,
   ai: false,
+  globalChat: true,
 });
 
-// Keep the paused pages out of the SPA without removing their markup.
-for (const id of ['btn-browser', 'view-browser', 'btn-chat', 'view-chat', 'btn-ai', 'view-ai']) {
+// Keep the paused pages out of the SPA without removing their markup. Global
+// Chat is local Firebase functionality, not the paused Discord integration.
+for (const id of ['btn-browser', 'view-browser', 'btn-ai', 'view-ai']) {
   document.getElementById(id)?.setAttribute('hidden', '');
 }

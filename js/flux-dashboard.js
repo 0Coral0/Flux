@@ -5,14 +5,21 @@
 })(typeof window === 'undefined' ? null : window, function () {
   'use strict';
   const idOf = game => game && (game.file || game.url || game.link);
+  const catalogId = game => String(idOf(game) || '').replace(/\\/g, '/');
+  const statDocumentId = id => 'game_' + encodeURIComponent(String(id || '').replace(/\\/g, '/')).replace(/%/g, '_');
   const recentGames = games => (Array.isArray(games) ? games : []).filter(game => game && game.name && idOf(game)).slice(-5).reverse();
+  const newGames = (games, baseline) => {
+    const previous = new Set((Array.isArray(baseline) ? baseline : []).map(id => String(id || '').replace(/\\/g, '/')));
+    return (Array.isArray(games) ? games : []).filter(game => catalogId(game) && !previous.has(catalogId(game)));
+  };
   function popularGames(games, counts) {
-    const catalog = new Map((Array.isArray(games) ? games : []).map(game => [idOf(game), game]));
+    const catalog = new Map((Array.isArray(games) ? games : []).map(game => [catalogId(game), game]));
     const seen = new Set();
     return (Array.isArray(counts) ? counts : []).filter(item => {
-      if (!item || !catalog.has(item.id) || seen.has(item.id) || !Number.isSafeInteger(item.plays) || item.plays <= 0) return false;
-      seen.add(item.id); return true;
-    }).sort((a, b) => b.plays - a.plays).slice(0, 5).map(item => ({ game: catalog.get(item.id), plays: item.plays }));
+      const id = String(item?.id || '').replace(/\\/g, '/');
+      if (!item || !catalog.has(id) || seen.has(id) || !Number.isSafeInteger(item.plays) || item.plays <= 0) return false;
+      seen.add(id); return true;
+    }).sort((a, b) => b.plays - a.plays).slice(0, 5).map(item => ({ game: catalog.get(String(item.id || '').replace(/\\/g, '/')), plays: item.plays }));
   }
   function loginLabel(state, profile) {
     if (state?.status === 'signed-in') return 'Logged in as: ' + ((profile && typeof profile.name === 'string' && profile.name.trim()) || state.name || 'Gamer');
@@ -22,7 +29,9 @@
   }
   function create(win) {
     const document = win.document;
-    let games = [], openGame, getProfileData, hotRequest = null, lastHotLoad = 0;
+    let games = [], openGame, getProfileData, hotRequest = null, hotUnsubscribe = null;
+    let hotIds = new Set(), newIds = new Set();
+    const lastRecorded = new Map();
     const el = id => document.getElementById(id);
     function bridgeUrl() { return String(win.FLUX_DISCORD_BRIDGE_URL || '').replace(/\/+$/, ''); }
     function updateLogin() {
@@ -52,6 +61,11 @@
       const message = document.createElement('p'); message.className = 'home-empty'; message.textContent = text;
       target.replaceChildren(message);
     }
+    async function firebaseDb() {
+      if (win.fluxFirebaseDb) return win.fluxFirebaseDb;
+      if (win.fluxFirebaseReady && typeof win.fluxFirebaseReady.then === 'function') return win.fluxFirebaseReady;
+      return null;
+    }
     function renderRecent() {
       const target = el('home-recent-games'); if (!target) return;
       const items = recentGames(games);
@@ -80,30 +94,48 @@
       const target = el('home-hot-games'); if (!target) return;
       if (win.location && win.location.protocol === 'file:') return empty(target, 'Open Flux at http://127.0.0.1:3031/ to connect community plays.');
       if (hotRequest) return hotRequest;
-      if (!force && Date.now() - lastHotLoad < 30000) return;
-      const base = bridgeUrl();
-      if (!base) return empty(target, 'Community play counts are not connected yet.');
+      if (hotUnsubscribe && !force) return;
       hotRequest = (async () => {
         try {
-          const response = await win.fetch(base + '/api/games/hot', { signal: AbortSignal.timeout(10000) });
-          if (!response.ok) throw new Error('Hot list unavailable');
-          const data = await response.json(); const items = popularGames(games, data.games);
-          lastHotLoad = Date.now();
-          if (!items.length) return empty(target, 'No community plays yet. Be the first to play!');
-          target.replaceChildren(...items.map(item => makeCard(item.game, item.plays.toLocaleString() + (item.plays === 1 ? ' PLAY' : ' PLAYS'))));
+          const db = await firebaseDb();
+          if (!db) return empty(target, 'Community play counts are not connected yet.');
+          const { collection, query, orderBy, limit, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+          if (hotUnsubscribe) hotUnsubscribe();
+          hotUnsubscribe = onSnapshot(query(collection(db, 'game_statistics'), orderBy('plays', 'desc'), limit(20)), snapshot => {
+            const items = popularGames(games, snapshot.docs.map(entry => entry.data()));
+            hotIds = new Set(items.map(item => catalogId(item.game)));
+            if (!items.length) empty(target, 'No community plays yet. Be the first to play!');
+            else target.replaceChildren(...items.map(item => makeCard(item.game, item.plays.toLocaleString() + (item.plays === 1 ? ' PLAY' : ' PLAYS'))));
+            win.refreshArchives?.();
+          }, () => empty(target, 'Community play counts are temporarily unavailable.'));
         } catch (_) { empty(target, 'Community play counts are temporarily unavailable.'); }
         finally { hotRequest = null; }
       })();
       return hotRequest;
     }
     function recordPlay(id) {
-      const base = bridgeUrl();
-      if (!base || !games.some(game => idOf(game) === id)) return;
-      win.fetch(base + '/api/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }), keepalive: true, signal: AbortSignal.timeout(10000) })
-        .then(response => { if (response.ok) loadHot(true); }).catch(() => {});
+      const gameId = String(id || '').replace(/\\/g, '/');
+      if (!games.some(game => catalogId(game) === gameId)) return;
+      const now = Date.now();
+      if (now - (lastRecorded.get(gameId) || 0) < 30000) return;
+      lastRecorded.set(gameId, now);
+      (async () => {
+        const db = await firebaseDb();
+        if (!db) return;
+        const { doc, runTransaction, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+        const stats = doc(db, 'game_statistics', statDocumentId(gameId));
+        await runTransaction(db, async transaction => {
+          const previous = await transaction.get(stats);
+          if (!previous.exists()) return transaction.set(stats, { id: gameId, plays: 1, updatedAt: serverTimestamp() });
+          const data = previous.data();
+          if (data.id !== gameId || !Number.isSafeInteger(data.plays) || data.plays < 0) throw Error('Invalid game statistic');
+          return transaction.update(stats, { plays: data.plays + 1, updatedAt: serverTimestamp() });
+        });
+      })().catch(() => {});
     }
     function start(options) {
       games = Array.isArray(options.games) ? options.games : [];
+      newIds = new Set(newGames(games, win.fluxGameCatalogBaseline).map(catalogId));
       openGame = options.openGame; getProfileData = options.getProfileData;
       const count = el('stat-count'); if (count) count.textContent = String(games.length);
       renderRecent(); renderQuickResume(); updateLogin();
@@ -111,7 +143,11 @@
       win.addEventListener('flux-profile-changed', updateLogin);
       win.addEventListener('load', () => loadHot());
     }
-    return { start, loadHot, recordPlay, renderQuickResume };
+    function badgeForGame(game) {
+      const id = catalogId(game);
+      return hotIds.has(id) ? 'HOT' : newIds.has(id) ? 'NEW' : '';
+    }
+    return { start, loadHot, recordPlay, renderQuickResume, badgeForGame };
   }
-  return { create, recentGames, popularGames, loginLabel };
+  return { create, recentGames, newGames, popularGames, loginLabel, statDocumentId };
 });

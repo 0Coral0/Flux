@@ -36,19 +36,16 @@ function setup(loadSdk) {
   return { api, input, status, state, storage };
 }
 
-test('a delayed Firebase import cannot subscribe after switching to Discord or leaving Chat', async () => {
-  for (const destination of ['discord', 'away']) {
-    const pending = deferred();
-    let subscriptions = 0;
-    const h = setup(() => pending.promise);
-    const first = h.api.setupChatSubscription();
-    if (destination === 'discord') { h.api.setRoom('discord'); await h.api.setupChatSubscription(); }
-    else h.api.stopChatSubscription();
-    pending.resolve({ onSnapshot: () => subscriptions++ });
-    await first;
-    assert.equal(subscriptions, 0);
-    assert.equal(h.state.loads, 0);
-  }
+test('a delayed Firebase import cannot subscribe after leaving Global Chat', async () => {
+  const pending = deferred();
+  let subscriptions = 0;
+  const h = setup(() => pending.promise);
+  const first = h.api.setupChatSubscription();
+  h.api.stopChatSubscription();
+  pending.resolve({ onSnapshot: () => subscriptions++ });
+  await first;
+  assert.equal(subscriptions, 0);
+  assert.equal(h.state.loads, 0);
 });
 
 test('Global Chat subscribes to its room and ignores callbacks after leaving', async () => {
@@ -76,25 +73,19 @@ test('Firebase import failure reaches the local fallback', async () => {
   assert.equal(h.status.innerText, 'Mode: Local Storage');
 });
 
-test('device conversations stay local even when Firebase is available', async () => {
-  const h = setup(() => { throw Error('Device messages must not use Firebase'); });
-  h.api.setRoom('dm_Coral');
-  await h.api.setupChatSubscription();
-  await h.api.sendChatMessage();
-  assert.equal(h.state.imports, 0);
-  assert.equal(JSON.parse(h.storage.get('flux_chat_db')).dm_Coral[0].text, 'hello');
+test('the visible chat is Global Chat only', () => {
+  assert.doesNotMatch(html, /Discord Chat|Discord Direct Message|dm-list-container|createNewDM\(/);
+  assert.match(html, /class="lounge-layout-grid global-chat-only"/);
 });
 
-test('failed sends save to the original room when a user switches rooms during delivery', async () => {
+test('failed Global Chat sends fall back to the Global Chat local cache', async () => {
   const delivery = deferred();
   const h = setup(async () => ({ collection: () => ({}), serverTimestamp: () => 1, addDoc: () => delivery.promise }));
   const sending = h.api.sendChatMessage();
   await new Promise(resolve => setImmediate(resolve));
-  h.api.setRoom('discord');
   delivery.reject(Error('offline'));
   await sending;
   const saved = JSON.parse(h.storage.get('flux_chat_db'));
   assert.equal(saved.global_general[0].text, 'hello');
-  assert.equal(saved.discord, undefined);
-  assert.equal(h.state.loads, 0);
+  assert.equal(h.state.loads, 1);
 });

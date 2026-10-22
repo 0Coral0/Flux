@@ -33,6 +33,8 @@
         };
 
         let db = null;
+        let resolveFirebaseReady;
+        window.fluxFirebaseReady = new Promise(resolve => { resolveFirebaseReady = resolve; });
         try {
             if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
                 const app = initializeApp(firebaseConfig);
@@ -41,6 +43,8 @@
             }
         } catch (e) {
             console.warn("Firebase initialization skipped or unconfigured. Running in local sync mode.");
+        } finally {
+            resolveFirebaseReady(db);
         }
     </script>
 
@@ -1871,29 +1875,9 @@ main { min-width: 0; }
                 <div class="library-grid" id="main-grid"></div>
             </div>
 
-            <!-- Lounge & DMs View -->
+            <!-- Global Chat View -->
             <div id="view-chat" class="container">
-                <div class="lounge-layout-grid">
-                    <div class="lounge-sidebar-pane">
-                        <div class="lounge-section-title">Channels</div>
-                        <div class="lounge-nav-list">
-                            <button class="lounge-nav-btn active" id="btn-room-general"
-                                onclick="switchChatRoom('global_general', this)">
-                                <i class="fa-solid fa-globe"></i> Global Chat
-                            </button>
-                            <button class="lounge-nav-btn" id="btn-room-discord" onclick="switchChatRoom('discord', this, 'Discord Chat')"><i class="fa-brands fa-discord"></i> Discord Chat</button>
-                            <button class="lounge-nav-btn" onclick="switchChatRoom('discord_dm', this, 'Discord Direct Message')"><i class="fa-solid fa-envelope"></i> Discord DM</button>
-                        </div>
-                        <div class="lounge-section-title">Discord channels</div>
-                        <div id="discord-channel-list" class="lounge-nav-list discord-channel-list" aria-label="Discord channels"></div>
-
-                        <div class="lounge-section-title" style="margin-top: 10px;">
-                            <span>On this device</span>
-                            <button class="dm-add-btn" onclick="createNewDM()" title="Add device conversation"><i
-                                    class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <div class="lounge-nav-list" id="dm-list-container"></div>
-                    </div>
+                <div class="lounge-layout-grid global-chat-only">
 
                     <div class="lounge-chat-pane">
                         <div class="lounge-header-bar">
@@ -1906,9 +1890,7 @@ main { min-width: 0; }
                                 id="backend-status-indicator">Mode: Local/Firebase</div>
                         </div>
 
-                        <div id="discord-controls" class="discord-controls" hidden><span id="discord-connection-note"></span><button type="button" class="action-btn btn-outline" id="discord-pair">Invite Discord contact</button><button type="button" class="action-btn btn-outline" id="discord-unlink">Disconnect contact</button></div>
                         <div class="lounge-messages-feed" id="lounge-messages-feed" aria-live="polite"></div>
-                        <div class="discord-post-fields"><input id="discord-post-title" class="lounge-text-input" aria-label="Forum post title" placeholder="Post title" maxlength="100" hidden><select id="discord-post-tag" class="settings-input" aria-label="Forum post tag" hidden></select></div>
 
                         <div class="lounge-input-bar">
                             <input type="text" id="lounge-message-input" class="lounge-text-input"
@@ -2414,6 +2396,7 @@ main { min-width: 0; }
     <!-- External Data Scripts -->
     <script src="recordsData.js"></script>
     <script src="data.js"></script>
+    <script src="js/flux-game-catalog-baseline.js"></script>
     <script src="js/flux-dashboard.js"></script>
     <script>
         let panicKey = ']';
@@ -2685,64 +2668,11 @@ main { min-width: 0; }
 
         window.addEventListener('resize', initParticles);
 
-        function loadDMSidebar() {
-            const listContainer = document.getElementById('dm-list-container');
-            if (!listContainer) return;
-            listContainer.innerHTML = '';
-
-            let dms = [];
-            try {
-                dms = JSON.parse(localStorage.getItem('flux_dms')) || ['Coral', 'FluxBot'];
-            } catch (e) {
-                dms = ['Coral', 'FluxBot'];
-            }
-
-            dms.forEach(user => {
-                const roomKey = `dm_${user}`;
-                const btn = document.createElement('button');
-                btn.className = `lounge-nav-btn ${activeChatRoom === roomKey ? 'active' : ''}`;
-                btn.innerHTML = `<i class="fa-solid fa-at"></i> ${user}`;
-                btn.onclick = () => switchChatRoom(roomKey, btn, `DM: ${user}`);
-                listContainer.appendChild(btn);
-            });
-        }
-
-        function createNewDM() {
-            const username = prompt("Name this device-only conversation. To message a Discord contact, use Discord DM.");
-            if (!username || !username.trim()) return;
-            const cleanUser = username.trim();
-
-            let dms = [];
-            try {
-                dms = JSON.parse(localStorage.getItem('flux_dms')) || ['Coral', 'FluxBot'];
-            } catch (e) {
-                dms = ['Coral', 'FluxBot'];
-            }
-
-            if (!dms.includes(cleanUser)) {
-                dms.push(cleanUser);
-                localStorage.setItem('flux_dms', JSON.stringify(dms));
-            }
-            loadDMSidebar();
-            switchChatRoom(`dm_${cleanUser}`, null, `DM: ${cleanUser}`);
-        }
-
-        function switchChatRoom(roomKey, btnElement, titleOverride) {
-            activeChatRoom = roomKey;
-            document.querySelectorAll('.lounge-nav-btn').forEach(b => b.classList.remove('active'));
-            if (btnElement) {
-                btnElement.classList.add('active');
-            } else {
-                const target = document.querySelector(`[onclick*="${roomKey}"]`);
-                if (target) target.classList.add('active');
-            }
-
+        function switchChatRoom() {
+            activeChatRoom = 'global_general';
             const titleEl = document.getElementById('current-chat-title');
-            if (titleEl) {
-                titleEl.innerText = titleOverride || (roomKey === 'global_general' ? 'Global Chat' : roomKey.replace('dm_', 'DM: '));
-            }
-
-            document.getElementById('lounge-message-input').placeholder = `Message ${titleEl.innerText}...`;
+            if (titleEl) titleEl.innerText = 'Global Chat';
+            document.getElementById('lounge-message-input').placeholder = 'Message Global Chat...';
             setupChatSubscription();
         }
 
@@ -2750,7 +2680,6 @@ main { min-width: 0; }
             chatSubscriptionGeneration++;
             if (unsubscribeFirestore) unsubscribeFirestore();
             unsubscribeFirestore = null;
-            window.fluxDiscord?.stop();
         }
 
         async function setupChatSubscription() {
@@ -2761,12 +2690,6 @@ main { min-width: 0; }
             feed.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 20px;">Loading messages...</div>';
 
             const statusIndicator = document.getElementById('backend-status-indicator');
-            if (activeChatRoom === 'discord' || activeChatRoom === 'discord_dm') {
-                if (window.fluxDiscord) window.fluxDiscord.start(activeChatRoom === 'discord_dm' ? 'dm' : 'public');
-                return;
-            }
-
-            // Legacy device conversations must never enter the shared Firestore collection.
             if (window.fluxFirebaseDb && subscribedRoom === 'global_general') {
                 if (statusIndicator) statusIndicator.innerText = "Mode: Firebase Live Sync";
                 try {
@@ -2851,11 +2774,6 @@ main { min-width: 0; }
             if (!input) return;
             const text = input.value.trim();
             if (!text) return;
-            if (activeChatRoom === 'discord' || activeChatRoom === 'discord_dm') {
-                if (window.fluxDiscord) await window.fluxDiscord.send(text, getProfileData());
-                return;
-            }
-
             const profile = JSON.parse(localStorage.getItem('flux_profile')) || { name: 'Gamer', avatar: '' };
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -3308,9 +3226,7 @@ main { min-width: 0; }
             if (id === 'records') refreshRecords();
             if (id === 'changelog') renderChangelogFeed();
             if (id === 'chat') {
-                loadDMSidebar();
                 setupChatSubscription();
-                window.fluxDiscord?.loadChannels();
             }
         }
 
@@ -3352,9 +3268,11 @@ main { min-width: 0; }
             const node = document.createElement('div');
             node.className = "game-node";
             node.onclick = () => openGame(game.url || game.file || game.link, game.name, game.description);
+            const trend = window.fluxDashboard?.badgeForGame(game) || '';
 
             node.innerHTML = `
                 <img src="${game.thumb}" loading="lazy" alt="${game.name}">
+                ${trend ? `<span class="game-trend-badge ${trend.toLowerCase()}">${trend}</span>` : ''}
                 <button class="game-fav-btn ${isFav ? 'favorited' : ''}" onclick="toggleFavorite('${game.name.replace(/'/g, "\\'")}', event)" title="Favorite">
                     <i class="fa-${isFav ? 'solid' : 'regular'} fa-heart"></i>
                 </button>
@@ -3446,7 +3364,6 @@ main { min-width: 0; }
             renderQuickResume();
             refreshArchives();
             renderChangelogFeed();
-            loadDMSidebar();
 
             const greetingEl = document.getElementById('dynamic-greeting');
             if (greetingEl) {
