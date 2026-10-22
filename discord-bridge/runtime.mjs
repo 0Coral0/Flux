@@ -41,50 +41,11 @@ export async function start() {
   try {
   const app = initializeApp({credential:firebaseCredential(),projectId:process.env.FIREBASE_PROJECT_ID});
   const db = getFirestore(app,process.env.BRIDGE_FIRESTORE_DATABASE); const store = createStore(db);
-  const client = new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMessages,GatewayIntentBits.DirectMessages,GatewayIntentBits.MessageContent],partials:[Partials.Channel]});
-  await client.login(process.env.DISCORD_BOT_TOKEN);
-  if (!client.isReady()) await new Promise(resolve => client.once(Events.ClientReady,resolve));
-  const guild = await client.guilds.fetch(process.env.DISCORD_GUILD_ID);
-  await guild.members.fetchMe();
-  let webhookUrls;
-  try { webhookUrls = JSON.parse(process.env.DISCORD_WEBHOOK_URLS || '{}'); }
-  catch { throw Error('DISCORD_WEBHOOK_URLS must be a JSON object mapping channel IDs to webhook URLs.'); }
-  if (!webhookUrls || typeof webhookUrls !== 'object' || Array.isArray(webhookUrls)) throw Error('Invalid DISCORD_WEBHOOK_URLS configuration.');
-  if (process.env.DISCORD_WEBHOOK_URL && process.env.DISCORD_CHANNEL_ID) webhookUrls[process.env.DISCORD_CHANNEL_ID] = process.env.DISCORD_WEBHOOK_URL;
-  const webhooks = new Map();
-  for (const [channelId, url] of Object.entries(webhookUrls)) {
-    let webhook;
-    try { webhook = new WebhookClient({ url }); }
-    catch { throw Error('Invalid configured Discord webhook.'); }
-    const remote = await client.fetchWebhook(webhook.id, webhook.token);
-    if (remote.guildId !== guild.id || remote.channelId !== channelId) throw Error('Each webhook must belong to its configured channel in the Flux server.');
-    webhooks.set(channelId, webhook);
-  }
-  console.log('Discord sender webhooks verified: ' + webhooks.size);
-  const discord = createDiscordTransport({ guild, bot: client.user, webhooks });
-  discord.dm = async (id, payload) => (await client.users.fetch(id)).send(payload);
-  const mirrored = await discord.channels();
-  if (!mirrored.length) throw Error('No channels are readable by ordinary members and Flux Bot. Check the server/channel permissions.');
-  console.log('Discord channels ready: ' + mirrored.map(channel => channel.name + (channel.readOnly ? ' [read only]' : '')).join(', '));
-  // Sequential DM processing prevents acceptance/unlink commands racing with incoming messages.
   let incoming = Promise.resolve();
-  client.on(Events.MessageCreate, message => {
-    if (message.guildId || message.author.bot) return;
-    incoming = incoming.then(async () => {
-      try {
-        const text = message.content.trim();
-        if (/^!flux [a-f0-9]{32}$/.test(text)) {
-          await store.accept(text.slice(6),message.author.id,message.author.username);
-          await message.reply('Connected to your Flux contact. Your next messages here are private replies to that contact. Send !unlink to disconnect.'); return;
-        }
-        const contact = await store.recipient(message.author.id);
-        if (text === '!unlink') { if (contact) await store.unlink(contact.uid); await message.reply('Disconnected from Flux.'); return; }
-        if (!contact) { await message.reply('To connect, ask your Flux contact for an invitation and send !flux CODE.'); return; }
-        const content = [text,...message.attachments.map(a=>a.url)].filter(Boolean).join('\n');
-        if (content) await store.append(contact.thread,message.id,{username:message.author.username,avatar:message.author.displayAvatarURL(),text:content,timestamp:message.createdAt.toISOString()});
-      } catch(error) { await message.reply(error.message.includes('invitation') || error.message.includes('already connected') ? error.message : 'Could not process that message. Please try again.').catch(()=>{}); }
-    }).catch(()=>{});
-  });
+  const discordUnavailable = async () => { throw Object.assign(Error('Community chat is still connecting to Discord. Please try again shortly.'), {status:503}); };
+  // Keep the object stable: createBridge holds this reference while the live
+  // Discord transport replaces these methods after it has connected.
+  const discord = {channels:discordUnavailable,channel:discordUnavailable,assertWritable:discordUnavailable,send:discordUnavailable,dm:discordUnavailable,history:discordUnavailable};
   const creatorUids = (process.env.FLUX_CREATOR_UIDS || '').split(',').map(uid => uid.trim()).filter(Boolean);
   const bridge = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL,creatorUids,gameCatalog:gameList,trustedProxyClientIp:process.env.TRUST_PROXY_CLIENT_IP === 'true'});
   const bridgeHandler = bridge.listeners('request')[0];
@@ -93,7 +54,65 @@ export async function start() {
   server.requestTimeout = bridge.requestTimeout;
   server.headersTimeout = bridge.headersTimeout;
   console.log('Flux community service ready on ' + host + ':' + port);
-  const stop = () => { server.close(async ()=>{ await incoming; client.destroy(); for (const webhook of webhooks.values()) webhook.destroy(); await db.terminate(); process.exit(0); }); };
+  let shutdownDiscord = async () => {};
+  const connectDiscord = async () => {
+    const client = new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMessages,GatewayIntentBits.DirectMessages,GatewayIntentBits.MessageContent],partials:[Partials.Channel]});
+    try {
+      const login = client.login(process.env.DISCORD_BOT_TOKEN.trim());
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(Error('Discord login timed out after 30 seconds. Check the bot token and gateway intents.')), 30000));
+      await Promise.race([login, timeout]);
+      if (!client.isReady()) await new Promise(resolve => client.once(Events.ClientReady,resolve));
+      const guild = await client.guilds.fetch(process.env.DISCORD_GUILD_ID);
+      await guild.members.fetchMe();
+      let webhookUrls;
+      try { webhookUrls = JSON.parse(process.env.DISCORD_WEBHOOK_URLS || '{}'); }
+      catch { throw Error('DISCORD_WEBHOOK_URLS must be a JSON object mapping channel IDs to webhook URLs.'); }
+      if (!webhookUrls || typeof webhookUrls !== 'object' || Array.isArray(webhookUrls)) throw Error('Invalid DISCORD_WEBHOOK_URLS configuration.');
+      if (process.env.DISCORD_WEBHOOK_URL && process.env.DISCORD_CHANNEL_ID) webhookUrls[process.env.DISCORD_CHANNEL_ID] = process.env.DISCORD_WEBHOOK_URL;
+      const webhooks = new Map();
+      for (const [channelId, url] of Object.entries(webhookUrls)) {
+        let webhook;
+        try { webhook = new WebhookClient({ url }); }
+        catch { throw Error('Invalid configured Discord webhook.'); }
+        const remote = await client.fetchWebhook(webhook.id, webhook.token);
+        if (remote.guildId !== guild.id || remote.channelId !== channelId) throw Error('Each webhook must belong to its configured channel in the Flux server.');
+        webhooks.set(channelId, webhook);
+      }
+      console.log('Discord sender webhooks verified: ' + webhooks.size);
+      const liveDiscord = createDiscordTransport({ guild, bot: client.user, webhooks });
+      Object.assign(discord,liveDiscord,{dm:async (id, payload) => (await client.users.fetch(id)).send(payload)});
+      const mirrored = await discord.channels();
+      if (!mirrored.length) throw Error('No channels are readable by ordinary members and Flux Bot. Check the server/channel permissions.');
+      console.log('Discord channels ready: ' + mirrored.map(channel => channel.name + (channel.readOnly ? ' [read only]' : '')).join(', '));
+      client.on(Events.MessageCreate, message => {
+        if (message.guildId || message.author.bot) return;
+        incoming = incoming.then(async () => {
+          try {
+            const text = message.content.trim();
+            if (/^!flux [a-f0-9]{32}$/.test(text)) {
+              await store.accept(text.slice(6),message.author.id,message.author.username);
+              await message.reply('Connected to your Flux contact. Your next messages here are private replies to that contact. Send !unlink to disconnect.'); return;
+            }
+            const contact = await store.recipient(message.author.id);
+            if (text === '!unlink') { if (contact) await store.unlink(contact.uid); await message.reply('Disconnected from Flux.'); return; }
+            if (!contact) { await message.reply('To connect, ask your Flux contact for an invitation and send !flux CODE.'); return; }
+            const content = [text,...message.attachments.map(a=>a.url)].filter(Boolean).join('\n');
+            if (content) await store.append(contact.thread,message.id,{username:message.author.username,avatar:message.author.displayAvatarURL(),text:content,timestamp:message.createdAt.toISOString()});
+          } catch(error) { await message.reply(error.message.includes('invitation') || error.message.includes('already connected') ? error.message : 'Could not process that message. Please try again.').catch(()=>{}); }
+        }).catch(()=>{});
+      });
+      shutdownDiscord = async () => { client.destroy(); for (const webhook of webhooks.values()) webhook.destroy(); };
+    } catch (error) {
+      client.destroy();
+      throw error;
+    }
+  };
+  const keepTryingDiscord = async () => {
+    try { await connectDiscord(); }
+    catch (error) { console.error('Discord connection unavailable: ' + error.message); setTimeout(() => void keepTryingDiscord(), 60000).unref(); }
+  };
+  void keepTryingDiscord();
+  const stop = () => { server.close(async ()=>{ await incoming; await shutdownDiscord(); await db.terminate(); process.exit(0); }); };
   process.once('SIGINT',stop); process.once('SIGTERM',stop);
   } catch (error) {
     server.close();
