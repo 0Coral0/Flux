@@ -2721,6 +2721,42 @@ main { min-width: 0; }
             return '';
         }
 
+        async function compressChatAvatar(value) {
+            const avatar = String(value || '');
+            const alreadySafe = safeChatAvatar(avatar);
+            if (alreadySafe) return alreadySafe;
+            if (!/^data:image\/(png|jpeg|gif|webp);base64,/i.test(avatar)) return '';
+
+            try {
+                const image = await new Promise((resolve, reject) => {
+                    const loaded = new Image();
+                    loaded.onload = () => resolve(loaded);
+                    loaded.onerror = reject;
+                    loaded.src = avatar;
+                });
+
+                // A chat avatar never needs full profile-photo resolution. Keep it
+                // compact enough for Firestore documents and browser storage.
+                let maxDimension = 256;
+                let quality = 0.78;
+                for (let attempt = 0; attempt < 6; attempt++) {
+                    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+                    canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+                    const context = canvas.getContext('2d');
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    const compressed = canvas.toDataURL('image/jpeg', quality);
+                    if (compressed.length <= 40000) return compressed;
+                    maxDimension = Math.max(48, Math.floor(maxDimension * 0.72));
+                    quality = Math.max(0.35, quality - 0.1);
+                }
+            } catch (error) {
+                console.warn('Chat avatar compression failed; using the default avatar.', error);
+            }
+            return '';
+        }
+
         function compactLocalChatMessage(message, room) {
             const source = message && typeof message === 'object' ? message : {};
             const profile = source.profile && typeof source.profile === 'object' ? source.profile : {};
@@ -2879,12 +2915,11 @@ main { min-width: 0; }
             setChatModerationNotice('');
             const profile = JSON.parse(localStorage.getItem('flux_profile')) || { name: 'Gamer', avatar: '' };
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const chatAvatar = await compressChatAvatar(profile.avatar);
 
             const newMsg = {
                 username: profile.name || 'Gamer',
-                // Large profile uploads stay in the profile, but chat uses a small
-                // avatar or the default icon so messages fit Firestore and storage.
-                avatar: safeChatAvatar(profile.avatar),
+                avatar: chatAvatar,
                 profile: { status: String(profile.status || '').slice(0,80), pronouns: String(profile.pronouns || '').slice(0,32), bio: String(profile.bio || '').slice(0,180), color: /^#[a-f0-9]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e' },
                 text: text,
                 time: timeStr,

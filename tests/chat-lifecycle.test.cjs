@@ -99,3 +99,9 @@ test('chat strips oversized data-image avatars before a message is stored or sen
   assert.equal(compacted.avatar, '');
   assert.equal(compacted.text, 'hello');
 });
+
+test('chat includes a browser-side image compression path for oversized avatar uploads', () => {
+  assert.match(html, /async function compressChatAvatar\(value\)/);
+  assert.match(html, /canvas\.toDataURL\('image\/jpeg', quality\)/);
+  assert.match(html, /const chatAvatar = await compressChatAvatar\(profile\.avatar\)/);
+});
