@@ -31,7 +31,7 @@ function setup(loadSdk) {
   const api = vm.runInNewContext(`
     let activeChatRoom = 'global_general', unsubscribeFirestore = null, chatSubscriptionGeneration = 0, localChatFallback = false;
     ${source}
-    ({ setupChatSubscription, stopChatSubscription, sendChatMessage, setRoom: value => activeChatRoom = value });
+    ({ setupChatSubscription, stopChatSubscription, sendChatMessage, safeChatAvatar, compactLocalChatMessage, setRoom: value => activeChatRoom = value });
   `, context);
   return { api, input, status, state, storage };
 }
@@ -89,4 +89,13 @@ test('failed Global Chat sends fall back to the Global Chat local cache', async 
   assert.equal(saved.global_general[0].text, 'hello');
   assert.equal(h.state.loads, 1);
   assert.equal(h.status.innerText, 'Mode: Local Storage');
+});
+
+test('chat strips oversized data-image avatars before a message is stored or sent', () => {
+  const h = setup(async () => ({}));
+  const enormousAvatar = `data:image/png;base64,${'a'.repeat(40001)}`;
+  assert.equal(h.api.safeChatAvatar(enormousAvatar), '');
+  const compacted = h.api.compactLocalChatMessage({ avatar: enormousAvatar, text: 'hello' }, 'global_general');
+  assert.equal(compacted.avatar, '');
+  assert.equal(compacted.text, 'hello');
 });

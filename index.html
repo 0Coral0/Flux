@@ -2714,6 +2714,42 @@ main { min-width: 0; }
             unsubscribeFirestore = null;
         }
 
+        function safeChatAvatar(value) {
+            const avatar = String(value || '');
+            if (/^https?:\/\//i.test(avatar) && avatar.length <= 2000) return avatar;
+            if (/^data:image\/(png|jpeg|gif|webp);base64,/i.test(avatar) && avatar.length <= 40000) return avatar;
+            return '';
+        }
+
+        function compactLocalChatMessage(message, room) {
+            const source = message && typeof message === 'object' ? message : {};
+            const profile = source.profile && typeof source.profile === 'object' ? source.profile : {};
+            return {
+                username: String(source.username || 'Gamer').slice(0, 40),
+                avatar: safeChatAvatar(source.avatar),
+                profile: {
+                    status: String(profile.status || '').slice(0, 80),
+                    pronouns: String(profile.pronouns || '').slice(0, 32),
+                    bio: String(profile.bio || '').slice(0, 180),
+                    color: /^#[a-f0-9]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e'
+                },
+                text: String(source.text || '').slice(0, 500),
+                time: String(source.time || '').slice(0, 24),
+                room,
+                timestamp: Number(source.timestamp) || Date.now(),
+                owner: source.owner === true
+            };
+        }
+
+        function saveLocalChatMessage(room, message) {
+            const db = JSON.parse(localStorage.getItem('flux_chat_db')) || {};
+            const messages = Array.isArray(db[room]) ? db[room] : [];
+            db[room] = [...messages, message]
+                .map(entry => compactLocalChatMessage(entry, room))
+                .slice(-50);
+            localStorage.setItem('flux_chat_db', JSON.stringify(db));
+        }
+
         function useLocalChatFallback() {
             localChatFallback = true;
             try { sessionStorage.setItem('flux_chat_transport', 'local'); }
@@ -2846,7 +2882,9 @@ main { min-width: 0; }
 
             const newMsg = {
                 username: profile.name || 'Gamer',
-                avatar: profile.avatar || '',
+                // Large profile uploads stay in the profile, but chat uses a small
+                // avatar or the default icon so messages fit Firestore and storage.
+                avatar: safeChatAvatar(profile.avatar),
                 profile: { status: String(profile.status || '').slice(0,80), pronouns: String(profile.pronouns || '').slice(0,32), bio: String(profile.bio || '').slice(0,180), color: /^#[a-f0-9]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e' },
                 text: text,
                 time: timeStr,
@@ -2873,13 +2911,11 @@ main { min-width: 0; }
             }
 
             try {
-                const db = JSON.parse(localStorage.getItem('flux_chat_db')) || {};
-                if (!db[sendingRoom]) db[sendingRoom] = [];
-                db[sendingRoom].push(newMsg);
-                localStorage.setItem('flux_chat_db', JSON.stringify(db));
+                saveLocalChatMessage(sendingRoom, newMsg);
                 if (activeChatRoom === sendingRoom) loadLocalChatMessages();
             } catch (e) {
                 console.error("Failed to save message", e);
+                setChatModerationNotice('Your profile image is too large for chat storage. Use a smaller avatar, then try again.');
             }
         }
 
