@@ -29,7 +29,7 @@ function setup(loadSdk) {
   };
   const source = `${lifecycleSource}\n${sendSource}`.replaceAll('import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js")', 'loadSdk()');
   const api = vm.runInNewContext(`
-    let activeChatRoom = 'global_general', unsubscribeFirestore = null, chatSubscriptionGeneration = 0;
+    let activeChatRoom = 'global_general', unsubscribeFirestore = null, chatSubscriptionGeneration = 0, localChatFallback = false;
     ${source}
     ({ setupChatSubscription, stopChatSubscription, sendChatMessage, setRoom: value => activeChatRoom = value });
   `, context);
@@ -88,4 +88,5 @@ test('failed Global Chat sends fall back to the Global Chat local cache', async 
   const saved = JSON.parse(h.storage.get('flux_chat_db'));
   assert.equal(saved.global_general[0].text, 'hello');
   assert.equal(h.state.loads, 1);
+  assert.equal(h.status.innerText, 'Mode: Local Storage');
 });

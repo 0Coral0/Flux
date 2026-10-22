@@ -2432,6 +2432,10 @@ main { min-width: 0; }
         let activeChatRoom = 'global_general';
         let unsubscribeFirestore = null;
         let chatSubscriptionGeneration = 0;
+        let localChatFallback = (() => {
+            try { return sessionStorage.getItem('flux_chat_transport') === 'local'; }
+            catch (_) { return false; }
+        })();
 
         let movieGenre = 'All';
         function movieGenres(movie) {
@@ -2710,6 +2714,17 @@ main { min-width: 0; }
             unsubscribeFirestore = null;
         }
 
+        function useLocalChatFallback() {
+            localChatFallback = true;
+            try { sessionStorage.setItem('flux_chat_transport', 'local'); }
+            catch (_) { /* Storage can be unavailable in private browsing. */ }
+            if (unsubscribeFirestore) unsubscribeFirestore();
+            unsubscribeFirestore = null;
+            chatSubscriptionGeneration++;
+            const statusIndicator = document.getElementById('backend-status-indicator');
+            if (statusIndicator) statusIndicator.innerText = 'Mode: Local Storage';
+        }
+
         async function setupChatSubscription() {
             stopChatSubscription();
             const generation = chatSubscriptionGeneration;
@@ -2718,6 +2733,11 @@ main { min-width: 0; }
             feed.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 20px;">Loading messages...</div>';
 
             const statusIndicator = document.getElementById('backend-status-indicator');
+            if (localChatFallback) {
+                if (statusIndicator) statusIndicator.innerText = 'Mode: Local Storage';
+                loadLocalChatMessages();
+                return;
+            }
             if (window.fluxFirebaseDb && subscribedRoom === 'global_general') {
                 if (statusIndicator) statusIndicator.innerText = "Mode: Firebase Live Sync";
                 try {
@@ -2739,13 +2759,16 @@ main { min-width: 0; }
                     }, (error) => {
                         if (generation !== chatSubscriptionGeneration) return;
                         console.warn("Firestore listener error, falling back to local storage:", error);
-                        if (statusIndicator) statusIndicator.innerText = "Mode: Local Storage";
+                        useLocalChatFallback();
                         loadLocalChatMessages();
                     });
                     return;
                 } catch (e) {
                     if (generation !== chatSubscriptionGeneration) return;
                     console.warn("Firebase hook failed, using local storage fallback.");
+                    useLocalChatFallback();
+                    loadLocalChatMessages();
+                    return;
                 }
             }
 
@@ -2845,6 +2868,7 @@ main { min-width: 0; }
                     return;
                 } catch (e) {
                     console.warn("Firestore write failed, saving locally:", e);
+                    useLocalChatFallback();
                 }
             }
 
