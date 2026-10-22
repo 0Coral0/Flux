@@ -6,6 +6,7 @@ import { createBridge } from './server.mjs';
 import { createStore } from './store.mjs';
 import { createDiscordTransport } from './discord-channels.mjs';
 import { createRequire } from 'node:module';
+import { createServer } from 'node:http';
 const require = createRequire(import.meta.url);
 const { gameList } = require('../data.js');
 
@@ -22,6 +23,22 @@ function firebaseCredential() {
 
 export async function start() {
   for (const key of ['DISCORD_BOT_TOKEN','DISCORD_GUILD_ID','FIREBASE_PROJECT_ID','BRIDGE_FIRESTORE_DATABASE','FLUX_SITE_ORIGIN']) if (!process.env[key]) throw Error('Missing ' + key);
+  const port = Number(process.env.PORT || 3032);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('Invalid PORT.');
+  const host = process.env.BRIDGE_BIND_HOST || '127.0.0.1';
+  if (!['127.0.0.1','::1','0.0.0.0','::'].includes(host)) throw Error('Invalid BRIDGE_BIND_HOST.');
+
+  // Render requires a successful HTTP health check before it lets the new
+  // deploy receive traffic. Discord's gateway can take a while to connect, so
+  // listen immediately and swap in the full bridge when startup is complete.
+  let requestHandler = (req,res) => {
+    const path = new URL(req.url,'http://localhost').pathname;
+    res.writeHead(path === '/healthz' ? 200 : 503,{'Content-Type':'application/json','Cache-Control':'no-store'});
+    res.end(JSON.stringify(path === '/healthz' ? {ready:false,starting:true} : {error:'The community service is starting. Please try again shortly.'}));
+  };
+  const server = createServer((req,res) => requestHandler(req,res));
+  server.listen(port,host,()=>console.log('Flux community service starting on ' + host + ':' + port));
+  try {
   const app = initializeApp({credential:firebaseCredential(),projectId:process.env.FIREBASE_PROJECT_ID});
   const db = getFirestore(app,process.env.BRIDGE_FIRESTORE_DATABASE); const store = createStore(db);
   const client = new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMessages,GatewayIntentBits.DirectMessages,GatewayIntentBits.MessageContent],partials:[Partials.Channel]});
@@ -69,12 +86,17 @@ export async function start() {
     }).catch(()=>{});
   });
   const creatorUids = (process.env.FLUX_CREATOR_UIDS || '').split(',').map(uid => uid.trim()).filter(Boolean);
-  const server = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL,creatorUids,gameCatalog:gameList,trustedProxyClientIp:process.env.TRUST_PROXY_CLIENT_IP === 'true'});
-  const port = Number(process.env.PORT || 3032);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('Invalid PORT.');
-  const host = process.env.BRIDGE_BIND_HOST || '127.0.0.1';
-  if (!['127.0.0.1','::1','0.0.0.0','::'].includes(host)) throw Error('Invalid BRIDGE_BIND_HOST.');
-  server.listen(port,host,()=>console.log('Flux community service ready on ' + host + ':' + port));
+  const bridge = createBridge({siteOrigin:process.env.FLUX_SITE_ORIGIN,additionalSiteOrigins:process.env.FLUX_LOCAL_ORIGIN ? [process.env.FLUX_LOCAL_ORIGIN] : [],publicUrl:process.env.BRIDGE_PUBLIC_URL,verifyToken:token=>getAuth().verifyIdToken(token,true),store,discord,ollamaUrl:process.env.OLLAMA_URL,ollamaModel:process.env.OLLAMA_MODEL,creatorUids,gameCatalog:gameList,trustedProxyClientIp:process.env.TRUST_PROXY_CLIENT_IP === 'true'});
+  const bridgeHandler = bridge.listeners('request')[0];
+  if (typeof bridgeHandler !== 'function') throw Error('Could not start the HTTP bridge.');
+  requestHandler = bridgeHandler;
+  server.requestTimeout = bridge.requestTimeout;
+  server.headersTimeout = bridge.headersTimeout;
+  console.log('Flux community service ready on ' + host + ':' + port);
   const stop = () => { server.close(async ()=>{ await incoming; client.destroy(); for (const webhook of webhooks.values()) webhook.destroy(); await db.terminate(); process.exit(0); }); };
   process.once('SIGINT',stop); process.once('SIGTERM',stop);
+  } catch (error) {
+    server.close();
+    throw error;
+  }
 }
