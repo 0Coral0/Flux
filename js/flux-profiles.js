@@ -18,8 +18,20 @@
       element.textContent = text(profile[key], max); element.hidden = !element.textContent;
     }
     dialog.style.setProperty('--profile-accent', /^#[a-f0-9]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e');
+    dialog.style.setProperty('--member-banner', profile.banner ? `url("${text(profile.banner, 30000).replace(/["\\]/g, '\\$&')}")` : '');
     document.getElementById('member-profile-note').textContent = profile.bio || profile.status || profile.pronouns
       ? 'Profile details shared with this message.' : 'This person has shared their name and profile picture.';
+    const actions = document.getElementById('member-profile-actions'); actions.replaceChildren();
+    if (profile.uid && profile.uid !== window.fluxAuthState?.uid) {
+      const add = document.createElement('button'); add.type = 'button'; add.className = 'action-btn';
+      add.innerHTML = '<i class="fa-solid fa-user-plus" aria-hidden="true"></i> Add friend';
+      add.onclick = async () => {
+        add.disabled = true;
+        try { await window.fluxChatSocial?.friendUser(profile); add.textContent = 'Friend request sent'; }
+        catch (_) { add.disabled = false; }
+      };
+      actions.append(add);
+    }
     if (!dialog.open) dialog.showModal();
   }
   document.getElementById('member-profile-close').onclick = () => dialog.close();

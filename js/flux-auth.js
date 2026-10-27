@@ -20,10 +20,10 @@ try {
   };
   onAuthStateChanged(auth, user => {
     const owner = isFluxOwner(user);
-    window.fluxChatIdentity = { owner };
+    window.fluxChatIdentity = { owner, uid: user?.uid || null };
     window.fluxAuthState = user
-      ? { status: 'signed-in', name: user.displayName || (user.email || '').split('@')[0] || 'Gamer', owner }
-      : { status: 'signed-out', owner: false };
+      ? { status: 'signed-in', uid: user.uid, email: user.email || '', name: user.displayName || (user.email || '').split('@')[0] || 'Gamer', owner }
+      : { status: 'signed-out', uid: null, email: '', owner: false };
     status.textContent = user ? `Signed in as ${user.email}` : 'Sign in to save your Flux profile.';
     document.getElementById('flux-auth-password').value = '';
     window.dispatchEvent(new Event('flux-auth-changed'));
@@ -39,4 +39,4 @@ try {
   document.getElementById('flux-auth-register').onclick = () => login(true);
   document.getElementById('flux-auth-logout').onclick = () => signOut(auth).catch(error => { status.textContent = error.message; });
   window.fluxAuthReady = true;
-} catch (_) { window.fluxChatIdentity = { owner: false }; window.fluxAuthState = { status: 'unavailable', owner: false }; window.dispatchEvent(new Event('flux-auth-changed')); status.textContent = 'Accounts are unavailable. Please reload or try again later.'; }
+} catch (_) { window.fluxChatIdentity = { owner: false, uid: null }; window.fluxAuthState = { status: 'unavailable', uid: null, email: '', owner: false }; window.dispatchEvent(new Event('flux-auth-changed')); status.textContent = 'Accounts are unavailable. Please reload or try again later.'; }

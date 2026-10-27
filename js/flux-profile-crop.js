@@ -7,6 +7,7 @@
     const y = document.getElementById('crop-y');
     let image = null;
     let loadId = 0;
+    let target = 'avatar';
     window.setProfileImageInput = (input, value) => {
         input.dataset.upload = value.startsWith('data:image/') ? value : '';
         input.value = input.dataset.upload ? '' : value;
@@ -24,7 +25,7 @@
         ctx.drawImage(image, left, top, width, height);
     }
     [zoom, x, y].forEach(input => input.addEventListener('input', draw));
-    window.uploadProfileImage = input => {
+    window.uploadProfileImage = (input, nextTarget = 'avatar') => {
         const file = input.files && input.files[0];
         input.value = '';
         if (!file || !file.type.startsWith('image/')) return;
@@ -37,8 +38,10 @@
                 if (id !== loadId) return;
                 if (nextImage.naturalWidth * nextImage.naturalHeight > 40000000) return alert('Please resize that image before uploading.');
                 image = nextImage;
-                canvas.width = canvas.height = 400;
-                document.getElementById('profile-crop-title').textContent = 'Adjust your profile picture';
+                target = nextTarget === 'banner' ? 'banner' : 'avatar';
+                canvas.width = target === 'banner' ? 900 : 400;
+                canvas.height = target === 'banner' ? 300 : 400;
+                document.getElementById('profile-crop-title').textContent = target === 'banner' ? 'Adjust your profile banner' : 'Adjust your profile picture';
                 zoom.value = 1; x.value = 50; y.value = 50;
                 draw();
                 if (!dialog.open) dialog.showModal();
@@ -52,7 +55,17 @@
     window.closeProfileCrop = () => { ++loadId; dialog.close(); image = null; };
     window.applyProfileCrop = () => {
         if (!image) return;
-        setProfileImageInput(document.getElementById('profile-avatar-input'), canvas.toDataURL('image/webp', 0.88));
+        let result = canvas.toDataURL('image/webp', 0.76);
+        let width = canvas.width, height = canvas.height, quality = 0.76;
+        for (let attempt = 0; result.length > 28000 && attempt < 5; attempt++) {
+            width = Math.max(160, Math.round(width * 0.78));
+            height = Math.max(80, Math.round(height * 0.78));
+            quality = Math.max(0.42, quality - 0.08);
+            const compact = document.createElement('canvas'); compact.width = width; compact.height = height;
+            compact.getContext('2d').drawImage(canvas, 0, 0, width, height);
+            result = compact.toDataURL('image/webp', quality);
+        }
+        setProfileImageInput(document.getElementById(target === 'banner' ? 'profile-banner-input' : 'profile-avatar-input'), result);
         saveProfileData();
         closeProfileCrop();
     };

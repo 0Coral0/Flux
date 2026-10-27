@@ -160,6 +160,7 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
  <div class="nav-group">Community</div>
  <button class="nav-item" data-tab="tab-memorial"><i class="fa-solid fa-dove"></i> Memorial Manager</button>
  <button class="nav-item" data-tab="tab-reports"><i class="fa-solid fa-flag"></i> Reports</button>
+ <button class="nav-item" data-tab="tab-social"><i class="fa-solid fa-user-shield"></i> Chat & Moderation</button>
  <div class="sidebar-footer"><span class="dot" id="conn-dot"></span><span id="conn-label">Connecting…</span><br>Flux admin tools</div>
 </aside>
 
@@ -261,6 +262,27 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
 <section id="tab-reports" class="tab-content">
  <div class="page-head"><div><div class="page-kicker">Community / Reports</div><h2>Game reports</h2><p class="page-description">Review reports submitted by players and take appropriate action.</p></div></div>
  <div id="reports-container"><p class="empty-msg">Loading reports…</p></div>
+</section>
+
+<section id="tab-social" class="tab-content">
+ <div class="page-head"><div><div class="page-kicker">Community / Safety</div><h2>Chat & moderation</h2><p class="page-description">Set trusted staff roles, review player reports, and issue time-limited chat bans.</p></div></div>
+ <div class="split">
+  <div class="panel">
+   <div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-user-shield"></i></div><div class="grow"><h3>Staff access</h3><p>Only Flux owners can change staff roles.</p></div></div>
+   <div class="form-group"><label for="social-staff-email">Account email</label><input id="social-staff-email" type="email" placeholder="person@example.com"></div>
+   <div class="form-group"><label for="social-staff-role">Role</label><select id="social-staff-role"><option value="mod">Moderator — up to 1 day</option><option value="admin">Admin — up to 30 days</option><option value="remove">Remove staff access</option></select></div>
+   <button class="btn" id="btn-save-social-staff" type="button"><i class="fa-solid fa-floppy-disk"></i> Save staff role</button>
+  </div>
+  <div class="panel">
+   <div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-ban"></i></div><div class="grow"><h3>Chat ban</h3><p>Use the player ID from a chat report. The rules enforce each role's limit.</p></div></div>
+   <div class="form-group"><label for="social-ban-uid">Player ID</label><input id="social-ban-uid" placeholder="Firebase user ID"></div>
+   <div class="form-group"><label for="social-ban-reason">Reason</label><input id="social-ban-reason" maxlength="300" placeholder="Brief reason"></div>
+   <div class="form-group"><label for="social-ban-duration">Quick length</label><select id="social-ban-duration"><option value="1h">1 hour</option><option value="1d">1 day</option><option value="7d">7 days (admin)</option><option value="30d">30 days (admin)</option><option value="permanent">Permanent (owner)</option></select></div>
+   <div class="form-group"><label for="social-ban-custom-hours">Or use a custom number of hours</label><input id="social-ban-custom-hours" type="number" min="0.0167" step="0.0167" placeholder="Example: 0.25 for 15 minutes"></div>
+   <button class="btn btn-danger" id="btn-save-social-ban" type="button"><i class="fa-solid fa-ban"></i> Save chat ban</button>
+  </div>
+ </div>
+ <div class="panel"><div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-flag"></i></div><div class="grow"><h3>Chat reports</h3><p>Reports from Flux Social.</p></div><button class="btn btn-secondary btn-sm" id="btn-refresh-social-reports" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button></div><div id="social-reports-container"><p class="empty-msg">Open this tab while signed in to load chat reports.</p></div></div>
 </section>
 </main>
 
@@ -432,7 +454,7 @@ async function refreshGameAssetDropdowns() {
 
 /* ---------- Firebase request queue ---------- */
 
-let initializeApp, getFirestore, collection, getDocs, deleteDoc, doc;
+let initializeApp, getFirestore, collection, getDocs, getDoc, deleteDoc, doc, setDoc, addDoc, serverTimestamp, Timestamp;
 let query, orderBy, limit, onSnapshot, updateDoc, getAuth, onAuthStateChanged;
 let signInWithEmailAndPassword, firebaseSignOut, fbApp, auth;
 let db, memorialCollection, firebaseLoaded = false, authStateUnsub = null;
@@ -463,7 +485,7 @@ async function loadFirebase() {
 
             ({ initializeApp } = appSdk);
             ({
-                getFirestore, collection, getDocs, deleteDoc, doc,
+                getFirestore, collection, getDocs, getDoc, deleteDoc, doc, setDoc, addDoc, serverTimestamp, Timestamp,
                 query, orderBy, limit, onSnapshot, updateDoc
             } = fsSdk);
             ({ getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut: firebaseSignOut } = authSdk);
@@ -527,6 +549,7 @@ function watchAdminAuth() {
         setConn(true, 'Signed in to Firebase');
         if (document.getElementById('tab-games')?.classList.contains('active')) startRequests();
         if (document.getElementById('tab-memorial')?.classList.contains('active')) loadMemorialEntries();
+        if (document.getElementById('tab-social')?.classList.contains('active')) loadSocialReports();
     });
 }
 
@@ -547,6 +570,7 @@ function switchTab(tabId, button) {
     if (tabId === 'tab-games') startRequests();
     if (tabId === 'tab-reports') loadReports();
     if (tabId === 'tab-memorial') loadMemorialEntries();
+    if (tabId === 'tab-social') loadSocialReports();
 }
 
 function keyOf(value) {
@@ -1053,6 +1077,161 @@ async function sendChangelog() {
 
 /* ---------- Reports ---------- */
 
+const SOCIAL_OWNER_EMAILS = new Set([
+    'z.werner1@lodiusd.org',
+    'xboxmaster83412@gmail.com',
+    'coralsemail0@gmail.com'
+]);
+
+function socialAdminRole() {
+    const email = String(adminUser?.email || '').trim().toLowerCase();
+    return SOCIAL_OWNER_EMAILS.has(email) ? 'owner' : 'member';
+}
+
+async function currentSocialStaffRole() {
+    const ownerRole = socialAdminRole();
+    if (ownerRole === 'owner') return ownerRole;
+    try {
+        const email = String(adminUser?.email || '').trim().toLowerCase();
+        const snap = await getDoc(doc(db, 'flux_staff', email));
+        return snap.exists() && ['admin', 'mod'].includes(snap.data().role) ? snap.data().role : 'member';
+    } catch (_) {
+        return 'member';
+    }
+}
+
+async function saveSocialStaffRole() {
+    if (!(await ensureAdminAuthenticated())) return;
+    if (socialAdminRole() !== 'owner') {
+        showStatus('Only Flux owners can assign chat staff roles.', true);
+        return;
+    }
+
+    const email = document.getElementById('social-staff-email').value.trim().toLowerCase();
+    const role = document.getElementById('social-staff-role').value;
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+        showStatus('Enter a valid account email.', true);
+        return;
+    }
+
+    try {
+        const ref = doc(db, 'flux_staff', email);
+        if (role === 'remove') {
+            await deleteDoc(ref);
+            showStatus('Chat staff access removed for ' + email + '.');
+        } else {
+            await setDoc(ref, {
+                email,
+                role,
+                updatedAt: serverTimestamp(),
+                updatedBy: adminUser.uid
+            }, { merge: true });
+            showStatus(email + ' is now a Flux ' + role + '.');
+        }
+    } catch (error) {
+        console.error(error);
+        showStatus('Could not save that staff role: ' + error.message, true);
+    }
+}
+
+async function saveSocialBan() {
+    if (!(await ensureAdminAuthenticated())) return;
+    const role = await currentSocialStaffRole();
+    if (role === 'member') {
+        showStatus('This account is not a Flux chat staff account.', true);
+        return;
+    }
+
+    const uid = document.getElementById('social-ban-uid').value.trim();
+    const reason = document.getElementById('social-ban-reason').value.trim() || 'Chat moderation';
+    const duration = document.getElementById('social-ban-duration').value;
+    const customHours = Number(document.getElementById('social-ban-custom-hours').value);
+    const lengths = { '1h': 3600000, '1d': 86400000, '7d': 604800000, '30d': 2592000000 };
+    if (!uid) {
+        showStatus('Enter the Firebase player ID from a chat report.', true);
+        return;
+    }
+    const customMilliseconds = Number.isFinite(customHours) && customHours > 0 ? customHours * 3600000 : null;
+    const selectedMilliseconds = lengths[duration] || null;
+    const milliseconds = customMilliseconds || selectedMilliseconds;
+    if (duration === 'permanent' && customMilliseconds) {
+        showStatus('Clear the custom hours field to make a permanent owner ban.', true);
+        return;
+    }
+    if (role === 'mod' && (!milliseconds || milliseconds > 86400000)) {
+        showStatus('Moderators can ban for up to one day.', true);
+        return;
+    }
+    if (role === 'admin' && (!milliseconds || milliseconds > 2592000000)) {
+        showStatus('Admins can ban for up to one month.', true);
+        return;
+    }
+
+    try {
+        await setDoc(doc(db, 'flux_bans', uid), {
+            uid,
+            reason: reason.slice(0, 300),
+            issuedBy: adminUser.uid,
+            issuedRole: role,
+            issuedAt: serverTimestamp(),
+            expiresAt: duration === 'permanent' ? null : Timestamp.fromMillis(Date.now() + milliseconds)
+        });
+        showStatus('Chat ban saved.');
+    } catch (error) {
+        console.error(error);
+        showStatus('Could not save ban: ' + error.message, true);
+    }
+}
+
+async function loadSocialReports() {
+    const container = document.getElementById('social-reports-container');
+    if (!container) return;
+    container.innerHTML = '<p class="empty-msg">Loading chat reports…</p>';
+    if (!(await ensureAdminAuthenticated())) {
+        container.innerHTML = '<p class="empty-msg"><i class="fa-solid fa-lock"></i>Sign in to review protected chat reports.</p>';
+        return;
+    }
+
+    try {
+        const snapshot = await getDocs(collection(db, 'flux_chat_reports'));
+        const reports = snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+            .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        if (!reports.length) {
+            container.innerHTML = '<p class="empty-msg">No chat reports yet.</p>';
+            return;
+        }
+        container.innerHTML = '';
+        reports.forEach(report => {
+            const card = document.createElement('div');
+            card.className = 'entry-card';
+            const date = report.createdAt?.toDate ? report.createdAt.toDate().toLocaleString() : 'Pending sync';
+            card.innerHTML = '<div class="grow"><h3>' + escapeHtml(report.targetType === 'message' ? 'Message report' : 'User report') + '</h3>' +
+                '<p><b>Reason:</b> ' + escapeHtml(report.reason || 'Not provided') + '</p>' +
+                '<p><b>Reported player:</b> ' + escapeHtml(report.targetName || 'Unknown') + ' <code>' + escapeHtml(report.targetUid || 'Unknown') + '</code></p>' +
+                (report.text ? '<p><b>Message:</b> ' + escapeHtml(report.text) + '</p>' : '') +
+                (report.note ? '<p><b>Reporter note:</b> ' + escapeHtml(report.note) + '</p>' : '') +
+                '<p><b>Reporter:</b> <code>' + escapeHtml(report.reporterId || 'Unknown') + '</code></p>' +
+                '<p><b>Submitted:</b> ' + escapeHtml(date) + '</p>' +
+                '<div class="button-row"><button class="btn btn-danger btn-sm" data-social-ban-uid="' + escapeHtml(report.targetUid || '') + '">Use in ban form</button><button class="btn btn-secondary btn-sm" data-social-close-report="' + escapeHtml(report.id) + '">Close report</button></div></div>';
+            container.appendChild(card);
+        });
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = '<p class="empty-msg">Could not load chat reports: ' + escapeHtml(error.message) + '</p>';
+    }
+}
+
+async function closeSocialReport(id) {
+    if (!(await ensureAdminAuthenticated())) return;
+    try {
+        await updateDoc(doc(db, 'flux_chat_reports', id), { status: 'closed', resolvedBy: adminUser.uid, resolvedAt: serverTimestamp() });
+        loadSocialReports();
+        showStatus('Chat report closed.');
+    } catch (error) {
+        showStatus('Could not close report: ' + error.message, true);
+    }
+}
+
 function loadReports() {
     const container = document.getElementById('reports-container');
     let reports = [];
@@ -1392,6 +1571,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-send-changelog').addEventListener('click', sendChangelog);
     document.getElementById('btn-run-ai-sweep').addEventListener('click', runAISweep);
     document.getElementById('btn-refresh-entries').addEventListener('click', loadMemorialEntries);
+    document.getElementById('btn-save-social-staff').addEventListener('click', saveSocialStaffRole);
+    document.getElementById('btn-save-social-ban').addEventListener('click', saveSocialBan);
+    document.getElementById('btn-refresh-social-reports').addEventListener('click', loadSocialReports);
+
+    document.getElementById('social-reports-container').addEventListener('click', event => {
+        const button = event.target.closest('[data-social-close-report]');
+        if (button) closeSocialReport(button.dataset.socialCloseReport);
+        const ban = event.target.closest('[data-social-ban-uid]');
+        if (ban?.dataset.socialBanUid) {
+            document.getElementById('social-ban-uid').value = ban.dataset.socialBanUid;
+            document.getElementById('social-ban-reason').focus();
+        }
+    });
 
     document.getElementById('memorial-entries-container').addEventListener('click', event => {
         const button = event.target.closest('button[data-entry-id]');
@@ -1521,6 +1713,10 @@ Object.assign(window, {
     loadMemorialEntries,
     deleteMemorialEntry,
     runAISweep,
+    saveSocialStaffRole,
+    saveSocialBan,
+    loadSocialReports,
+    closeSocialReport,
     loadFluxData: ensureFluxDataLoaded,
     saveFluxData
 });

@@ -31,7 +31,7 @@ match /messages/{docId} {
       && request.resource.data.username.size() > 0
       && request.resource.data.username.size() <= 40
       && request.resource.data.avatar is string
-      && request.resource.data.avatar.size() <= 2000
+      && request.resource.data.avatar.size() <= 40000
       && request.resource.data.profile is map
       && request.resource.data.text is string
       && request.resource.data.text.size() > 0

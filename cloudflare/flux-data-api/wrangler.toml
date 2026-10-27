@@ -1,0 +1,19 @@
+name = "flux-data-api"
+main = "src/index.js"
+compatibility_date = "2026-10-23"
+
+[vars]
+FIREBASE_PROJECT_ID = "aggw-themes"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "flux-data"
+database_id = "870a437b-c9dd-4a0a-bb1d-cc96438d5385"
+
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "FluxChatRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["FluxChatRoom"]

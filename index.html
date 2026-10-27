@@ -7,6 +7,7 @@
     <title>Flux // Gateway</title>
     <link id="favicon" rel="icon" type="image/x-icon" href="Fluxlogo.svg">
     <link rel="stylesheet" href="css/flux-ai-redesign.css">
+    <link rel="stylesheet" href="css/flux-chat-social.css?v=20261026-friends">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1099,6 +1100,20 @@
             line-height: 1;
         }
 
+        .chat-admin-badge, .chat-mod-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 7px;
+            border: 1px solid;
+            border-radius: 999px;
+            font: 800 .62rem 'JetBrains Mono', monospace;
+            letter-spacing: .06em;
+        }
+
+        .chat-admin-badge { color: #fecaca; border-color: rgba(239,68,68,.56); background: rgba(239,68,68,.12); }
+        .chat-mod-badge { color: #bfdbfe; border-color: rgba(59,130,246,.56); background: rgba(59,130,246,.12); }
+
         .chat-moderation-notice {
             display: none;
             margin: -5px 24px 10px;
@@ -1482,6 +1497,7 @@
 
         .profile-card-preview {
             display: flex;
+            position: relative;
             align-items: center;
             gap: 20px;
             background: var(--surface-card);
@@ -1489,7 +1505,20 @@
             padding: 24px;
             border-radius: var(--radius);
             margin-bottom: 24px;
+            overflow: hidden;
         }
+
+        .profile-banner-preview {
+            position: absolute;
+            inset: 0 0 auto;
+            height: 84px;
+            background: linear-gradient(120deg, rgba(34,197,94,.28), rgba(11,16,23,.1));
+            background-position: center;
+            background-size: cover;
+            opacity: .82;
+        }
+
+        .profile-preview-body { position: relative; z-index: 1; }
 
         .profile-avatar-lg {
             width: 70px;
@@ -1710,6 +1739,18 @@ main { min-width: 0; }
             <h2 id="member-profile-name"></h2><p id="member-profile-pronouns" class="profile-pronouns" hidden></p>
             <p id="member-profile-status" class="profile-preview-status" hidden></p><p id="member-profile-bio" class="profile-preview-bio" hidden></p>
             <p id="member-profile-note" class="member-profile-note"></p>
+            <div id="member-profile-actions" class="member-profile-actions"></div>
+        </div>
+    </dialog>
+    <dialog id="chat-social-dialog" class="profile-crop-dialog chat-social-dialog" aria-labelledby="chat-social-title">
+        <div class="profile-crop-card">
+            <div class="profile-crop-header"><div><h3 id="chat-social-title">Chats & friends</h3><p>Find friends with their unique @username, then start a DM or group chat.</p></div><button id="chat-social-close" type="button" class="profile-crop-close" aria-label="Close chats">&times;</button></div>
+            <form id="chat-friend-form" class="chat-social-find"><label for="chat-friend-username">Add friend</label><div><span aria-hidden="true">@</span><input id="chat-friend-username" class="settings-input" maxlength="20" autocomplete="off" placeholder="username"><button class="action-btn" type="submit">Add</button></div></form>
+            <p id="chat-social-status" class="profile-save-status" role="status"></p>
+            <section class="chat-social-section"><div class="chat-social-heading"><h4>Friend requests</h4></div><div id="chat-social-requests" class="chat-social-list"></div></section>
+            <section class="chat-social-section"><div class="chat-social-heading"><h4>Direct messages</h4><button id="chat-refresh-social" class="action-btn btn-outline" type="button">Refresh</button></div><div id="chat-social-friends" class="chat-social-list"></div></section>
+            <section class="chat-social-section"><div class="chat-social-heading"><h4>Group chats</h4><button id="chat-new-group" class="action-btn btn-outline" type="button">New group</button></div><div id="chat-social-groups" class="chat-social-list"></div></section>
+            <section id="chat-group-create" class="chat-social-section" hidden><h4>New group</h4><input id="chat-group-name" class="settings-input" maxlength="40" placeholder="Group name"><div id="chat-group-members" class="chat-group-members"></div><button id="chat-create-group" class="action-btn" type="button">Create group</button></section>
         </div>
     </dialog>
     <dialog id="profile-crop-dialog" class="profile-crop-dialog" aria-labelledby="profile-crop-title">
@@ -1904,24 +1945,20 @@ main { min-width: 0; }
             <!-- Global Chat View -->
             <div id="view-chat" class="container">
                 <div class="lounge-layout-grid global-chat-only">
-
                     <div class="lounge-chat-pane">
                         <div class="lounge-header-bar">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <i class="fa-solid fa-comments" style="color: var(--accent); font-size: 1.1rem;"></i>
-                                <h3 id="current-chat-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">
-                                    Global Chat</h3>
+                                <h3 id="current-chat-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">Global Chat</h3>
                             </div>
-                            <div style="font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;"
-                                id="backend-status-indicator">Mode: Local/Firebase</div>
+                            <div style="font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;" id="backend-status-indicator">Mode: Local/Firebase</div>
                         </div>
 
                         <div class="lounge-messages-feed" id="lounge-messages-feed" aria-live="polite"></div>
                         <p id="chat-moderation-notice" class="chat-moderation-notice" role="status" aria-live="polite"></p>
 
                         <div class="lounge-input-bar">
-                            <input type="text" id="lounge-message-input" class="lounge-text-input"
-                                placeholder="Type a message..." onkeydown="handleChatKey(event)">
+                            <input type="text" id="lounge-message-input" class="lounge-text-input" placeholder="Type a message..." onkeydown="handleChatKey(event)">
                             <button id="lounge-send-button" class="lounge-send-btn" onclick="sendChatMessage()">Send</button>
                         </div>
                     </div>
@@ -2310,9 +2347,10 @@ main { min-width: 0; }
             </div>
             <div id="view-account" class="container">
                 <div class="settings-wrap profile-page">
-                    <div class="profile-page-heading"><h3>Make it yours.</h3><p>Customize your Flux profile. Your changes are saved on this device. Your profile details are shared with new chat messages. Click a person’s name or picture in chat to view their profile.</p></div>
+                    <div class="profile-page-heading"><h3>Make it yours.</h3><p>Set your one-of-one Flux username, customize your profile, and save it to your Flux account. Click a person’s name or picture in chat to view their profile.</p></div>
 
                     <div class="profile-card-preview" id="profile-card-preview">
+                        <div class="profile-banner-preview" id="profile-preview-banner" aria-hidden="true"></div>
                         <div class="profile-preview-body">
                         <div class="profile-avatar-lg" id="profile-preview-avatar">
                             <i class="fa-solid fa-user" aria-hidden="true"></i>
@@ -2326,32 +2364,44 @@ main { min-width: 0; }
                     </div>
                     <section class="flux-signin" aria-label="Flux account"><h4>Your Flux account</h4><p>Sign in to send Discord messages and use the server assistant.</p><form id="flux-auth-form"><label>Email<input type="email" id="flux-auth-email" autocomplete="email" required></label><label>Password<input type="password" id="flux-auth-password" autocomplete="current-password" minlength="6" required></label><div class="flux-auth-actions"><button class="action-btn" type="submit">Sign in</button><button class="action-btn btn-outline" type="button" id="flux-auth-register">Create account</button><button class="action-btn btn-outline" type="button" id="flux-auth-logout">Sign out</button></div><p id="flux-auth-status" role="status">Connecting to accounts…</p></form></section><div class="profile-form">
                     <div class="settings-row">
-                        <div><label class="profile-field-label" for="profile-name-input">Display name</label><div class="profile-field-help">The name shown in Flux.</div></div>
-                        <input type="text" id="profile-name-input" class="settings-input" placeholder="Your name" maxlength="40" oninput="saveProfileData()">
+                        <div><label class="profile-field-label" for="profile-name-input">Flux username</label><div class="profile-field-help">One-of-one. Use 3–20 lowercase letters, numbers, or underscores. Friends add you with @username.</div></div>
+                        <div class="profile-username-controls">
+                            <span class="profile-username-prefix" aria-hidden="true">@</span>
+                            <input type="text" id="profile-name-input" class="settings-input" placeholder="e.g. coral_games" maxlength="20" pattern="[a-z0-9_]{3,20}" autocapitalize="none" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);scheduleProfileSave()">
+                            <button type="button" class="action-btn btn-outline" onclick="saveProfileData()">Save username</button>
+                        </div>
                     </div>
                     <div class="settings-row">
                         <div><label class="profile-field-label" for="profile-avatar-input">Profile picture</label><div class="profile-field-help">Paste an image URL or upload a picture.</div></div>
                         <div class="profile-avatar-controls">
-                            <input type="text" id="profile-avatar-input" class="settings-input" placeholder="https://..." oninput="delete this.dataset.upload;saveProfileData()">
+                            <input type="text" id="profile-avatar-input" class="settings-input" placeholder="https://..." oninput="delete this.dataset.upload;scheduleProfileSave()">
                             <button class="action-btn btn-outline" type="button" onclick="document.getElementById('profile-avatar-file').click()"><i class="fa-solid fa-upload" aria-hidden="true"></i> Upload</button>
                             <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;" onchange="uploadProfileImage(this, 'avatar')">
                         </div>
                     </div>
                     <div class="settings-row">
+                        <div><label class="profile-field-label" for="profile-banner-input">Profile banner</label><div class="profile-field-help">Shown at the top of your profile. Paste an image URL or upload one.</div></div>
+                        <div class="profile-avatar-controls">
+                            <input type="text" id="profile-banner-input" class="settings-input" placeholder="https://..." oninput="delete this.dataset.upload;scheduleProfileSave()">
+                            <button class="action-btn btn-outline" type="button" onclick="document.getElementById('profile-banner-file').click()"><i class="fa-solid fa-upload" aria-hidden="true"></i> Upload</button>
+                            <input type="file" id="profile-banner-file" accept="image/*" style="display:none;" onchange="uploadProfileImage(this, 'banner')">
+                        </div>
+                    </div>
+                    <div class="settings-row">
                         <div><label class="profile-field-label" for="profile-status-input">Status</label><div class="profile-field-help">A quick mood or message.</div></div>
-                        <input type="text" id="profile-status-input" class="settings-input" placeholder="Chasing high scores..." maxlength="80" oninput="saveProfileData()">
+                        <input type="text" id="profile-status-input" class="settings-input" placeholder="Chasing high scores..." maxlength="80" oninput="scheduleProfileSave()">
                     </div>
                     <div class="settings-row">
                         <div><label class="profile-field-label" for="profile-pronouns-input">Pronouns</label><div class="profile-field-help">Optional, shown next to your name.</div></div>
-                        <input type="text" id="profile-pronouns-input" class="settings-input" placeholder="e.g. they/them" maxlength="32" oninput="saveProfileData()">
+                        <input type="text" id="profile-pronouns-input" class="settings-input" placeholder="e.g. they/them" maxlength="32" oninput="scheduleProfileSave()">
                     </div>
                     <div class="settings-row">
                         <div><label class="profile-field-label" for="profile-bio-input">About me</label><div class="profile-field-help">A little more about you.</div></div>
-                        <textarea id="profile-bio-input" class="settings-input" placeholder="Tell us a little about yourself..." maxlength="180" oninput="saveProfileData()"></textarea>
+                        <textarea id="profile-bio-input" class="settings-input" placeholder="Tell us a little about yourself..." maxlength="180" oninput="scheduleProfileSave()"></textarea>
                     </div>
                     <div class="settings-row">
                         <div><label class="profile-field-label" for="profile-color-input">Profile color</label><div class="profile-field-help">Colors your profile accents and avatar border.</div></div>
-                        <input type="color" id="profile-color-input" class="profile-color-input" value="#22c55e" oninput="saveProfileData()">
+                        <input type="color" id="profile-color-input" class="profile-color-input" value="#22c55e" oninput="scheduleProfileSave()">
                     </div>
                     <input type="hidden" id="profile-shape-input" value="circle">
                     <p class="profile-save-status" id="profile-save-status" role="status">Changes save automatically.</p>
@@ -2431,11 +2481,13 @@ main { min-width: 0; }
         let particlesEnabled = true;
         let activeChatRoom = 'global_general';
         let unsubscribeFirestore = null;
+        let cloudflareChatSocket = null;
+        let cloudflareChatMessages = [];
         let chatSubscriptionGeneration = 0;
-        let localChatFallback = (() => {
-            try { return sessionStorage.getItem('flux_chat_transport') === 'local'; }
-            catch (_) { return false; }
-        })();
+        // A temporary local fallback must never win forever. Older versions saved this
+        // decision in sessionStorage, which left signed-in users stranded locally.
+        let localChatFallback = false;
+        try { sessionStorage.removeItem('flux_chat_transport'); } catch (_) { /* Storage can be unavailable. */ }
 
         let movieGenre = 'All';
         function movieGenres(movie) {
@@ -2701,23 +2753,30 @@ main { min-width: 0; }
         window.addEventListener('resize', initParticles);
 
         function switchChatRoom() {
-            activeChatRoom = 'global_general';
+            openFluxChatRoom('global_general', 'Global Chat');
+        }
+
+        function openFluxChatRoom(roomId, title) {
+            activeChatRoom = roomId || 'global_general';
             const titleEl = document.getElementById('current-chat-title');
-            if (titleEl) titleEl.innerText = 'Global Chat';
-            document.getElementById('lounge-message-input').placeholder = 'Message Global Chat...';
+            if (titleEl) titleEl.innerText = title || 'Global Chat';
+            document.getElementById('lounge-message-input').placeholder = 'Message ' + (title || 'Global Chat') + '...';
             setupChatSubscription();
         }
+        window.openFluxChatRoom = openFluxChatRoom;
 
         function stopChatSubscription() {
             chatSubscriptionGeneration++;
             if (unsubscribeFirestore) unsubscribeFirestore();
             unsubscribeFirestore = null;
+            if (typeof cloudflareChatSocket !== 'undefined' && cloudflareChatSocket) cloudflareChatSocket.close();
+            if (typeof cloudflareChatSocket !== 'undefined') cloudflareChatSocket = null;
         }
 
         function safeChatAvatar(value) {
             const avatar = String(value || '');
-            if (/^https?:\/\//i.test(avatar) && avatar.length <= 2000) return avatar;
-            if (/^data:image\/(png|jpeg|gif|webp);base64,/i.test(avatar) && avatar.length <= 40000) return avatar;
+            if (/^https?:\/\//i.test(avatar) && avatar.length <= 1500) return avatar;
+            if (/^data:image\/(png|jpeg|webp);base64,/i.test(avatar) && avatar.length <= 30000) return avatar;
             return '';
         }
 
@@ -2747,7 +2806,7 @@ main { min-width: 0; }
                     const context = canvas.getContext('2d');
                     context.drawImage(image, 0, 0, canvas.width, canvas.height);
                     const compressed = canvas.toDataURL('image/jpeg', quality);
-                    if (compressed.length <= 40000) return compressed;
+                    if (compressed.length <= 28000) return compressed;
                     maxDimension = Math.max(48, Math.floor(maxDimension * 0.72));
                     quality = Math.max(0.35, quality - 0.1);
                 }
@@ -2788,10 +2847,10 @@ main { min-width: 0; }
 
         function useLocalChatFallback() {
             localChatFallback = true;
-            try { sessionStorage.setItem('flux_chat_transport', 'local'); }
-            catch (_) { /* Storage can be unavailable in private browsing. */ }
             if (unsubscribeFirestore) unsubscribeFirestore();
             unsubscribeFirestore = null;
+            if (typeof cloudflareChatSocket !== 'undefined' && cloudflareChatSocket) cloudflareChatSocket.close();
+            if (typeof cloudflareChatSocket !== 'undefined') cloudflareChatSocket = null;
             chatSubscriptionGeneration++;
             const statusIndicator = document.getElementById('backend-status-indicator');
             if (statusIndicator) statusIndicator.innerText = 'Mode: Local Storage';
@@ -2809,6 +2868,67 @@ main { min-width: 0; }
                 if (statusIndicator) statusIndicator.innerText = 'Mode: Local Storage';
                 loadLocalChatMessages();
                 return;
+            }
+            if (window.fluxData?.chat && window.fluxAuthState?.uid && subscribedRoom) {
+                if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare Live Sync';
+                try {
+                    const profile = JSON.parse(localStorage.getItem('flux_profile')) || {};
+                    await window.fluxData.chat('/me', {
+                        method: 'PUT',
+                        body: {
+                            username: String(profile.name || '').slice(0, 40),
+                            avatar: safeChatAvatar(profile.avatar),
+                            profile: {
+                                status: String(profile.status || '').slice(0, 80),
+                                pronouns: String(profile.pronouns || '').slice(0, 32),
+                                bio: String(profile.bio || '').slice(0, 180),
+                                banner: safeChatAvatar(profile.banner),
+                                color: /^#[a-f0-9]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e'
+                            }
+                        }
+                    });
+                    if (generation !== chatSubscriptionGeneration) return;
+                    const history = await window.fluxData.chat('/rooms/' + encodeURIComponent(subscribedRoom) + '/messages');
+                    if (generation !== chatSubscriptionGeneration) return;
+                    cloudflareChatMessages = (history.messages || []).map(message => ({
+                        ...message,
+                        time: new Date(message.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        owner: message.role === 'owner'
+                    }));
+                    renderChatMessages(cloudflareChatMessages);
+                    const ticket = await window.fluxData.chat('/rooms/' + encodeURIComponent(subscribedRoom) + '/ticket', { method: 'POST', body: {} });
+                    if (generation !== chatSubscriptionGeneration) return;
+                    cloudflareChatSocket = new WebSocket(ticket.wsUrl);
+                    cloudflareChatSocket.onmessage = event => {
+                        if (generation !== chatSubscriptionGeneration) return;
+                        try {
+                            const packet = JSON.parse(event.data);
+                            if (packet.type === 'message' && packet.message) {
+                                cloudflareChatMessages.push({
+                                    ...packet.message,
+                                    time: new Date(packet.message.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                    owner: packet.message.role === 'owner'
+                                });
+                                renderChatMessages(cloudflareChatMessages);
+                            }
+                        } catch (_) { /* Ignore malformed live events. */ }
+                    };
+                    cloudflareChatSocket.onclose = () => {
+                        if (generation !== chatSubscriptionGeneration) return;
+                        if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare reconnecting…';
+                        window.setTimeout(() => {
+                            if (generation === chatSubscriptionGeneration && activeChatRoom === subscribedRoom) setupChatSubscription();
+                        }, 1500);
+                    };
+                    return;
+                } catch (error) {
+                    console.warn('Cloudflare chat connection failed.', error);
+                    if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare reconnecting…';
+                    window.setTimeout(() => {
+                        if (generation === chatSubscriptionGeneration && activeChatRoom === subscribedRoom) setupChatSubscription();
+                    }, 1500);
+                    return;
+                }
             }
             if (window.fluxFirebaseDb && subscribedRoom === 'global_general') {
                 if (statusIndicator) statusIndicator.innerText = "Mode: Firebase Live Sync";
@@ -2883,7 +3003,7 @@ main { min-width: 0; }
                 const details = document.createElement('div'); details.className = 'msg-details';
                 const header = document.createElement('div'); header.className = 'msg-header-line';
                 const name = document.createElement('button'); name.className = 'msg-author-name'; name.textContent = m.username || 'Gamer';
-                const publicProfile = { ...m.profile, username: m.username, avatar: m.avatar };
+                const publicProfile = { ...m.profile, uid: m.uid, username: m.username, avatar: m.avatar, role: m.role || (m.owner ? 'owner' : '') };
                 window.fluxProfiles?.bind(avatar, publicProfile); window.fluxProfiles?.bind(name, publicProfile);
                 header.append(name);
                 if (m.owner === true) {
@@ -2892,6 +3012,18 @@ main { min-width: 0; }
                     ownerBadge.title = 'Verified Flux owner';
                     ownerBadge.innerHTML = '<i class="fa-solid fa-crown" aria-hidden="true"></i> OWNER';
                     header.append(ownerBadge);
+                }
+                if (m.role === 'admin') {
+                    const adminBadge = document.createElement('span');
+                    adminBadge.className = 'chat-admin-badge'; adminBadge.title = 'Flux administrator';
+                    adminBadge.innerHTML = '<i class="fa-solid fa-shield-halved" aria-hidden="true"></i> ADMIN';
+                    header.append(adminBadge);
+                }
+                if (m.role === 'mod') {
+                    const modBadge = document.createElement('span');
+                    modBadge.className = 'chat-mod-badge'; modBadge.title = 'Flux moderator';
+                    modBadge.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> MOD';
+                    header.append(modBadge);
                 }
                 const time = document.createElement('span'); time.className = 'msg-time-stamp'; time.textContent = m.time || '';
                 const moderation = window.fluxChatModeration?.check(m.text || '');
@@ -2930,6 +3062,18 @@ main { min-width: 0; }
             const sendingRoom = activeChatRoom;
 
             input.value = '';
+
+            const cloudflareSignedIn = Boolean(window.fluxData?.chat && window.fluxAuthState?.uid && !localChatFallback);
+            if (cloudflareSignedIn && sendingRoom) {
+                if (cloudflareChatSocket?.readyState === WebSocket.OPEN) {
+                    cloudflareChatSocket.send(JSON.stringify({ type: 'send', text }));
+                    return;
+                }
+                input.value = text;
+                const statusIndicator = document.getElementById('backend-status-indicator');
+                if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare connecting…';
+                return;
+            }
 
             if (window.fluxFirebaseDb && sendingRoom === 'global_general') {
                 try {
@@ -3060,25 +3204,53 @@ main { min-width: 0; }
             applyThemeColors();
         }
 
-        function saveTheme(code, accent, bg) {
-            if (!code) return alert("Please enter a theme code.");
-            const themes = JSON.parse(localStorage.getItem('flux_saved_themes') || '{}');
-            themes[code] = { accent, bg };
-            localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
-            alert(`Theme '${code}' saved successfully!`);
+        function readSavedThemes() {
+            try { return JSON.parse(localStorage.getItem('flux_saved_themes') || '{}'); }
+            catch (_) { return {}; }
         }
 
-        function loadTheme(code) {
-            if (!code) return alert("Please enter a theme code.");
-            const themes = JSON.parse(localStorage.getItem('flux_saved_themes') || '{}');
-            if (themes[code]) {
-                document.getElementById('set-accent').value = themes[code].accent;
-                document.getElementById('set-bg').value = themes[code].bg;
-                applyThemeColors();
-                alert(`Theme '${code}' loaded!`);
-            } else {
-                alert("Theme code not found.");
+        function applySavedTheme(theme) {
+            if (!theme || typeof theme !== 'object') return false;
+            const accent = document.getElementById('set-accent');
+            const bg = document.getElementById('set-bg');
+            if (!accent || !bg || !theme.accent || !theme.bg) return false;
+            accent.value = theme.accent;
+            bg.value = theme.bg;
+            applyThemeColors();
+            return true;
+        }
+
+        async function saveTheme(code, accent, bg) {
+            const normalizedCode = String(code || '').trim().toLowerCase();
+            if (!normalizedCode) return alert("Please enter a theme code.");
+            const theme = { accent, bg };
+            const themes = readSavedThemes();
+            themes[normalizedCode] = theme;
+            localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
+            try {
+                if (!window.fluxData) throw new Error('Flux data service is still loading.');
+                await window.fluxData.saveTheme(normalizedCode, theme);
+                alert(`Theme '${normalizedCode}' is saved and can be loaded on your other devices!`);
+            } catch (error) {
+                alert(`Theme '${normalizedCode}' is saved on this device. Sign in from Profile to sync it everywhere.`);
             }
+        }
+
+        async function loadTheme(code) {
+            const normalizedCode = String(code || '').trim().toLowerCase();
+            if (!normalizedCode) return alert("Please enter a theme code.");
+            try {
+                if (window.fluxData) {
+                    const remote = await window.fluxData.loadTheme(normalizedCode);
+                    if (applySavedTheme(remote.theme)) {
+                        const themes = readSavedThemes(); themes[normalizedCode] = remote.theme;
+                        localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
+                        return alert(`Theme '${normalizedCode}' loaded!`);
+                    }
+                }
+            } catch (_) { /* Local themes remain available offline. */ }
+            if (applySavedTheme(readSavedThemes()[normalizedCode])) return alert(`Theme '${normalizedCode}' loaded!`);
+            alert("Theme code not found.");
         }
 
         function exportTheme() {
@@ -3184,18 +3356,52 @@ main { min-width: 0; }
             const profile = getProfileData();
             document.getElementById('profile-name-input').value = profile.name || '';
             setProfileImageInput(document.getElementById('profile-avatar-input'), profile.avatar || '');
+            setProfileImageInput(document.getElementById('profile-banner-input'), profile.banner || '');
             document.getElementById('profile-status-input').value = profile.status || '';
             document.getElementById('profile-pronouns-input').value = profile.pronouns || '';
             document.getElementById('profile-bio-input').value = profile.bio || '';
             document.getElementById('profile-color-input').value = /^#[0-9a-f]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e';
             document.getElementById('profile-shape-input').value = ['rounded', 'square', 'circle'].includes(profile.shape) ? profile.shape : 'circle';
             updateProfilePreview(profile);
+            loadProfileFromAccount();
         }
 
-        function saveProfileData() {
+        let profileSaveTimer = null;
+
+        function scheduleProfileSave() {
+            clearTimeout(profileSaveTimer);
+            profileSaveTimer = setTimeout(() => { saveProfileData(); }, 500);
+        }
+
+        async function loadProfileFromAccount() {
+            if (!window.fluxData?.chat || !window.fluxAuthState?.uid) return;
+            try {
+                const account = await window.fluxData.chat('/me');
+                const remote = account.me || {};
+                const details = remote.profile || {};
+                const local = getProfileData();
+                const profile = {
+                    name: remote.username || local.name || '', avatar: remote.avatar || local.avatar || '', banner: details.banner || local.banner || '',
+                    status: details.status || local.status || '', pronouns: details.pronouns || local.pronouns || '', bio: details.bio || local.bio || '',
+                    color: details.color || local.color || '#22c55e', shape: 'circle'
+                };
+                document.getElementById('profile-name-input').value = profile.name;
+                setProfileImageInput(document.getElementById('profile-avatar-input'), profile.avatar);
+                setProfileImageInput(document.getElementById('profile-banner-input'), profile.banner);
+                document.getElementById('profile-status-input').value = profile.status;
+                document.getElementById('profile-pronouns-input').value = profile.pronouns;
+                document.getElementById('profile-bio-input').value = profile.bio;
+                document.getElementById('profile-color-input').value = /^#[0-9a-f]{6}$/i.test(profile.color) ? profile.color : '#22c55e';
+                updateProfilePreview(profile);
+                document.getElementById('profile-save-status').textContent = 'Loaded from your Flux account.';
+            } catch (_) { /* Local values remain available while offline. */ }
+        }
+
+        async function saveProfileData() {
             const profile = {
-                name: document.getElementById('profile-name-input').value.trim() || 'Gamer',
+                name: document.getElementById('profile-name-input').value.trim().toLowerCase().replace(/^@/, ''),
                 avatar: getProfileImageInput(document.getElementById('profile-avatar-input')),
+                banner: getProfileImageInput(document.getElementById('profile-banner-input')),
                 status: document.getElementById('profile-status-input').value.trim(),
                 pronouns: document.getElementById('profile-pronouns-input').value.trim(),
                 bio: document.getElementById('profile-bio-input').value.trim(),
@@ -3203,17 +3409,44 @@ main { min-width: 0; }
                 shape: 'circle'
             };
             const status = document.getElementById('profile-save-status');
+            if (!/^[a-z0-9_]{3,20}$/.test(profile.name)) {
+                status.textContent = 'Choose a username with 3–20 lowercase letters, numbers, or underscores.';
+                status.classList.add('error');
+                return;
+            }
             try {
                 localStorage.setItem('flux_profile', JSON.stringify(profile));
                 window.dispatchEvent(new Event('flux-profile-changed'));
-                status.textContent = 'Changes saved on this device.';
-                status.classList.remove('error');
                 updateProfilePreview(profile);
-            } catch (_) {
-                status.textContent = 'Could not save. Try a smaller profile picture.';
+                if (!window.fluxData?.chat || !window.fluxAuthState?.uid) throw new Error('Sign in to save this profile to your account.');
+                const saved = await window.fluxData.chat('/me', { method: 'PUT', body: {
+                    username: profile.name, avatar: profile.avatar, profile: {
+                        banner: profile.banner, status: profile.status, pronouns: profile.pronouns,
+                        bio: profile.bio, color: profile.color
+                    }
+                }});
+                if (saved?.me?.username) {
+                    profile.name = saved.me.username;
+                    document.getElementById('profile-name-input').value = profile.name;
+                    localStorage.setItem('flux_profile', JSON.stringify(profile));
+                    updateProfilePreview(profile);
+                }
+                status.textContent = 'Saved to your Flux account.';
+                status.classList.remove('error');
+            } catch (error) {
+                status.textContent = error.message || 'Could not sync this profile.';
                 status.classList.add('error');
             }
         }
+
+        window.addEventListener('flux-auth-changed', () => {
+            if (window.fluxAuthState?.uid && window.fluxData?.chat) {
+                localChatFallback = false;
+                try { sessionStorage.removeItem('flux_chat_transport'); } catch (_) { /* Storage can be unavailable. */ }
+                setupChatSubscription();
+            }
+            setTimeout(loadProfileFromAccount, 150);
+        });
 
         function updateProfilePreview(profile) {
             document.getElementById('profile-preview-name').textContent = profile.name || 'Gamer';
@@ -3225,6 +3458,7 @@ main { min-width: 0; }
             bio.textContent = profile.bio || '';
             bio.hidden = !profile.bio;
             document.getElementById('profile-card-preview').style.setProperty('--profile-accent', /^#[0-9a-f]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e');
+            document.getElementById('profile-preview-banner').style.backgroundImage = profile.banner ? `url("${String(profile.banner).replace(/["\\]/g, '\\$&')}")` : '';
             document.getElementById('profile-preview-avatar').dataset.shape = 'circle';
             renderProfileAvatar(document.getElementById('profile-preview-avatar'), profile.avatar);
             renderProfileAvatar(document.getElementById('btn-account'), profile.avatar);
@@ -3633,14 +3867,17 @@ main { min-width: 0; }
 <script src="js/flux-profiles.js"></script>
 <script src="js/integrations-config.js"></script>
 <script src="js/discord-config.js"></script>
+<script src="js/discord-widget-config.js"></script>
 <script src="js/flux-auth-guard.js"></script>
 <script type="module" src="js/flux-auth.js"></script>
+<script src="js/flux-data-client.js"></script>
 <script src="js/discord-chat.js"></script>
 <script src="js/flux-ai-site.js"></script>
 <script src="js/flux-ai-redesign.js"></script>
 <script src="js/browser-config.js"></script>
 <script src="js/browser.js"></script>
 <script src="js/flux-layout.js"></script>
+<script src="js/flux-chat-social.js?v=20261026-friends"></script>
 </body>
 
 </html>

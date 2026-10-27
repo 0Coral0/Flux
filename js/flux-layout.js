@@ -21,9 +21,15 @@
     return { navigation, density, order };
   };
   function create(win) {
-    const document = win.document; let preferences = normalize(safeRead(win.localStorage, storageKey));
+    const document = win.document; let preferences = normalize(safeRead(win.localStorage, storageKey)); let syncingFromCloud = false; let syncTimer;
     const nav = () => document.querySelector('.nav-list');
-    const save = () => { try { win.localStorage.setItem(storageKey, JSON.stringify(preferences)); } catch (_) {} };
+    const save = () => {
+      try { win.localStorage.setItem(storageKey, JSON.stringify(preferences)); } catch (_) {}
+      if (!syncingFromCloud && win.fluxAuthState?.status === 'signed-in' && win.fluxData) {
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(() => win.fluxData.putSettings({ layout: preferences }).catch(() => {}), 700);
+      }
+    };
     function buttons() { return preferences.order.map(id => document.getElementById('btn-' + id)).filter(Boolean); }
     function applyClasses() {
       document.body.classList.toggle('flux-nav-horizontal', preferences.navigation === 'horizontal');
@@ -58,6 +64,20 @@
       mode?.addEventListener('change', () => { preferences.navigation = mode.value === 'horizontal' ? 'horizontal' : 'vertical'; apply(); });
       density?.addEventListener('change', () => { preferences.density = ['compact', 'spacious'].includes(density.value) ? density.value : 'comfortable'; apply(); });
       reset?.addEventListener('click', () => { preferences = normalize(defaults); apply(); });
+      win.addEventListener('flux-auth-changed', async () => {
+        if (win.fluxAuthState?.status !== 'signed-in' || !win.fluxData) return;
+        try {
+          const remote = await win.fluxData.getSettings();
+          if (!remote.settings?.layout) return;
+          syncingFromCloud = true;
+          preferences = normalize(remote.settings.layout);
+          apply();
+        } catch (_) {
+          // Local layout remains the safe fallback when offline.
+        } finally {
+          syncingFromCloud = false;
+        }
+      });
       apply();
     }
     return { start, move, getPreferences: () => ({ ...preferences, order: [...preferences.order] }), setPreferences: value => { preferences = normalize(value); apply(); } };

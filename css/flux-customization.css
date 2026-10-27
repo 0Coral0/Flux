@@ -41,6 +41,10 @@
 .profile-form textarea.settings-input { resize: vertical; min-height: 80px; }
 .profile-avatar-controls { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
 .profile-avatar-controls .settings-input { width: 190px; }
+.profile-username-controls { display: flex; align-items: center; gap: 9px; width: min(100%, 390px); }
+.profile-username-prefix { flex: 0 0 auto; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.08rem; }
+.profile-username-controls .settings-input { flex: 1 1 auto; min-width: 0; width: auto; }
+.profile-username-controls .action-btn { flex: 0 0 auto; white-space: nowrap; }
 .profile-color-input { height: 40px; width: 54px; padding: 3px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; }
 .profile-save-status { min-height: 1.2em; margin: 12px 0 0; font-size: .78rem; color: var(--text-dim); }
 .profile-save-status.error { color: #fca5a5; }
@@ -101,6 +105,8 @@
   .profile-form .settings-row > :not(:first-child) { width: 100%; }
   .profile-form .settings-input { width: 100%; }
   .profile-avatar-controls .settings-input { width: 100%; }
+  .profile-username-controls { width: 100%; }
+  .profile-username-controls .settings-input { width: auto; }
 }
 @media (max-width: 350px) { .movie-feature-poster { display: none; } }
 
