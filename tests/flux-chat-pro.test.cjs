@@ -17,18 +17,15 @@ test('The released GitHub Global Chat interface is active in the Flux SPA', () =
   assert.doesNotMatch(page, /js\/flux-chat-pro\.js/);
 });
 
-test('The released chat UI keeps the Cloudflare live-chat connection', () => {
-  assert.match(page, /Mode: Cloudflare Live Sync/);
-  assert.match(page, /cloudflareChatSocket/);
-  assert.match(page, /sessionStorage\.removeItem\('flux_chat_transport'\)/);
-  assert.match(page, /Mode: Cloudflare reconnecting/);
-  assert.match(page, /Mode: Cloudflare connecting/);
-  assert.match(page, /avatar: safeChatAvatar\(profile\.avatar\)/);
-  assert.match(page, /banner: safeChatAvatar\(profile\.banner\)/);
-  assert.match(page, /remote\.avatar \|\| local\.avatar/);
-  assert.match(page, /window\.fluxData\.chat\('\/rooms\//);
-  assert.match(worker, /\/api\/chat/);
-  assert.match(worker, /export class FluxChatRoom/);
+test('The released chat UI uses Firebase live sync without a Worker connection loop', () => {
+  assert.match(page, /Mode: Firebase Live Sync/);
+  assert.match(page, /firebase-firestore-compat\.js/);
+  assert.match(page, /window\.fluxFirebaseDb\.collection\("messages"\)\.orderBy\("timestamp", "desc"\)\.limit\(200\)/);
+  assert.match(page, /window\.fluxFirebaseDb\.collection\("chat_rooms"\)\.doc\(subscribedRoom\)\.collection\("messages"\)/);
+  assert.match(page, /window\.fluxFirebaseDb\.collection\("chat_rooms"\)\.doc\(sendingRoom\)\.collection\("messages"\)/);
+  assert.doesNotMatch(page, /Mode: Cloudflare/);
+  assert.doesNotMatch(page, /cloudflareChatSocket/);
+  assert.match(worker, /export class FluxChatRoom/); // Retained only as an offline backup.
 });
 
 test('Social chat uses unique usernames, friend requests, DMs, and group rooms', () => {
@@ -42,8 +39,6 @@ test('Social chat uses unique usernames, friend requests, DMs, and group rooms',
   assert.match(social, /label: 'Accept'/);
   assert.match(social, /method: 'PUT'/);
   assert.match(social, /label: 'Decline'/);
-  assert.match(worker, /username is already taken/);
-  assert.match(worker, /\^\[a-z0-9_\]\{3,20\}\$/);
-  assert.match(worker, /status: 'accepted'/);
-  assert.match(worker, /status: 'pending'/);
+  assert.match(social, /status === 'accepted'/);
+  assert.match(social, /status === 'pending'/);
 });

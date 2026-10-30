@@ -1,5 +1,7 @@
 # Flux on Render: wake on request
 
+> Organized under `docs/hosting` as part of the project documentation.
+
 This file prepares the **Discord bridge** for Render's Free web-service plan. It intentionally does **not** send keep-awake pings. Render can put the bridge to sleep after 15 minutes without an incoming request; the next Flux request wakes it, which can take around a minute. Discord reconnects when the service starts again.
 
 ## What this hosts

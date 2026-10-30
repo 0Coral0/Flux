@@ -19,11 +19,11 @@
     <script src="changelogData.js"></script>
     <script src="movieData.js"></script>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+    <!-- Firebase SDKs: compat builds also work when Flux is opened from a basic local preview. -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDcSoHg-3ZvmhF1N_ROn8yrpqfTfldZqDc",
             authDomain: "aggw-themes.firebaseapp.com",
@@ -38,11 +38,13 @@
         window.fluxFirebaseReady = new Promise(resolve => { resolveFirebaseReady = resolve; });
         try {
             if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
+                const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore(app);
                 window.fluxFirebaseDb = db;
+                window.fluxFirebase = firebase;
             }
         } catch (e) {
+            window.fluxFirebaseInitError = e?.message || String(e);
             console.warn("Firebase initialization skipped or unconfigured. Running in local sync mode.");
         } finally {
             resolveFirebaseReady(db);
@@ -2481,8 +2483,6 @@ main { min-width: 0; }
         let particlesEnabled = true;
         let activeChatRoom = 'global_general';
         let unsubscribeFirestore = null;
-        let cloudflareChatSocket = null;
-        let cloudflareChatMessages = [];
         let chatSubscriptionGeneration = 0;
         // A temporary local fallback must never win forever. Older versions saved this
         // decision in sessionStorage, which left signed-in users stranded locally.
@@ -2769,8 +2769,6 @@ main { min-width: 0; }
             chatSubscriptionGeneration++;
             if (unsubscribeFirestore) unsubscribeFirestore();
             unsubscribeFirestore = null;
-            if (typeof cloudflareChatSocket !== 'undefined' && cloudflareChatSocket) cloudflareChatSocket.close();
-            if (typeof cloudflareChatSocket !== 'undefined') cloudflareChatSocket = null;
         }
 
         function safeChatAvatar(value) {
@@ -2849,8 +2847,6 @@ main { min-width: 0; }
             localChatFallback = true;
             if (unsubscribeFirestore) unsubscribeFirestore();
             unsubscribeFirestore = null;
-            if (typeof cloudflareChatSocket !== 'undefined' && cloudflareChatSocket) cloudflareChatSocket.close();
-            if (typeof cloudflareChatSocket !== 'undefined') cloudflareChatSocket = null;
             chatSubscriptionGeneration++;
             const statusIndicator = document.getElementById('backend-status-indicator');
             if (statusIndicator) statusIndicator.innerText = 'Mode: Local Storage';
@@ -2869,83 +2865,26 @@ main { min-width: 0; }
                 loadLocalChatMessages();
                 return;
             }
-            if (window.fluxData?.chat && window.fluxAuthState?.uid && subscribedRoom) {
-                if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare Live Sync';
-                try {
-                    const profile = JSON.parse(localStorage.getItem('flux_profile')) || {};
-                    await window.fluxData.chat('/me', {
-                        method: 'PUT',
-                        body: {
-                            username: String(profile.name || '').slice(0, 40),
-                            avatar: safeChatAvatar(profile.avatar),
-                            profile: {
-                                status: String(profile.status || '').slice(0, 80),
-                                pronouns: String(profile.pronouns || '').slice(0, 32),
-                                bio: String(profile.bio || '').slice(0, 180),
-                                banner: safeChatAvatar(profile.banner),
-                                color: /^#[a-f0-9]{6}$/i.test(profile.color || '') ? profile.color : '#22c55e'
-                            }
-                        }
-                    });
-                    if (generation !== chatSubscriptionGeneration) return;
-                    const history = await window.fluxData.chat('/rooms/' + encodeURIComponent(subscribedRoom) + '/messages');
-                    if (generation !== chatSubscriptionGeneration) return;
-                    cloudflareChatMessages = (history.messages || []).map(message => ({
-                        ...message,
-                        time: new Date(message.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        owner: message.role === 'owner'
-                    }));
-                    renderChatMessages(cloudflareChatMessages);
-                    const ticket = await window.fluxData.chat('/rooms/' + encodeURIComponent(subscribedRoom) + '/ticket', { method: 'POST', body: {} });
-                    if (generation !== chatSubscriptionGeneration) return;
-                    cloudflareChatSocket = new WebSocket(ticket.wsUrl);
-                    cloudflareChatSocket.onmessage = event => {
-                        if (generation !== chatSubscriptionGeneration) return;
-                        try {
-                            const packet = JSON.parse(event.data);
-                            if (packet.type === 'message' && packet.message) {
-                                cloudflareChatMessages.push({
-                                    ...packet.message,
-                                    time: new Date(packet.message.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                    owner: packet.message.role === 'owner'
-                                });
-                                renderChatMessages(cloudflareChatMessages);
-                            }
-                        } catch (_) { /* Ignore malformed live events. */ }
-                    };
-                    cloudflareChatSocket.onclose = () => {
-                        if (generation !== chatSubscriptionGeneration) return;
-                        if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare reconnecting…';
-                        window.setTimeout(() => {
-                            if (generation === chatSubscriptionGeneration && activeChatRoom === subscribedRoom) setupChatSubscription();
-                        }, 1500);
-                    };
-                    return;
-                } catch (error) {
-                    console.warn('Cloudflare chat connection failed.', error);
-                    if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare reconnecting…';
-                    window.setTimeout(() => {
-                        if (generation === chatSubscriptionGeneration && activeChatRoom === subscribedRoom) setupChatSubscription();
-                    }, 1500);
-                    return;
-                }
-            }
-            if (window.fluxFirebaseDb && subscribedRoom === 'global_general') {
+            if (window.fluxFirebaseDb && subscribedRoom) {
                 if (statusIndicator) statusIndicator.innerText = "Mode: Firebase Live Sync";
                 try {
-                    const { collection, query, where, orderBy, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     if (generation !== chatSubscriptionGeneration) return;
-                    const q = query(
-                        collection(window.fluxFirebaseDb, "messages"),
-                        where("room", "==", subscribedRoom),
-                        orderBy("timestamp", "asc")
-                    );
+                    const q = subscribedRoom === 'global_general'
+                        // The legacy top-level collection only contains Global Chat.
+                        // Limit history so opening chat does not read the entire archive.
+                        ? window.fluxFirebaseDb.collection("messages").orderBy("timestamp", "desc").limit(200)
+                        : window.fluxFirebaseDb.collection("chat_rooms").doc(subscribedRoom).collection("messages");
 
-                    unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+                    unsubscribeFirestore = q.onSnapshot((snapshot) => {
                         if (generation !== chatSubscriptionGeneration) return;
                         const messages = [];
                         snapshot.forEach((doc) => {
                             messages.push(doc.data());
+                        });
+                        messages.sort((first, second) => {
+                            const a = first.timestamp?.toMillis?.() || Number(first.timestamp) || 0;
+                            const b = second.timestamp?.toMillis?.() || Number(second.timestamp) || 0;
+                            return a - b;
                         });
                         renderChatMessages(messages);
                     }, (error) => {
@@ -3063,29 +3002,32 @@ main { min-width: 0; }
 
             input.value = '';
 
-            const cloudflareSignedIn = Boolean(window.fluxData?.chat && window.fluxAuthState?.uid && !localChatFallback);
-            if (cloudflareSignedIn && sendingRoom) {
-                if (cloudflareChatSocket?.readyState === WebSocket.OPEN) {
-                    cloudflareChatSocket.send(JSON.stringify({ type: 'send', text }));
+            if (window.fluxFirebaseDb && sendingRoom) {
+                if (!window.fluxAuthState?.uid) {
+                    input.value = text;
+                    setChatModerationNotice('Sign in from Profile before sending a Global Chat message.');
                     return;
                 }
-                input.value = text;
-                const statusIndicator = document.getElementById('backend-status-indicator');
-                if (statusIndicator) statusIndicator.innerText = 'Mode: Cloudflare connecting…';
-                return;
-            }
-
-            if (window.fluxFirebaseDb && sendingRoom === 'global_general') {
                 try {
-                    const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                    await addDoc(collection(window.fluxFirebaseDb, "messages"), {
+                    const messages = sendingRoom === 'global_general'
+                        ? window.fluxFirebaseDb.collection("messages")
+                        : window.fluxFirebaseDb.collection("chat_rooms").doc(sendingRoom).collection("messages");
+                    await messages.add({
                         ...newMsg,
-                        timestamp: serverTimestamp()
+                        uid: window.fluxAuthState?.uid || '',
+                        role: window.fluxChatIdentity?.owner ? 'owner' : '',
+                        mentions: [],
+                        timestamp: window.fluxFirebase.firestore.FieldValue.serverTimestamp()
                     });
                     return;
                 } catch (e) {
-                    console.warn("Firestore write failed, saving locally:", e);
-                    useLocalChatFallback();
+                    console.warn("Firestore write failed:", e);
+                    input.value = text;
+                    const detail = String(e?.message || 'Firebase did not accept the message.');
+                    setChatModerationNotice(detail.includes('permission')
+                        ? 'Firebase blocked this message. Publish the latest Flux Firestore rules, then try again.'
+                        : 'Firebase could not send this message. Please try again.');
+                    return;
                 }
             }
 
@@ -3869,8 +3811,8 @@ main { min-width: 0; }
 <script src="js/discord-config.js"></script>
 <script src="js/discord-widget-config.js"></script>
 <script src="js/flux-auth-guard.js"></script>
-<script type="module" src="js/flux-auth.js"></script>
-<script src="js/flux-data-client.js"></script>
+<script src="js/flux-auth.js?v=20261029-firebase"></script>
+<script src="js/flux-data-client.js?v=20261029-firebase"></script>
 <script src="js/discord-chat.js"></script>
 <script src="js/flux-ai-site.js"></script>
 <script src="js/flux-ai-redesign.js"></script>

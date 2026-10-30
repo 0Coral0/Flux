@@ -1,6 +1,8 @@
 # Full Flux Firestore rules
 
-This is the merged version of the rules you pasted: it keeps your existing requests, themes, memorials, Hot games, and legacy Global Chat, then adds Flux Social. Replace the entire Rules editor contents with this ruleset, then click **Publish**.
+> Organized under `docs/firebase` as part of the project documentation.
+
+This is the merged version of the rules you pasted: it keeps your existing requests, themes, memorials, Hot games, and legacy Global Chat, then adds Firebase-backed Flux profiles, friends, DMs, and groups. Replace the entire Rules editor contents with this ruleset, then click **Publish**. Flux no longer needs the Cloudflare data Worker for site features.
 
 ```rules
 rules_version = '2';
@@ -196,13 +198,40 @@ service cloud.firestore {
       }
     }
 
+    // Firebase-backed Flux profiles. `chat_usernames` is a separate claimed-name
+    // record so that one @username cannot be silently used by two accounts.
+    function validChatUser() {
+      return signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.username is string
+        && request.resource.data.username.matches('^[a-z0-9_]{3,20}$')
+        && request.resource.data.avatar is string && request.resource.data.avatar.size() <= 40000
+        && request.resource.data.profile is map;
+    }
+
+    function hasMyUsernameClaim() {
+      return existsAfter(/databases/$(database)/documents/chat_usernames/$(request.resource.data.username))
+        && getAfter(/databases/$(database)/documents/chat_usernames/$(request.resource.data.username)).data.uid == request.auth.uid;
+    }
+
     match /chat_users/{userId} {
       allow read: if signedIn();
       allow create, update: if signedIn() && request.auth.uid == userId
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
-        && request.resource.data.avatar is string && request.resource.data.avatar.size() <= 40000;
+        && validChatUser() && hasMyUsernameClaim();
       allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /chat_usernames/{username} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && username.matches('^[a-z0-9_]{3,20}$')
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.username == username
+        && existsAfter(/databases/$(database)/documents/chat_users/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/chat_users/$(request.auth.uid)).data.username == username;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid
+        && (!existsAfter(/databases/$(database)/documents/chat_users/$(request.auth.uid))
+          || getAfter(/databases/$(database)/documents/chat_users/$(request.auth.uid)).data.username != username);
     }
 
     match /friend_requests/{requestId} {

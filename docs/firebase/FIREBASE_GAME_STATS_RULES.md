@@ -1,5 +1,7 @@
 # Firebase Hot games rules
 
+> Organized under `docs/firebase` as part of the project documentation.
+
 Add this block inside `match /databases/{database}/documents` in the shared Firestore rules. It lets everyone read the five Hot games and add one play to a real game-stat document, while refusing deletes or edits to a game's identity.
 
 ```rules

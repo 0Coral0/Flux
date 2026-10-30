@@ -1,5 +1,7 @@
 # Flux global-chat Firestore rules
 
+> Organized under `docs/firebase` as part of the project documentation.
+
 Replace the existing broad `messages` rule (`allow read, write: if true;`) with the block below, inside `match /databases/{database}/documents`.
 
 This keeps Global Chat publicly readable and lets guests send ordinary messages, but protects the owner badge: only a Firebase-authenticated account on the owner list may create a message with `owner: true`. It also rejects the built-in harmful-language phrases on the server, so a direct Firestore request cannot bypass the page’s moderation check.

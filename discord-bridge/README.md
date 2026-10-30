@@ -8,7 +8,7 @@ This worker serves the **Discord Chat**, **Discord DM**, and **Assistant** pages
 
 For a school-safe public setup, host the static website on Vercel and keep this long-running bridge on an always-on VM. The ready-to-use Docker, Caddy, and Oracle Always Free steps are in [DEPLOY-ORACLE-FREE.md](DEPLOY-ORACLE-FREE.md). Vercel cannot host the Discord gateway itself because its functions are not permanent processes. This guide prepares files only; it does not publish Flux or send any credentials anywhere.
 
-If a no-card Render account is the only option, [RENDER-SETUP.md](../RENDER-SETUP.md) prepares the bridge to wake on the first request after idle. It is intentionally not an always-on production setup and does not run Ollama or the public browser proxy.
+If a no-card Render account is the only option, [RENDER-SETUP.md](../docs/hosting/RENDER-SETUP.md) prepares the bridge to wake on the first request after idle. It is intentionally not an always-on production setup and does not run Ollama or the public browser proxy.
 
 The main checkout includes a local, Git-ignored `discord-bridge/.env` copied from the template. Fill in that file on your server; it contains no working credentials yet. For a fresh clone, copy `.env.example` to `.env` first. The community service defaults to port **3032** so it can run beside the local Flux website on **3031** and browser proxy on **3040**.
 

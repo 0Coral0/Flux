@@ -1,5 +1,7 @@
 # Flux Social Firestore rules
 
+> Organized under `docs/firebase` as part of the project documentation.
+
 Paste the following **inside** the existing `match /databases/{database}/documents { ... }` block in Firebase Console. Keep the rest of your existing Flux rules (games, themes, requests, etc.) underneath it. Publish the rules before trying Social features.
 
 ```rules

@@ -5,7 +5,7 @@ const { join } = require('node:path');
 
 const root = join(__dirname, '..');
 const social = readFileSync(join(root, 'js', 'flux-social.js'), 'utf8');
-const rules = readFileSync(join(root, 'FIREBASE_SOCIAL_RULES.md'), 'utf8');
+const rules = readFileSync(join(root, 'docs', 'firebase', 'FIREBASE_SOCIAL_RULES.md'), 'utf8');
 const admin = readFileSync(join(root, 'admin.html'), 'utf8');
 
 test('Flux Social includes rooms, friends, reports, replies, reactions, staff deletion, and game chat', () => {

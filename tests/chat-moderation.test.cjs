@@ -36,6 +36,6 @@ test('owner badges use the authenticated owner flag instead of a display name', 
 });
 
 test('Firestore chat documentation accepts the compressed-avatar size limit', () => {
-  const rules = readFileSync(join(root, 'FIREBASE_CHAT_RULES.md'), 'utf8');
+  const rules = readFileSync(join(root, 'docs', 'firebase', 'FIREBASE_CHAT_RULES.md'), 'utf8');
   assert.match(rules, /request\.resource\.data\.avatar\.size\(\) <= 40000/);
 });

@@ -1,5 +1,7 @@
 # Firebase admin access
 
+> Organized under `docs/firebase` as part of the project documentation.
+
 `admin.html` now signs in with Firebase Authentication and Electron retains that signed-in session for later launches. Firestore still has to grant that signed-in account permission to change protected documents.
 
 In the Firebase Console, open **Firestore Database → Rules** and merge this helper into the existing ruleset:
