@@ -6,11 +6,11 @@ const layout = require('../js/flux-layout.js');
 const root = path.join(__dirname, '..');
 
 test('layout preferences accept only supported modes and retain every Flux page once', () => {
-  const value = layout.normalize({ navigation: 'horizontal', density: 'compact', order: ['movies', 'movies', 'unknown', 'dashboard'] });
+  const value = layout.normalize({ navigation: 'horizontal', density: 'compact', order: ['records', 'records', 'movies', 'browser', 'ai', 'credits', 'unknown', 'dashboard'] });
   assert.equal(value.navigation, 'horizontal');
   assert.equal(value.density, 'compact');
   assert.equal(new Set(value.order).size, layout.defaults.order.length);
-  assert.deepEqual(value.order.slice(0, 2), ['movies', 'dashboard']);
+  assert.deepEqual(value.order.slice(0, 2), ['records', 'dashboard']);
   assert.deepEqual(layout.normalize({ navigation: 'diagonal', density: 'tiny', order: null }), layout.defaults);
 });
 

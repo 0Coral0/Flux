@@ -1,4 +1,70 @@
-/* Personal layout controls. The default Flux sidebar remains untouched until a setting is chosen. */
+/* Shared navigation polish. Vertical is the default; horizontal is an opt-in layout. */
+.app-layout { height: 100dvh; }
+main { box-sizing: border-box; min-height: 0; }
+#flux-sidebar {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), .035), transparent 42%), var(--surface);
+  box-shadow: 8px 0 32px #0002;
+}
+#flux-sidebar .brand-box { gap: 10px; }
+#flux-sidebar .brand-home { flex: 1; width: auto; }
+#flux-sidebar .brand-logo-code {
+  width: 38px; min-width: 38px; height: 38px; border-radius: 11px;
+  border-color: rgba(var(--accent-rgb), .26);
+  background: linear-gradient(145deg, rgba(var(--accent-rgb), .1), transparent), var(--bg);
+  box-shadow: inset 0 1px 0 #ffffff08;
+}
+#flux-sidebar .brand-name { font-size: 1.08rem; font-weight: 800; letter-spacing: -.04em; }
+#flux-sidebar .brand-subtitle { font-size: .62rem; letter-spacing: .04em; opacity: .75; }
+#flux-sidebar .brand-actions {
+  gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 13px;
+  background: rgba(var(--accent-rgb), .025);
+}
+#flux-sidebar .header-action.nav-item {
+  flex: 0 0 32px; width: 32px; height: 32px; min-height: 32px;
+  border: 1px solid transparent; border-radius: 9px;
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+#flux-sidebar .header-action.profile-shortcut { border-radius: 50%; }
+#flux-sidebar .header-action:hover { color: var(--text); background: var(--surface-hover); border-color: var(--border-active); }
+#flux-sidebar .nav-list { gap: 6px; margin-top: 20px; padding: 2px; scroll-padding: 4px; }
+#flux-sidebar .nav-list .nav-item {
+  position: relative; min-height: 46px; padding: 12px 14px; gap: 12px;
+  border-radius: 12px; font-family: inherit; font-size: .82rem; font-weight: 600; line-height: 1.25;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+#flux-sidebar .nav-item-label { min-width: 0; }
+#flux-sidebar .nav-list .nav-item i {
+  display: inline-grid; place-items: center; flex: 0 0 20px; width: 20px;
+  font-size: 1rem; opacity: .8;
+}
+#flux-sidebar .nav-list .nav-item:hover { background: var(--surface-hover); border-color: var(--border); }
+#flux-sidebar .nav-list .nav-item.active {
+  color: var(--accent); border-color: rgba(var(--accent-rgb), .23);
+  background: linear-gradient(100deg, rgba(var(--accent-rgb), .13), rgba(var(--accent-rgb), .045));
+  box-shadow: inset 0 1px 0 rgba(var(--accent-rgb), .06);
+}
+#flux-sidebar .nav-list .nav-item.active i { opacity: 1; }
+#flux-sidebar .nav-list .nav-item::after {
+  content: ''; position: absolute; left: 0; top: calc(50% - 8px);
+  width: 3px; height: 16px; border-radius: 0 3px 3px 0;
+  background: var(--accent); opacity: 0; pointer-events: none;
+}
+#flux-sidebar .nav-list .nav-item.active::after { opacity: 1; }
+#flux-sidebar .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#flux-sidebar .sidebar-status { padding: 10px 4px 0; font-size: .69rem; }
+
+/* A quieter, consistent finish across the home page and shared surfaces. */
+#view-dashboard { padding-bottom: 0; }
+#view-dashboard .module-banner { border-radius: 18px; box-shadow: 0 12px 36px #0003; }
+#view-dashboard .module-banner::before { width: 3px; }
+#view-dashboard .metric-card { border-radius: 14px; box-shadow: 0 6px 24px #0002; }
+#view-dashboard .home-section:last-child { margin-bottom: 0; }
+.home-empty { border-style: solid; background: var(--surface); }
+.flux-footer { margin-top: 36px; }
+main:has(#view-dashboard.active #quick-resume-container:not(:empty)) .flux-footer { padding-bottom: 84px; }
+
 .settings-layout-intro { padding: 6px 0 8px; }
 .settings-layout-intro h3 { margin: 6px 0 7px; font-size: 1.35rem; }
 .settings-layout-intro h3 span { color: var(--accent); }
@@ -11,18 +77,33 @@
 .layout-order-button:disabled { opacity: .38; cursor: not-allowed; }
 
 @media (min-width: 901px) {
+  #flux-sidebar { width: 248px; min-width: 248px; height: 100dvh; padding: 24px 14px 20px; }
+  main { padding: clamp(28px, 3vw, 44px); }
   body.flux-nav-horizontal .app-layout { display: flex; flex-direction: column; }
-  body.flux-nav-horizontal #flux-sidebar { box-sizing: border-box; width: 100%; min-width: 0; height: auto; min-height: 88px; padding: 9px 18px; flex-direction: row; align-items: center; gap: 16px; border-right: 0; border-bottom: 1px solid var(--border); box-shadow: 0 4px 25px rgba(0,0,0,.32); overflow: hidden; }
-  body.flux-nav-horizontal #flux-sidebar .brand-box { width: auto; min-width: max-content; padding-bottom: 0; border-bottom: 0; }
-  body.flux-nav-horizontal #flux-sidebar .brand-home { min-width: max-content; }
-  body.flux-nav-horizontal #flux-sidebar .nav-list { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: row; align-items: center; gap: 5px; padding-top: 0; overflow-x: auto; scrollbar-width: thin; }
-  /* Horizontal navigation is made of compact app tiles: icon first, then label. */
-  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item { min-width: 62px; min-height: 62px; padding: 7px 9px; flex-direction: column; justify-content: center; gap: 4px; text-align: center; font-size: .64rem; line-height: 1.1; white-space: nowrap; }
-  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item i { width: auto; font-size: .98rem; }
-  body.flux-nav-horizontal #flux-sidebar .sidebar-links { margin-left: auto; padding: 0; border: 0; flex: 0 0 auto; flex-direction: row; }
-  body.flux-nav-horizontal #flux-sidebar .external-link { min-width: max-content; padding: 8px 10px; }
-  body.flux-nav-horizontal #flux-sidebar .sidebar-status { display: none; }
-  body.flux-nav-horizontal main { width: 100%; height: calc(100vh - 88px); box-sizing: border-box; }
+  body.flux-nav-horizontal #flux-sidebar {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+    width: 100%; min-width: 0; height: auto; min-height: 82px; padding: 14px 28px; gap: 12px 24px;
+    border-right: 0; border-bottom: 1px solid var(--border); box-shadow: 0 8px 32px #0002; overflow: visible;
+  }
+  body.flux-nav-horizontal #flux-sidebar .brand-box { display: contents; }
+  body.flux-nav-horizontal #flux-sidebar .brand-home { grid-column: 1; grid-row: 1; min-width: max-content; }
+  body.flux-nav-horizontal #flux-sidebar .brand-actions { grid-column: 3; grid-row: 1; }
+  body.flux-nav-horizontal #flux-sidebar .nav-list {
+    grid-column: 2; grid-row: 1; display: flex; flex-flow: row wrap; align-items: center;
+    min-width: 0; margin: 0; padding: 4px; gap: 4px; overflow: visible;
+    border: 1px solid var(--border); border-radius: 15px; background: var(--bg);
+  }
+  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item {
+    flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; padding: 10px 9px;
+    flex-direction: row; justify-content: center; gap: 7px; border-radius: 10px;
+    text-align: center; font-size: .74rem; white-space: nowrap;
+  }
+  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item i { flex-basis: 16px; width: 16px; font-size: .88rem; }
+  body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item::after {
+    left: calc(50% - 7px); top: auto; bottom: 3px; width: 14px; height: 2px; border-radius: 2px;
+  }
+  body.flux-nav-horizontal #flux-sidebar .sidebar-links { display: none; }
+  body.flux-nav-horizontal main { flex: 1 1 auto; width: 100%; height: auto; min-height: 0; }
   body.flux-density-compact main { padding: 26px; }
   body.flux-density-compact .home-section, body.flux-density-compact .module-banner, body.flux-density-compact .movie-hero { margin-bottom: 18px; }
   body.flux-density-spacious main { padding: 52px; }
@@ -30,6 +111,16 @@
 }
 
 @media (max-width: 900px) {
+  .mobile-header { background: var(--surface); box-shadow: 0 6px 24px #0002; }
+  .mobile-brand-mark, .mobile-icon-button, .mobile-nav-button { border-radius: 12px; }
+  #flux-sidebar .brand-box { flex-wrap: wrap; row-gap: 12px; padding-bottom: 18px; }
+  #flux-sidebar .header-action.nav-item { flex-basis: 44px; width: 44px; height: 44px; min-height: 44px; }
+  #flux-sidebar .nav-list .nav-item { min-height: 48px; }
+  #view-dashboard .module-banner { border-radius: 14px; }
   .settings-order-row { align-items: stretch; }
   .layout-page-order { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #flux-sidebar .nav-item { transition: none; }
 }

@@ -53,7 +53,8 @@ test('dashboard keeps the site navigation and removes the favorites and session 
   const home = html.slice(start,end);
   assert.match(home,/id="home-recent-games"/); assert.match(home,/id="home-hot-games"/);
   assert.match(home,/id="home-login-status"/); assert.doesNotMatch(home,/FAVORITED ITEMS|SESSION TIME/);
-  assert.match(html,/id="btn-archives"/); assert.match(html,/id="btn-ai"/);
+  assert.match(html,/id="btn-archives"/); assert.match(html,/id="btn-chat"/);
+  assert.doesNotMatch(html,/id="btn-(?:browser|ai|movies|credits)"|data-page="movies"/);
   assert.match(html,/js\/flux-game-catalog-baseline\.js/);
   assert.match(fs.readFileSync(path.join(root, 'js', 'flux-dashboard.js'),'utf8'), /game_statistics/);
 });

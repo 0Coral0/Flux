@@ -18,7 +18,7 @@ test('the Assistant view closes before the profile view and keeps the SPA script
   assert.match(assistantView, /<image class="fxa-core-logo" href="Fluxlogo\.svg"/);
   assert.doesNotMatch(assistantView, /Make it yours/);
   assert.match(html.slice(end), /Make it yours\./);
-  assert.match(html, /id="btn-ai"[^>]+showPage\('ai'\)/);
+  assert.doesNotMatch(html, /id="btn-ai"/);
   assert.match(html, /js\/flux-ai-redesign\.js/);
   assert.doesNotMatch(html, /<script src="js\/flux-ai\.js"><\/script>/);
 });

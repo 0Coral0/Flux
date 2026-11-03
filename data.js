@@ -414,12 +414,6 @@ const gameList = [
         "description": "Evolve your duck and compete in various events."
     },
     {
-        "name": "Duck Life 4",
-        "file": "MultiFile Games\\DuckLife4-main\\DuckLife4-main/index.html",
-        "thumb": "Game Images/dl4.png",
-        "description": "The fourth Duck Life game with new training mini-games."
-    },
-    {
         "name": "There Is No Game",
         "file": "Games/clthereisnofile.html",
         "thumb": "Game Images/ting.png",

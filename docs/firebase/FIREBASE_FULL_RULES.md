@@ -107,8 +107,42 @@ service cloud.firestore {
     }
 
     match /themes/{themeId} {
+      function color(value) { return value is string && value.matches('^#[a-fA-F0-9]{6}$'); }
+      function validTheme() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['theme', 'ownerUid', 'updatedAt'])
+          && data.keys().hasOnly(['theme', 'ownerUid', 'updatedAt', 'shopName', 'sharedBy', 'publishedAt'])
+          && data.ownerUid == request.auth.uid && data.updatedAt == request.time
+          && data.theme is map
+          && data.theme.keys().hasAll(['accent', 'bg', 'cardBg', 'borderColor', 'textColor'])
+          && data.theme.keys().hasOnly(['accent', 'bg', 'cardBg', 'borderColor', 'textColor'])
+          && color(data.theme.accent) && color(data.theme.bg) && color(data.theme.cardBg)
+          && color(data.theme.borderColor) && color(data.theme.textColor);
+      }
+      function validPublication() {
+        let data = request.resource.data;
+        return !data.keys().hasAny(['shopName', 'sharedBy', 'publishedAt']) || (
+          data.keys().hasAll(['shopName', 'sharedBy', 'publishedAt'])
+          && data.shopName is string && data.shopName.size() >= 2 && data.shopName.size() <= 48
+          && data.sharedBy is string && data.sharedBy.size() > 0 && data.sharedBy.size() <= 40
+          && data.publishedAt is timestamp
+        );
+      }
+      function writableCode() {
+        return themeId.matches('^[a-z0-9][a-z0-9_-]{0,39}$')
+          && !themeId.matches('^flux-(emerald|ocean|violet|rose|amber)$');
+      }
       allow read: if true;
-      allow write: if signedIn();
+      allow create: if signedIn() && writableCode() && validTheme() && validPublication()
+        && (!('publishedAt' in request.resource.data) || request.resource.data.publishedAt == request.time);
+      // Legacy unowned codes can be claimed once. Owned codes cannot change hands.
+      allow update: if signedIn() && writableCode()
+        && resource.data.get('ownerUid', request.auth.uid) == request.auth.uid
+        && validTheme() && validPublication()
+        && (!('publishedAt' in request.resource.data)
+          || request.resource.data.publishedAt == request.time
+          || request.resource.data.publishedAt == resource.data.get('publishedAt', null));
+      allow delete: if signedIn() && (resource.data.get('ownerUid', '') == request.auth.uid || isFluxAdmin());
     }
 
     match /memorial_entries/{entryId} {

@@ -8,9 +8,43 @@
   const item = record => ({ id: record.id, ...record.data() });
   const db = () => { if (!win.fluxFirebaseDb || !win.fluxFirebase) throw new Error('Firebase is unavailable. Please reload and try again.'); return win.fluxFirebaseDb; };
   const stamp = () => win.fluxFirebase.firestore.FieldValue.serverTimestamp();
+  const themes = () => { if (!win.FluxThemes) throw new Error('Theme tools are still loading. Please try again.'); return win.FluxThemes; };
+  const themeAuthor = me => String(win.getProfileData?.().name || me.name || 'Flux member').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40) || 'Flux member';
+  const themeConflict = () => { const error = new Error('That code belongs to another creator. Choose a different code for your colors.'); error.code = 'theme/code-taken'; return error; };
 
-  async function loadTheme(code) { const record = await db().collection('themes').doc(name(code)).get(); return { theme: record.exists ? record.data().theme || record.data() : null }; }
-  async function saveTheme(code, theme) { const key = name(code); if (!key) throw new Error('Choose a theme code first.'); await db().collection('themes').doc(key).set({ theme, updatedAt: stamp() }, { merge: true }); return { theme }; }
+  async function loadTheme(code) {
+    const key = themes().normalizeCode(code), preset = themes().original(key);
+    if (preset) return { theme: themes().normalizeTheme(preset) };
+    const record = await db().collection('themes').doc(key).get();
+    return { theme: record.exists ? themes().normalizeTheme(record.data().theme || record.data()) : null };
+  }
+  async function writeTheme(code, value, shopName) {
+    const me = account(), key = themes().normalizeCode(code), store = db();
+    if (themes().original(key)) throw new Error('Flux original codes are reserved. Choose a new code for your colors.');
+    const title = shopName === undefined ? null : themes().normalizeName(shopName);
+    const ref = store.collection('themes').doc(key); let result;
+    await store.runTransaction(async transaction => {
+      const record = await transaction.get(ref), previous = record.exists ? record.data() : {};
+      if (previous.ownerUid && previous.ownerUid !== me.uid) throw themeConflict();
+      const theme = themes().normalizeTheme(value || previous.theme || previous);
+      if (!theme) throw new Error('That code does not contain valid theme colors. Save your colors first.');
+      const body = { theme, ownerUid: me.uid, updatedAt: stamp() };
+      if (title !== null) Object.assign(body, { shopName: title, sharedBy: themeAuthor(me), publishedAt: stamp() });
+      else if (themes().listing(key, previous)) Object.assign(body, { shopName: previous.shopName, sharedBy: previous.sharedBy, publishedAt: previous.publishedAt });
+      transaction.set(ref, body);
+      result = { code: key, name: body.shopName, theme, ownerUid: me.uid, sharedBy: body.sharedBy };
+    });
+    return result;
+  }
+  async function saveTheme(code, theme) { return writeTheme(code, theme); }
+  async function publishTheme(code, title, theme) { return writeTheme(code, theme, title); }
+  async function listPublishedThemes({ after = null, limit = 18 } = {}) {
+    const size = Math.max(1, Math.min(36, Math.trunc(Number(limit)) || 18));
+    let query = db().collection('themes').orderBy('publishedAt', 'desc').limit(size);
+    if (after) query = query.startAfter(after);
+    const snapshot = await query.get();
+    return { themes: snapshot.docs.map(record => themes().listing(record.id, record.data())).filter(Boolean), cursor: snapshot.docs.at(-1) || null, hasMore: snapshot.docs.length === size };
+  }
   async function getSettings() { const record = await db().collection('users').doc(account().uid).collection('settings').doc('main').get(); return { settings: record.exists ? record.data() : {} }; }
   async function putSettings(settings) { await db().collection('users').doc(account().uid).collection('settings').doc('main').set({ ...settings, updatedAt: stamp() }, { merge: true }); return { settings }; }
 
@@ -51,5 +85,5 @@
     if (type === 'group' && !room.name) throw new Error('A group name is required.'); if (!previous.exists) await ref.set({ ...room, createdAt: stamp(), updatedAt: stamp() }); return { room };
   }
   async function chat(path, options = {}) { const method = String(options.method || 'GET').toUpperCase(), body = options.body || {}; if (path === '/me') return method === 'PUT' ? saveMe(body) : getMe(); if (path.startsWith('/users?name=')) return findUser(decodeURIComponent(path.split('=')[1] || '')); if (path === '/friends' && method === 'POST') return makeFriend(body); if (path.startsWith('/friends/') && (method === 'PUT' || method === 'DELETE')) return respondFriend(path.slice(9), method); if (path === '/rooms' && method === 'POST') return createRoom(body); throw new Error('That Firebase chat action is not available.'); }
-  win.FLUX_DATA_PROVIDER = 'firebase'; win.fluxData = Object.freeze({ health: async () => ({ ok: true, provider: 'firebase' }), loadTheme, saveTheme, getSettings, putSettings, chat });
+  win.FLUX_DATA_PROVIDER = 'firebase'; win.fluxData = Object.freeze({ health: async () => ({ ok: true, provider: 'firebase' }), loadTheme, saveTheme, publishTheme, listPublishedThemes, getSettings, putSettings, chat });
 })(window);

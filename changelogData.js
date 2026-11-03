@@ -1,5 +1,48 @@
 const changelogData = [
     {
+        "v": "3.3.0",
+        "date": "2026-11-03",
+        "name": "The Make It Yours Update",
+        "mini": "A more consistent Flux, a community theme shop, and a better way to find your next game.",
+        "sections": [
+            {
+                "title": "A familiar feel everywhere",
+                "items": [
+                    "Matched colors, surfaces, headings, buttons, and focus states across the site, including game submissions and takedown requests.",
+                    "Refined desktop and mobile navigation. New visitors start with the vertical sidebar; horizontal navigation is still available in Settings.",
+                    "Moved Discord, game submissions, and copyright takedowns into fixed footer icons with hover labels that stay put.",
+                    "Simplified the navigation by removing the Browser, Assistant, Movies, and Credits tabs. The footer now credits Coral with a heart that follows your theme."
+                ]
+            },
+            {
+                "title": "Your colors, your space",
+                "items": [
+                    "Added a welcome setup to choose colors and navigation, then sign in or continue as a guest. Run it again from Settings.",
+                    "Added Theme Shop: browse community palettes, apply a theme code, or sign in to share a code with a name.",
+                    "Included five Flux originals: Emerald, Ocean, Violet, Rose, and Amber.",
+                    "Theme colors now carry through panels, borders, text, glows, and buttons, with matching colors in other open Flux tabs."
+                ]
+            },
+            {
+                "title": "A better game break",
+                "items": [
+                    "Sorted the game library and favorites alphabetically.",
+                    "Added six random recommendations every time you open or refresh a game, with no duplicates or repeat of the current game.",
+                    "Moved Refresh, Fullscreen, Report, and Close below the game and improved the player on smaller screens.",
+                    "Removed Duck Life 4 from the game catalog."
+                ]
+            },
+            {
+                "title": "The little details",
+                "items": [
+                    "Added a clearer changelog with grouped release notes and expandable older updates.",
+                    "Improved keyboard focus, touch controls, and reduced motion support.",
+                    "Kept existing theme and layout preferences when updating."
+                ]
+            }
+        ]
+    },
+    {
         "v": "3.2.0",
         "name": "The Everything After Cinema Update",
         "mini": "Everything Added Since The Cinema Update: Community, Customization, Games, Safety, And More",

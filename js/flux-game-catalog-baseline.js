@@ -70,7 +70,6 @@ window.fluxGameCatalogBaseline = Object.freeze([
   "Games/clescaperoad-2.html",
   "MultiFile Games\\DuckLife2-main\\DuckLife2-main/index.html",
   "MultiFile Games\\DuckLife3-main\\DuckLife3-main/index.html",
-  "MultiFile Games\\DuckLife4-main\\DuckLife4-main/index.html",
   "Games/clthereisnofile.html",
   "Games/cluno.html",
   "Games/clfridaynightfunkin.html",

@@ -126,7 +126,7 @@
         }
 
         .movie-hero {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, var(--surface) 100%);
+            background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.12) 0%, var(--surface) 100%);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 36px;
@@ -170,7 +170,7 @@
         .movie-hero-btn:hover {
             filter: brightness(1.1);
             transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
         }
 
         #movie-search {
@@ -188,7 +188,7 @@
 
         #movie-search:focus {
             border-color: var(--accent);
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(34, 197, 94, 0.15);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(var(--accent-rgb), 0.15);
         }
 
         .movie-grid {
@@ -213,7 +213,7 @@
         .movie-card:hover {
             border-color: var(--accent);
             transform: translateY(-6px);
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 197, 94, 0.2);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 20px rgba(var(--accent-rgb), 0.2);
         }
 
         .movie-card-thumb {
@@ -408,9 +408,9 @@
 
         .nav-item.active {
             color: var(--accent);
-            background: rgba(34, 197, 94, 0.1);
-            border-color: rgba(34, 197, 94, 0.3);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.08);
+            background: rgba(var(--accent-rgb), 0.1);
+            border-color: rgba(var(--accent-rgb), 0.3);
+            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.08);
         }
 
         .sidebar-links {
@@ -476,9 +476,21 @@
         .flux-footer-copy { min-width: 0; }
         .flux-footer-title { display: block; margin-bottom: 4px; color: var(--text); font-size: .82rem; font-weight: 700; }
         .flux-footer-note { margin: 0; color: var(--text-dim); font-size: .75rem; line-height: 1.5; }
-        .flux-footer-action { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; min-height: 40px; padding: 9px 13px; border: 1px solid var(--border); border-radius: 9px; color: var(--text-dim); background: var(--surface-hover); font-size: .78rem; font-weight: 700; text-decoration: none; transition: border-color .2s ease, color .2s ease, background .2s ease; }
-        .flux-footer-action:hover { color: var(--text); border-color: var(--accent); background: rgba(34, 197, 94, .08); }
+        .flux-footer-credit { display: flex; align-items: center; gap: 6px; }
+        .flux-footer-credit .fa-heart { color: var(--accent); }
+        .flux-footer-credit strong { color: var(--text); font-weight: 800; }
+        .flux-footer-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; max-width: 100%; }
+        .flux-footer-action { position: relative; box-sizing: border-box; display: inline-flex; flex: 0 0 44px; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 10px; color: var(--text-dim); background: var(--surface-hover); font-size: .78rem; font-weight: 700; text-decoration: none; transition: border-color .2s ease, color .2s ease, background .2s ease; }
+        .flux-footer-action i { flex: 0 0 18px; width: 18px; text-align: center; font-size: 1rem; }
+        .flux-footer-action-label { --footer-label-offset: -50%; position: absolute; z-index: 2; bottom: calc(100% + 10px); left: 50%; box-sizing: border-box; width: max-content; max-width: 148px; padding: 8px 10px; border: 1px solid var(--border-active); border-radius: 8px; color: var(--text); background: var(--surface-card); box-shadow: 0 6px 18px #0006; line-height: 1.4; text-align: center; pointer-events: none; opacity: 0; visibility: hidden; transform: translate(var(--footer-label-offset), 4px) scale(.96); transform-origin: bottom center; transition: opacity .2s ease, transform .2s ease, visibility .2s ease; }
+        .flux-footer-action:first-child .flux-footer-action-label { --footer-label-offset: 0; left: 0; transform-origin: bottom left; }
+        .flux-footer-action:last-child .flux-footer-action-label { --footer-label-offset: 0; left: auto; right: 0; transform-origin: bottom right; }
+        .flux-footer-action:hover, .flux-footer-action:focus-visible { color: var(--text); border-color: var(--accent); background: rgba(var(--accent-rgb), .08); }
+        .flux-footer-action:hover .flux-footer-action-label, .flux-footer-action:focus-visible .flux-footer-action-label { opacity: 1; visibility: visible; transform: translate(var(--footer-label-offset), 0) scale(1); }
         .flux-footer-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) {
+            .flux-footer-action, .flux-footer-action-label { transition: none; }
+        }
 
         @keyframes fadeIn {
             from {
@@ -546,7 +558,7 @@
             font-size: 3.5rem;
             font-weight: 900;
             color: var(--accent);
-            filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.7));
+            filter: drop-shadow(0 0 16px rgba(var(--accent-rgb), 0.7));
             animation: flashPrompt 0.8s ease-in-out infinite;
             display: inline-block;
             line-height: 1;
@@ -622,7 +634,7 @@
             50% {
                 opacity: 1;
                 transform: scale(1.05);
-                filter: drop-shadow(0 0 24px rgba(34, 197, 94, 0.9));
+                filter: drop-shadow(0 0 24px rgba(var(--accent-rgb), 0.9));
             }
         }
 
@@ -754,7 +766,7 @@
 
         #archive-search:focus {
             border-color: var(--accent);
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(34, 197, 94, 0.15);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(var(--accent-rgb), 0.15);
         }
 
         .search-icon {
@@ -802,7 +814,7 @@
         .game-node:hover {
             border-color: var(--accent);
             transform: translateY(-6px);
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 197, 94, 0.2);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 20px rgba(var(--accent-rgb), 0.2);
         }
 
         .game-node img {
@@ -905,8 +917,8 @@
         }
 
         .changelog-version-tag {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
+            background: rgba(var(--accent-rgb), 0.1);
+            border: 1px solid rgba(var(--accent-rgb), 0.3);
             color: var(--accent);
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
@@ -1002,8 +1014,8 @@
 
         .lounge-nav-btn.active {
             color: var(--accent);
-            background: rgba(34, 197, 94, 0.1);
-            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(var(--accent-rgb), 0.1);
+            border-color: rgba(var(--accent-rgb), 0.3);
         }
 
         .dm-add-btn {
@@ -1091,10 +1103,10 @@
             align-items: center;
             gap: 4px;
             padding: 3px 7px;
-            border: 1px solid rgba(34, 197, 94, 0.55);
+            border: 1px solid rgba(var(--accent-rgb), 0.55);
             border-radius: 999px;
             color: #a7f3d0;
-            background: rgba(34, 197, 94, 0.13);
+            background: rgba(var(--accent-rgb), 0.13);
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.62rem;
             font-weight: 800;
@@ -1163,7 +1175,7 @@
 
         .lounge-text-input:focus {
             border-color: var(--accent);
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(34, 197, 94, 0.12);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(var(--accent-rgb), 0.12);
         }
 
         .lounge-send-btn {
@@ -1386,7 +1398,7 @@
             color: #000;
             font-weight: 700;
             border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
         }
 
         .tab-panel {
@@ -1514,7 +1526,7 @@
             position: absolute;
             inset: 0 0 auto;
             height: 84px;
-            background: linear-gradient(120deg, rgba(34,197,94,.28), rgba(11,16,23,.1));
+            background: linear-gradient(120deg, rgba(var(--accent-rgb),.28), rgba(11,16,23,.1));
             background-position: center;
             background-size: cover;
             opacity: .82;
@@ -1580,7 +1592,7 @@ main { min-width: 0; }
     .mobile-brand-mark b, .mobile-brand .brand-period { color: var(--accent); }
     .mobile-page-name { margin-left: auto; max-width: 38%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; color: var(--text-dim); }
     .mobile-icon-button { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; background: var(--surface-card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 1.1rem; }
-    .mobile-bottom-nav { position: fixed; inset: auto 0 0; z-index: 20; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 8px max(10px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border); background: var(--surface); }
+    .mobile-bottom-nav { position: fixed; inset: auto 0 0; z-index: 20; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 8px max(10px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border); background: var(--surface); }
     .mobile-nav-button { min-width: 0; min-height: 52px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font: inherit; font-size: .68rem; font-weight: 600; cursor: pointer; }
     .mobile-nav-button i { font-size: 1.1rem; }
     .mobile-nav-button[aria-current="page"] { color: var(--accent); background: rgba(var(--accent-rgb), .1); border-color: rgba(var(--accent-rgb), .2); }
@@ -1680,9 +1692,92 @@ main { min-width: 0; }
     <link rel="stylesheet" href="css/flux-customization.css">
     <link rel="stylesheet" href="css/flux-dashboard.css">
     <link rel="stylesheet" href="css/flux-layout.css">
+    <link rel="stylesheet" href="css/flux-onboarding.css">
+    <link rel="stylesheet" href="css/flux-theme-shop.css">
+    <link rel="stylesheet" href="css/flux-game-player.css">
+    <link rel="stylesheet" href="css/flux-unified.css">
+    <script src="js/flux-theme-core.js"></script>
+    <script src="js/flux-theme.js"></script>
 </head>
 
 <body>
+
+    <dialog id="flux-onboarding" class="flux-onboarding" aria-labelledby="onboarding-title" aria-describedby="onboarding-description">
+        <header class="onboarding-header">
+            <span class="onboarding-brand"><span aria-hidden="true"><b>&gt;</b>F</span> MAKE YOURSELF AT HOME</span>
+            <button type="button" id="onboarding-skip" class="onboarding-skip">Skip for now <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </header>
+        <ol class="onboarding-progress" aria-label="Setup progress">
+            <li data-onboarding-step="0" aria-current="step"><span>01</span> Colors</li>
+            <li data-onboarding-step="1"><span>02</span> Layout</li>
+            <li data-onboarding-step="2"><span>03</span> Your account</li>
+        </ol>
+        <div class="onboarding-body">
+            <h2 id="onboarding-title" tabindex="-1">A little more you<span>.</span></h2>
+            <p id="onboarding-description">Pick a palette for your corner of the internet.</p>
+            <section data-onboarding-panel="0" aria-label="Theme colors">
+                <div class="onboarding-preview" aria-hidden="true">
+                    <div class="onboarding-preview-nav"><b>&gt;F</b><i></i><i></i><i></i></div>
+                    <div class="onboarding-preview-main"><span>YOUR FLUX, YOUR WAY</span><strong>Good games. Your colors.</strong><div><i></i><i></i><i></i></div></div>
+                </div>
+                <div id="onboarding-themes" class="onboarding-themes" role="group" aria-label="Color palettes"></div>
+                <div class="onboarding-custom-colors" role="group" aria-label="Custom theme colors">
+                    <label>Accent<input type="color" id="onboarding-accent" value="#22c55e"></label>
+                    <label>Background<input type="color" id="onboarding-background" value="#070709"></label>
+                    <label>Cards<input type="color" id="onboarding-cards" value="#14141c"></label>
+                </div>
+            </section>
+            <section data-onboarding-panel="1" aria-label="Navigation layout" hidden>
+                <div class="onboarding-layouts" role="group" aria-label="Choose your navigation">
+                    <button type="button" data-onboarding-layout="vertical" class="onboarding-layout" aria-pressed="true">
+                        <span class="onboarding-layout-art onboarding-layout-vertical" aria-hidden="true"><i></i><span><b></b><b></b><b></b></span></span>
+                        <strong>Vertical sidebar <span class="onboarding-default">Default</span></strong>
+                        <span>Everything close, down the side.</span>
+                    </button>
+                    <button type="button" data-onboarding-layout="horizontal" class="onboarding-layout" aria-pressed="false">
+                        <span class="onboarding-layout-art onboarding-layout-horizontal" aria-hidden="true"><i></i><span><b></b><b></b><b></b></span></span>
+                        <strong>Horizontal top bar</strong>
+                        <span>A wider view, with your pages up top.</span>
+                    </button>
+                </div>
+                <p class="onboarding-hint"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> On smaller screens, Flux uses its mobile menu.</p>
+            </section>
+            <section data-onboarding-panel="2" aria-label="Choose how to continue" hidden>
+                <div id="onboarding-account-options" class="onboarding-account-options">
+                    <button type="button" id="onboarding-signin" class="onboarding-account-choice"><i class="fa-regular fa-user" aria-hidden="true"></i><span><strong>Sign in or create an account</strong><small>Save your profile, find friends, and join chats.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <button type="button" id="onboarding-guest" class="onboarding-account-choice onboarding-guest"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span><strong>Continue as guest</strong><small>Jump into games. Sign in whenever you're ready.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                </div>
+                <div id="onboarding-signed-in" class="onboarding-signed-in" hidden>
+                    <span class="onboarding-account-mark"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                    <strong id="onboarding-account-name">You're already signed in.</strong>
+                    <p>Your account is ready. Let's make this place yours.</p>
+                    <button type="button" id="onboarding-finish" class="onboarding-primary">Let's go <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                </div>
+                <p class="onboarding-hint">Your colors stay on this device. You can revisit setup in Settings.</p>
+            </section>
+            <p id="onboarding-announcement" class="onboarding-sr" aria-live="polite"></p>
+        </div>
+        <footer class="onboarding-footer">
+            <button type="button" id="onboarding-back" class="onboarding-back" hidden><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back</button>
+            <span id="onboarding-step-count">Step 1 of 3</span>
+            <button type="button" id="onboarding-next" class="onboarding-primary">Next <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </footer>
+    </dialog>
+
+    <dialog id="theme-publish-dialog" class="theme-publish-dialog" aria-labelledby="theme-publish-title" aria-describedby="theme-publish-description">
+        <form id="theme-publish-form" novalidate>
+            <header class="theme-publish-heading"><div><span class="home-section-kicker">A LOOK WORTH SHARING</span><h2 id="theme-publish-title">Share your colors<span>.</span></h2></div><button class="theme-shop-icon" type="button" id="theme-publish-close" aria-label="Close theme sharing"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></header>
+            <p id="theme-publish-description">Give a theme code a name, then let the community make it theirs.</p>
+            <label class="theme-shop-label" for="theme-publish-code">Theme code</label>
+            <div class="theme-shop-input-row"><input class="settings-input" id="theme-publish-code" placeholder="e.g. midnight-mint" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false"><button class="action-btn btn-outline" type="button" id="theme-publish-preview">Preview code</button></div>
+            <button type="button" id="theme-publish-current" class="theme-shop-text-button"><i class="fa-solid fa-palette" aria-hidden="true"></i> Use my current colors instead</button>
+            <label class="theme-shop-label" for="theme-publish-name">Theme name</label>
+            <input class="settings-input" id="theme-publish-name" placeholder="Give your palette a name" maxlength="48" autocomplete="off">
+            <div id="theme-publish-swatch" class="theme-publish-swatch" aria-label="Theme preview" hidden></div>
+            <p id="theme-publish-status" class="theme-shop-status" role="status" aria-live="polite"></p>
+            <footer class="theme-publish-footer"><span id="theme-publish-identity">Sign in to publish a theme.</span><button class="action-btn" type="submit" id="theme-publish-submit">Publish theme <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></footer>
+        </form>
+    </dialog>
 
     <!-- Main Startup Loader Overlay -->
     <div id="loader-overlay">
@@ -1780,11 +1875,11 @@ main { min-width: 0; }
                         <span class="prompt">&gt;</span><span class="letter">F</span>
                     </span>
                     <span class="brand-text">
-                        <span class="brand-name">Flux<span style="color: #22c55e;">.</span></span>
+                        <span class="brand-name">Flux<span style="color: var(--accent);">.</span></span>
                         <span class="brand-subtitle unscramble" data-text="// gateway">// gateway</span>
                     </span>
                 </button>
-                <div class="brand-actions">
+                <div class="brand-actions" role="group" aria-label="Profile and updates">
                     <button class="nav-item header-action profile-shortcut" id="btn-account" type="button" onclick="showPage('account')" aria-label="Profile" title="Profile">
                         <i class="fa-solid fa-user" aria-hidden="true"></i>
                     </button>
@@ -1795,43 +1890,27 @@ main { min-width: 0; }
             </div>
 
             <nav class="nav-list" aria-label="Pages">
-                <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')">
-                    <i class="fa-solid fa-house"></i> Home
+                <button class="nav-item active" id="btn-dashboard" onclick="showPage('dashboard')" aria-current="page">
+                    <i class="fa-solid fa-house" aria-hidden="true"></i><span class="nav-item-label">Home</span>
                 </button>
-                <button class="nav-item" id="btn-browser" onclick="showPage('browser')" hidden>
-                    <i class="fa-solid fa-globe"></i> Browser
-                </button>
-                <button class="nav-item" id="btn-ai" onclick="showPage('ai')" hidden><i class="fa-solid fa-wand-magic-sparkles"></i> Assistant</button>
                 <button class="nav-item" id="btn-chat" onclick="showPage('chat')" hidden>
-                    <i class="fa-solid fa-comments"></i> Chat
+                    <i class="fa-solid fa-comments" aria-hidden="true"></i><span class="nav-item-label">Chat</span>
                 </button>
                 <button class="nav-item" id="btn-archives" onclick="showPage('archives')">
-                    <i class="fa-solid fa-gamepad"></i> Games
+                    <i class="fa-solid fa-gamepad" aria-hidden="true"></i><span class="nav-item-label">Games</span>
                 </button>
-                <button class="nav-item" id="btn-movies" onclick="showPage('movies')">
-                    <i class="fa-solid fa-clapperboard"></i> Movies
+                <button class="nav-item" id="btn-themes" onclick="showPage('themes')">
+                    <i class="fa-solid fa-palette" aria-hidden="true"></i><span class="nav-item-label">Theme Shop</span>
                 </button>
                 <button class="nav-item" id="btn-records" onclick="showPage('records')">
-                    <i class="fa-solid fa-medal"></i> Records
+                    <i class="fa-solid fa-medal" aria-hidden="true"></i><span class="nav-item-label">Records</span>
                 </button>
                 <button class="nav-item" id="btn-settings" onclick="showPage('settings')">
-                    <i class="fa-solid fa-gear"></i> Settings
-                </button>
-                <button class="nav-item" id="btn-credits" onclick="showPage('credits')">
-                    <i class="fa-solid fa-users"></i> Credits
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i><span class="nav-item-label">Settings</span>
                 </button>
             </nav>
 
             <div class="sidebar-links">
-                <a href="https://discord.gg/sap5p56XC2" target="_blank" class="external-link" hidden>
-                    <i class="fa-brands fa-discord"></i> Discord Server
-                </a>
-                <a href="requests.html" target="_blank" class="external-link">
-                    <i class="fa-solid fa-plus"></i> Submit Game
-                </a>
-                <a href="takedown.html" target="_blank" rel="noopener" class="external-link">
-                    <i class="fa-regular fa-flag"></i> Copyright Takedown
-                </a>
                 <div class="sidebar-status" aria-label="Device status">
                     <span class="sidebar-status-item" aria-label="Local time"><i class="fa-regular fa-clock" aria-hidden="true"></i><time id="sidebar-clock">--:--</time></span>
                     <span class="sidebar-status-item" aria-label="Battery"><i class="fa-solid fa-battery-half" id="sidebar-battery-icon" aria-hidden="true"></i><span id="sidebar-battery">N/A</span></span>
@@ -1839,7 +1918,7 @@ main { min-width: 0; }
             </div>
         </sidebar>
 
-        <main tabindex="-1" aria-label="Page content">
+        <main id="flux-main" tabindex="-1" aria-label="Page content">
             <div id="view-browser" class="container">
                 <div id="flux-browser-tools" class="flux-browser-tools" hidden>
                     <span>Having trouble signing in or loading?</span>
@@ -1915,11 +1994,7 @@ main { min-width: 0; }
 
             <!-- Changelog View -->
             <div id="view-changelog" class="container">
-                <div style="margin-bottom: 24px;">
-                    <h2 style="margin: 0 0 6px 0; font-size: 1.5rem; font-weight: 800;">Site Changelog</h2>
-                    <p style="margin: 0; color: var(--text-dim);">Recent updates, patches, and features brought to Flux.
-                    </p>
-                </div>
+                <div class="flux-page-heading"><span class="home-section-kicker">WHAT'S NEW IN FLUX</span><h2>Always getting better<span>.</span></h2><p>The latest features, fixes, and little details.</p></div>
                 <div class="changelog-feed" id="changelog-feed-container"></div>
             </div>
 
@@ -1939,13 +2014,14 @@ main { min-width: 0; }
                     <div class="library-grid" id="favorites-grid"></div>
                 </div>
 
-                <div class="section-title" id="all-games-title"><i class="fa-solid fa-gamepad"></i> All Available Games
+                <div class="section-title" id="all-games-title"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> All Available Games <span class="library-sort-label"><i class="fa-solid fa-arrow-down-a-z" aria-hidden="true"></i> A–Z</span>
                 </div>
                 <div class="library-grid" id="main-grid"></div>
             </div>
 
             <!-- Global Chat View -->
             <div id="view-chat" class="container">
+                <div class="flux-page-heading"><span class="home-section-kicker">THE FLUX COMMUNITY</span><h2>A place to hang out<span>.</span></h2><p>Catch up in global chat or find your friends.</p></div>
                 <div class="lounge-layout-grid global-chat-only">
                     <div class="lounge-chat-pane">
                         <div class="lounge-header-bar">
@@ -1969,6 +2045,7 @@ main { min-width: 0; }
 
             <!-- Settings -->
             <div id="view-settings" class="container">
+                <div class="flux-page-heading"><span class="home-section-kicker">YOUR SPACE, YOUR WAY</span><h2>Make Flux feel like you<span>.</span></h2><p>Your colors, layout, and everyday preferences.</p></div>
                 <div class="settings-wrap">
                     <div class="tabs-header">
                         <button class="tab-btn active" onclick="switchTab('appearance')">Appearance</button>
@@ -1979,6 +2056,10 @@ main { min-width: 0; }
                     </div>
 
                     <div id="tab-appearance" class="tab-panel active">
+                        <div class="settings-row">
+                            <div><strong>Welcome setup</strong><div>Pick your colors, choose your layout, and make Flux feel like home.</div></div>
+                            <button type="button" class="action-btn btn-outline" id="open-onboarding">Run setup <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></button>
+                        </div>
                         <div class="settings-row">
                             <div>
                                 <strong>Startup Loading Screen Style</strong>
@@ -2068,11 +2149,11 @@ main { min-width: 0; }
                         <div class="settings-layout-intro">
                             <span class="home-section-kicker">MAKE FLUX YOURS</span>
                             <h3>Layout<span>.</span></h3>
-                            <p>Choose how the navigation looks and put your most-used pages first. These preferences stay on this device.</p>
+                            <p>Choose how you get around and keep your favorite pages close. New visitors start with the vertical sidebar.</p>
                         </div>
                         <div class="settings-row">
-                            <div><strong>Navigation position</strong><div>Use the classic vertical sidebar or a horizontal top navigation on larger screens.</div></div>
-                            <select class="settings-input" id="set-nav-layout"><option value="vertical">Vertical sidebar</option><option value="horizontal">Horizontal top bar</option></select>
+                            <div><strong>Navigation position</strong><div>Start with the vertical sidebar, or choose the top bar for a wider view.</div></div>
+                            <select class="settings-input" id="set-nav-layout"><option value="vertical">Vertical sidebar (default)</option><option value="horizontal">Horizontal top bar</option></select>
                         </div>
                         <div class="settings-row">
                             <div><strong>Content density</strong><div>Give cards and page sections a little more room, or fit more on screen.</div></div>
@@ -2348,6 +2429,7 @@ main { min-width: 0; }
 </div>
             </div>
             <div id="view-account" class="container">
+                <div class="flux-page-heading"><span class="home-section-kicker">YOUR FLUX PROFILE</span><h2>Make yourself at home<span>.</span></h2><p>Sign in, find your username, and add your own touch.</p></div>
                 <div class="settings-wrap profile-page">
                     <div class="profile-page-heading"><h3>Make it yours.</h3><p>Set your one-of-one Flux username, customize your profile, and save it to your Flux account. Click a person’s name or picture in chat to view their profile.</p></div>
 
@@ -2364,7 +2446,7 @@ main { min-width: 0; }
                         </div>
                         </div>
                     </div>
-                    <section class="flux-signin" aria-label="Flux account"><h4>Your Flux account</h4><p>Sign in to send Discord messages and use the server assistant.</p><form id="flux-auth-form"><label>Email<input type="email" id="flux-auth-email" autocomplete="email" required></label><label>Password<input type="password" id="flux-auth-password" autocomplete="current-password" minlength="6" required></label><div class="flux-auth-actions"><button class="action-btn" type="submit">Sign in</button><button class="action-btn btn-outline" type="button" id="flux-auth-register">Create account</button><button class="action-btn btn-outline" type="button" id="flux-auth-logout">Sign out</button></div><p id="flux-auth-status" role="status">Connecting to accounts…</p></form></section><div class="profile-form">
+                    <section class="flux-signin" aria-label="Flux account"><h4>Your Flux account</h4><p>Sign in to save your profile, find friends, and join chats.</p><form id="flux-auth-form"><label>Email<input type="email" id="flux-auth-email" autocomplete="email" required></label><label>Password<input type="password" id="flux-auth-password" autocomplete="current-password" minlength="6" required></label><div class="flux-auth-actions"><button class="action-btn" type="submit">Sign in</button><button class="action-btn btn-outline" type="button" id="flux-auth-register">Create account</button><button class="action-btn btn-outline" type="button" id="flux-auth-logout">Sign out</button></div><p id="flux-auth-status" role="status">Connecting to accounts…</p></form></section><div class="profile-form">
                     <div class="settings-row">
                         <div><label class="profile-field-label" for="profile-name-input">Flux username</label><div class="profile-field-help">One-of-one. Use 3–20 lowercase letters, numbers, or underscores. Friends add you with @username.</div></div>
                         <div class="profile-username-controls">
@@ -2411,10 +2493,27 @@ main { min-width: 0; }
                 </div>
             </div>
 
+            <div id="view-themes" class="container">
+                <section class="theme-shop-hero">
+                    <div><span class="home-section-kicker"><i class="fa-solid fa-palette" aria-hidden="true"></i> THE FLUX THEME SHOP</span><h2>A fresh look.<br>A little more <span>you.</span></h2><p>Find your next favorite palette. Share a code, give it a name, and let your colors travel.</p><div class="theme-shop-hero-actions"><button type="button" class="action-btn" id="theme-shop-share"><i class="fa-solid fa-plus" aria-hidden="true"></i> Share a theme</button><button type="button" class="action-btn btn-outline" id="theme-shop-create">Use my current colors <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div></div>
+                    <div class="theme-shop-hero-art" aria-hidden="true"><div><b>&gt;F</b><i></i><i></i></div><div><b>&gt;F</b><i></i><i></i></div><div><b>&gt;F</b><i></i><i></i></div></div>
+                </section>
+                <form id="theme-shop-code-form" class="theme-shop-code-bar">
+                    <div><i class="fa-solid fa-ticket" aria-hidden="true"></i><span><strong>Got a theme code?</strong><small>Bring a look straight to your space.</small></span></div>
+                    <div class="theme-shop-input-row"><label class="theme-shop-sr" for="theme-shop-code">Theme code to apply</label><input class="settings-input" id="theme-shop-code" placeholder="Enter a theme code" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" required><button class="action-btn btn-outline" type="submit">Apply code <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
+                </form>
+                <p id="theme-shop-status" class="theme-shop-status" role="status" aria-live="polite"></p>
+                <section class="theme-shop-section" aria-labelledby="theme-community-title">
+                    <div class="theme-shop-section-heading"><div><span class="home-section-kicker">MADE BY THE COMMUNITY</span><h3 id="theme-community-title">Shared colors<span>.</span></h3></div><div class="theme-shop-tools"><label class="theme-shop-sr" for="theme-shop-search">Search community themes</label><input class="settings-input" type="search" id="theme-shop-search" placeholder="Find a theme…" autocomplete="off"><button class="theme-shop-icon" type="button" id="theme-shop-refresh" aria-label="Refresh community themes"><i class="fa-solid fa-rotate" aria-hidden="true"></i></button></div></div>
+                    <div id="theme-community-grid" class="theme-shop-grid" aria-live="polite"><p class="theme-shop-empty">Open the shop to explore shared themes.</p></div>
+                    <button type="button" id="theme-shop-more" class="action-btn btn-outline theme-shop-more" hidden>Load more themes <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                </section>
+                <section class="theme-shop-section" aria-labelledby="theme-originals-title"><div class="theme-shop-section-heading"><div><span class="home-section-kicker">A GOOD PLACE TO START</span><h3 id="theme-originals-title">Flux originals<span>.</span></h3><p>A few familiar favorites, always ready to use.</p></div></div><div id="theme-originals-grid" class="theme-shop-grid"></div></section>
+            </div>
+
             <!-- Records -->
             <div id="view-records" class="container">
-                <h3 style="margin-top:0; margin-bottom: 24px; font-size: 1.25rem;" class="unscramble"
-                    data-text="Leaderboards & Records">Leaderboards & Records</h3>
+                <div class="flux-page-heading"><span class="home-section-kicker">LEADERBOARDS & RECORDS</span><h2>A little friendly competition<span>.</span></h2><p>See the scores and find your next challenge.</p></div>
                 <div id="records-container"></div>
             </div>
 
@@ -2428,45 +2527,49 @@ main { min-width: 0; }
             <footer class="flux-footer" aria-label="Flux site information">
                 <div class="flux-footer-copy">
                     <span class="flux-footer-title">Flux<span style="color: var(--accent);">.</span></span>
-                    <p class="flux-footer-note">Own or represent content listed here? Send a request for manual review.</p>
+                    <p class="flux-footer-note flux-footer-credit">Made With <i class="fa-solid fa-heart" role="img" aria-label="love"></i> By <strong>Coral</strong></p>
                 </div>
-                <a class="flux-footer-action" href="takedown.html" target="_blank" rel="noopener">
-                    <i class="fa-regular fa-flag" aria-hidden="true"></i> Copyright takedown
-                </a>
+                <nav class="flux-footer-actions" aria-label="Community and support">
+                    <a class="flux-footer-action" href="https://discord.gg/sap5p56XC2" target="_blank" rel="noopener noreferrer" aria-label="Discord server">
+                        <i class="fa-brands fa-discord" aria-hidden="true"></i><span class="flux-footer-action-label">Discord server</span>
+                    </a>
+                    <a class="flux-footer-action" href="requests.html" target="_blank" rel="noopener noreferrer" aria-label="Submit game">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i><span class="flux-footer-action-label">Submit game</span>
+                    </a>
+                    <a class="flux-footer-action" href="takedown.html" target="_blank" rel="noopener noreferrer" aria-label="Copyright takedown">
+                        <i class="fa-regular fa-flag" aria-hidden="true"></i><span class="flux-footer-action-label">Copyright takedown</span>
+                    </a>
+                </nav>
             </footer>
         </main>
         <nav class="mobile-bottom-nav" aria-label="Quick navigation">
             <button class="mobile-nav-button" data-page="dashboard" aria-current="page" onclick="showPage('dashboard')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></button>
             <button class="mobile-nav-button" data-page="archives" onclick="showPage('archives')"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span>Games</span></button>
-            <button class="mobile-nav-button" data-page="movies" onclick="showPage('movies')"><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><span>Movies</span></button>
             <button class="mobile-nav-button" data-page="more" data-mobile-menu aria-controls="flux-sidebar" aria-expanded="false"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i><span>More</span></button>
         </nav>
     </div>
 
     <!-- Advanced Theater Mode Overlay -->
     <div id="theater-overlay">
-        <div class="theater-header">
-            <div class="theater-title" id="theater-game-title">Launching Game...</div>
-            <div class="theater-actions">
-                <button class="theater-btn" onclick="refreshTheater()"><i class="fa-solid fa-rotate"></i>
-                    Refresh</button>
-                <button class="theater-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i>
-                    Fullscreen</button>
-                <button class="theater-btn" onclick="reportGame()"><i class="fa-solid fa-flag"></i> Report</button>
-                <button class="theater-btn danger" onclick="closeTheater()"><i class="fa-solid fa-xmark"></i>
-                    Close</button>
-            </div>
-        </div>
         <div class="theater-main-grid">
             <div class="theater-viewport-box">
                 <iframe id="theater-iframe" src="" title="Game Viewport" allow="fullscreen" allowfullscreen></iframe>
+            </div>
+            <div class="theater-header theater-control-bar">
+                <div class="theater-title-group"><span class="theater-kicker">NOW PLAYING</span><div class="theater-title" id="theater-game-title">Launching Game...</div></div>
+                <div class="theater-actions" aria-label="Game controls">
+                    <button type="button" class="theater-btn" onclick="refreshTheater()"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button>
+                    <button type="button" class="theater-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand" aria-hidden="true"></i> Fullscreen</button>
+                    <button type="button" class="theater-btn" onclick="reportGame()"><i class="fa-regular fa-flag" aria-hidden="true"></i> Report</button>
+                    <button type="button" class="theater-btn danger" onclick="closeTheater()"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Close</button>
+                </div>
             </div>
             <div class="theater-desc-panel">
                 <h4>Description</h4>
                 <div class="theater-desc-content" id="theater-desc-content">Loading description...</div>
             </div>
             <div class="theater-sidebar">
-                <h4>Recommended</h4>
+                <div class="theater-recommended-heading"><span class="theater-kicker">KEEP EXPLORING</span><h4>Up next<span>.</span></h4><p>Six fresh picks for your next game.</p></div>
                 <div class="recommended-grid" id="recommended-grid"></div>
             </div>
         </div>
@@ -2475,6 +2578,7 @@ main { min-width: 0; }
     <!-- External Data Scripts -->
     <script src="recordsData.js"></script>
     <script src="data.js"></script>
+    <script src="js/flux-game-library.js"></script>
     <script src="js/flux-game-catalog-baseline.js"></script>
     <script src="js/flux-dashboard.js"></script>
     <script src="js/flux-chat-moderation.js"></script>
@@ -2604,18 +2708,23 @@ main { min-width: 0; }
                 return;
             }
 
-            changelogData.forEach(item => {
+            changelogData.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'changelog-card';
+                const date = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
+                const sections = Array.isArray(item.sections) ? item.sections.map(section => `
+                    <section class="changelog-section"><h4>${escapeHtml(section.title)}</h4><ul>${(Array.isArray(section.items) ? section.items : []).map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul></section>
+                `).join('') : '';
                 card.innerHTML = `
                     <div class="changelog-header-row">
                         <div>
+                            ${index === 0 || date ? `<div class="changelog-meta">${index === 0 ? '<span class="changelog-latest">LATEST UPDATE</span>' : ''}${date ? `<time datetime="${date}">${new Date(date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</time>` : ''}</div>` : ''}
                             <h3 class="changelog-title">${escapeHtml(item.name)}</h3>
                             <p class="changelog-mini">${escapeHtml(item.mini)}</p>
                         </div>
                         <span class="changelog-version-tag">v${escapeHtml(item.v)}</span>
                     </div>
-                    ${item.large ? `<div class="changelog-body">${escapeHtml(item.large)}</div>` : ''}
+                    ${sections ? `<div class="changelog-sections">${sections}</div>` : item.large ? `<details class="changelog-older"><summary>Read release notes</summary><div class="changelog-body">${escapeHtml(item.large)}</div></details>` : ''}
                 `;
                 feedContainer.appendChild(card);
             });
@@ -3079,19 +3188,7 @@ main { min-width: 0; }
             const cardBg = document.getElementById('set-card-bg')?.value || '#14141c';
             const borderColor = document.getElementById('set-border')?.value || '#22222e';
             const textColor = document.getElementById('set-text')?.value || '#f4f4f5';
-            const root = document.documentElement;
-
-            const hexToRgb = (hex) => {
-                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '34, 197, 94';
-            };
-
-            root.style.setProperty('--accent', acc);
-            root.style.setProperty('--accent-rgb', hexToRgb(acc));
-            root.style.setProperty('--bg', bg);
-            root.style.setProperty('--surface-card', cardBg);
-            root.style.setProperty('--border', borderColor);
-            root.style.setProperty('--text', textColor);
+            window.FluxThemes.applyTo(document.documentElement, { accent: acc, bg, cardBg, borderColor, textColor });
 
             saveConfiguration();
         }
@@ -3147,33 +3244,36 @@ main { min-width: 0; }
         }
 
         function readSavedThemes() {
-            try { return JSON.parse(localStorage.getItem('flux_saved_themes') || '{}'); }
+            try { const saved = JSON.parse(localStorage.getItem('flux_saved_themes') || '{}'); return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}; }
             catch (_) { return {}; }
         }
 
+        function getCurrentTheme() {
+            return { accent: document.getElementById('set-accent').value, bg: document.getElementById('set-bg').value, cardBg: document.getElementById('set-card-bg').value, borderColor: document.getElementById('set-border').value, textColor: document.getElementById('set-text').value };
+        }
+
         function applySavedTheme(theme) {
-            if (!theme || typeof theme !== 'object') return false;
-            const accent = document.getElementById('set-accent');
-            const bg = document.getElementById('set-bg');
-            if (!accent || !bg || !theme.accent || !theme.bg) return false;
-            accent.value = theme.accent;
-            bg.value = theme.bg;
+            const normalized = window.FluxThemes?.normalizeTheme(theme);
+            if (!normalized) return false;
+            for (const [id, key] of [['set-accent','accent'], ['set-bg','bg'], ['set-card-bg','cardBg'], ['set-border','borderColor'], ['set-text','textColor']]) document.getElementById(id).value = normalized[key];
             applyThemeColors();
             return true;
         }
 
         async function saveTheme(code, accent, bg) {
-            const normalizedCode = String(code || '').trim().toLowerCase();
-            if (!normalizedCode) return alert("Please enter a theme code.");
-            const theme = { accent, bg };
-            const themes = readSavedThemes();
-            themes[normalizedCode] = theme;
-            localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
+            let normalizedCode;
+            try { normalizedCode = window.FluxThemes.normalizeCode(code); } catch (error) { return alert(error.message); }
+            const theme = getCurrentTheme();
             try {
                 if (!window.fluxData) throw new Error('Flux data service is still loading.');
                 await window.fluxData.saveTheme(normalizedCode, theme);
+                const themes = readSavedThemes(); themes[normalizedCode] = theme;
+                localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
                 alert(`Theme '${normalizedCode}' is saved and can be loaded on your other devices!`);
             } catch (error) {
+                if (error.code === 'theme/code-taken' || window.FluxThemes.original(normalizedCode)) return alert(error.message);
+                const themes = readSavedThemes(); themes[normalizedCode] = theme;
+                localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
                 alert(`Theme '${normalizedCode}' is saved on this device. Sign in from Profile to sync it everywhere.`);
             }
         }
@@ -3196,10 +3296,7 @@ main { min-width: 0; }
         }
 
         function exportTheme() {
-            const data = {
-                accent: document.getElementById('set-accent').value,
-                bg: document.getElementById('set-bg').value
-            };
+            const data = getCurrentTheme();
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -3214,9 +3311,7 @@ main { min-width: 0; }
             reader.onload = e => {
                 try {
                     const theme = JSON.parse(e.target.result);
-                    if (theme.accent) document.getElementById('set-accent').value = theme.accent;
-                    if (theme.bg) document.getElementById('set-bg').value = theme.bg;
-                    applyThemeColors();
+                    if (!applySavedTheme(theme)) throw new Error('Invalid theme colors.');
                     alert("Theme imported successfully!");
                 } catch (err) {
                     alert("Invalid theme file.");
@@ -3425,7 +3520,7 @@ main { min-width: 0; }
         let currentGame = null;
 
         function openGame(gameUrl, gameName, gameDesc, mediaType = 'game') {
-            currentGame = { url: gameUrl, name: gameName, description: gameDesc };
+            currentGame = { url: gameUrl, name: gameName, description: gameDesc, mediaType };
             const overlay = document.getElementById('theater-overlay');
             const iframe = document.getElementById('theater-iframe');
             const title = document.getElementById('theater-game-title');
@@ -3462,6 +3557,7 @@ main { min-width: 0; }
         function refreshTheater() {
             const iframe = document.getElementById('theater-iframe');
             iframe.src = iframe.src;
+            if (currentGame && currentGame.mediaType !== 'movie') populateRecommended(currentGame.name);
         }
 
         function toggleFullscreen() {
@@ -3480,19 +3576,8 @@ main { min-width: 0; }
         }
 
         function populateRecommended(currentName) {
-            const grid = document.getElementById('recommended-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
             const list = (typeof gameList !== 'undefined' ? gameList : []);
-            const recs = list.filter(g => g.name !== currentName).slice(0, 4);
-
-            recs.forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'rec-card';
-                card.onclick = () => openGame(game.url || game.file || game.link, game.name, game.description);
-                card.innerHTML = `<img src="${game.thumb}"><div class="rec-card-name">${game.name}</div>`;
-                grid.appendChild(card);
-            });
+            window.FluxGames.renderRecommendations(document, list, { name: currentName, url: currentGame?.url }, openGame);
         }
 
         function populateRecommendedMovies(currentName) {
@@ -3541,16 +3626,19 @@ main { min-width: 0; }
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('view-' + id).classList.add('active');
-            document.getElementById('btn-' + id).classList.add('active');
+            document.getElementById('btn-' + id)?.classList.add('active');
             if (id !== 'chat') stopChatSubscription();
             if (id === 'archives') refreshArchives();
             if (id === 'dashboard') window.fluxDashboard?.loadHot();
+            if (id === 'themes') window.fluxThemeShop?.load();
             if (id === 'movies') refreshMovies();
             if (id === 'records') refreshRecords();
             if (id === 'changelog') renderChangelogFeed();
             if (id === 'chat') {
                 setupChatSubscription();
             }
+            const content = document.getElementById('flux-main');
+            if (content) content.scrollTop = 0;
         }
 
         function refreshArchives() {
@@ -3563,7 +3651,7 @@ main { min-width: 0; }
             grid.innerHTML = "";
             if (favGrid) favGrid.innerHTML = "";
 
-            const list = (typeof gameList !== 'undefined' ? gameList : []);
+            const list = window.FluxGames.alphabetical(typeof gameList !== 'undefined' ? gameList : []);
             const favorites = getFavorites();
 
             let hasFavoritesShown = false;
@@ -3752,7 +3840,7 @@ main { min-width: 0; }
     const closeButton = document.getElementById('mobile-menu-close');
     let returnFocus = null;
     let open = false;
-    const titles = {browser:'Browser',dashboard:'Home',archives:'Games',movies:'Movies',changelog:'Changelog',chat:'Chat',ai:'Assistant',records:'Records',settings:'Settings',account:'Profile',credits:'Credits'};
+    const titles = {browser:'Browser',dashboard:'Home',archives:'Games',themes:'Theme Shop',movies:'Movies',changelog:'Changelog',chat:'Chat',ai:'Assistant',records:'Records',settings:'Settings',account:'Profile',credits:'Credits'};
     function setMenu(value, restoreFocus = true) {
         open = media.matches && value;
         document.body.classList.toggle('mobile-menu-open', open);
@@ -3788,7 +3876,7 @@ main { min-width: 0; }
     });
     window.fluxMobile = {pageChanged(id) {
         document.getElementById('mobile-page-name').textContent = titles[id] || 'Flux';
-        const section = ['dashboard', 'archives', 'movies'].includes(id) ? id : 'more';
+        const section = ['dashboard', 'archives'].includes(id) ? id : 'more';
         bottom.querySelectorAll('[data-page]').forEach(button => {
             if (button.dataset.page === section) button.setAttribute('aria-current', 'page');
             else button.removeAttribute('aria-current');
@@ -3812,7 +3900,7 @@ main { min-width: 0; }
 <script src="js/discord-widget-config.js"></script>
 <script src="js/flux-auth-guard.js"></script>
 <script src="js/flux-auth.js?v=20261029-firebase"></script>
-<script src="js/flux-data-client.js?v=20261029-firebase"></script>
+<script src="js/flux-data-client.js?v=20261102-themes"></script>
 <script src="js/discord-chat.js"></script>
 <script src="js/flux-ai-site.js"></script>
 <script src="js/flux-ai-redesign.js"></script>
@@ -3820,6 +3908,8 @@ main { min-width: 0; }
 <script src="js/browser.js"></script>
 <script src="js/flux-layout.js"></script>
 <script src="js/flux-chat-social.js?v=20261026-friends"></script>
+<script src="js/flux-onboarding.js"></script>
+<script src="js/flux-theme-shop.js"></script>
 </body>
 
 </html>
