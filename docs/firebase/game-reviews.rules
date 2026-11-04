@@ -1,0 +1,127 @@
+// Game reviews: one public review per signed-in account and catalog game.
+    function reviewGameName(gameId) {
+      return {
+        '1': '1',
+        '2048': '2048',
+        'grindcraft': 'Grindcraft',
+        'a-dance-of-fire-and-ice': 'A Dance Of Fire And Ice',
+        '10-minutes-till-dawn': '10 Minutes Till Dawn',
+        '12-mini-battles': '12 Mini Battles',
+        'adventure-capitalist': 'Adventure Capitalist',
+        'babel-tower': 'Babel Tower',
+        'bacon-may-die': 'Bacon May Die',
+        'big-ice-tower-tiny-square': 'Big Ice Tower Tiny Square',
+        'big-neon-tower-tiny-square': 'Big Neon Tower Tiny Square',
+        'big-tower-tiny-square-2': 'Big Tower Tiny Square 2',
+        'volley-random': 'Volley Random',
+        'vex-x3m': 'Vex X3M',
+        'basket-random': 'Basket Random',
+        'boxing-random': 'Boxing Random',
+        'bob-the-robber-5': 'Bob The Robber 5',
+        'bob-the-robber-2': 'Bob The Robber 2',
+        'cluster-rush': 'Cluster Rush',
+        'circloo-2': 'Circloo 2',
+        'cookie-clicker': 'Cookie Clicker',
+        'crossy-road': 'Crossy Road',
+        'ultrakill': 'ULTRAKILL',
+        'tag': 'TAG',
+        'half-life': 'Half Life',
+        'cs-go-clicker': 'Cs:Go Clicker',
+        'minecraft-1-9-4': 'Minecraft 1.9.4',
+        'block-the-pig': 'Block The Pig',
+        'deadly-descent': 'Deadly Descent',
+        'doge-miner': 'Doge Miner',
+        'doge-miner-2': 'Doge Miner 2',
+        'drift-boss': 'Drift Boss',
+        'granny': 'Granny',
+        'gun-spin': 'Gun Spin',
+        'idle-dice': 'Idle Dice',
+        'dreadhead-parkour': 'DreadHead Parkour',
+        'we-become-what-we-behold': 'We Become What We Behold',
+        'vex3': 'Vex3',
+        'ragdoll-archers': 'Ragdoll Archers',
+        'rooftop-snipers': 'Rooftop Snipers',
+        'rooftop-snipers-2': 'Rooftop Snipers 2',
+        'motox3m-2': 'MotoX3m 2',
+        'motox3m-3': 'MotoX3m 3',
+        'motox3m': 'MotoX3m',
+        'mr-mine': 'Mr.Mine',
+        'run-3': 'Run 3',
+        'baldi-s-basics': 'Baldi\'s Basics',
+        'capybara-clicker': 'Capybara Clicker',
+        'minecraft-1-11-2': 'Minecraft 1.11.2',
+        'minecraft-1-12-2': 'Minecraft 1.12.2',
+        'just-one-boss': 'Just One Boss',
+        'five-nights-at-freddy-s-1': 'Five Nights At Freddy\'s 1',
+        'five-nights-at-freddy-s-2': 'Five Nights At Freddy\'s 2',
+        'five-nights-at-freddy-s-3': 'Five Nights At Freddy\'s 3',
+        'five-nights-at-freddy-s-4': 'Five Nights At Freddy\'s 4',
+        'five-nights-at-winstons': 'Five Nights At Winstons',
+        'bad-monday-simulator': 'Bad Monday Simulator',
+        'bad-time-simulator': 'Bad Time Simulator',
+        'sort-the-court': 'Sort The Court',
+        'the-man-from-the-window': 'The Man From The Window',
+        'five-nights-at-epsteins': 'Five Nights At Epsteins',
+        'agar-io': 'Agar.io',
+        'hollow-knight': 'Hollow Knight',
+        '1v1-lol': '1v1.lol',
+        'geometry-dash': 'Geometry Dash',
+        'escape-road': 'Escape Road',
+        'escape-road-2': 'Escape Road 2',
+        'duck-life-2': 'Duck Life 2',
+        'duck-life-3': 'Duck Life 3',
+        'there-is-no-game': 'There Is No Game',
+        'uno': 'UNO',
+        'friday-night-funkin': 'Friday Night Funkin',
+        'don-t-you-lecture-me-with-your-30-dollar-website': 'Don\'t You Lecture Me With Your 30 Dollar Website',
+        'retro-bowl': 'Retro Bowl',
+        'retro-ping-pong': 'Retro Ping Pong',
+        'space-waves': 'Space Waves',
+        'idle-breakout': 'Idle Breakout',
+        'revolution-idle': 'Revolution Idle',
+        'another-generic-code-studio': 'Another Generic Code Studio',
+        'gladihoppers': 'Gladihoppers',
+        'poly-track': 'Poly Track',
+        'fluidism': 'Fluidism',
+        'fruit-ninja': 'Fruit Ninja',
+        'escape-road-3': 'Escape Road 3',
+        'granny-2': 'Granny 2',
+        'handulum': 'Handulum'
+      }.get(gameId, '');
+    }
+    function validGameReview(data, gameId, userId) {
+      let profilePath = /databases/$(database)/documents/chat_users/$(userId);
+      let author = exists(profilePath) ? get(profilePath).data.username : 'Flux member';
+      return data.keys().hasAll(['uid', 'gameId', 'gameName', 'authorName', 'rating', 'text', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'gameId', 'gameName', 'authorName', 'rating', 'text', 'createdAt', 'updatedAt'])
+        && data.uid == userId && data.gameId == gameId
+        && reviewGameName(gameId) != '' && data.gameName == reviewGameName(gameId)
+        && data.authorName is string && data.authorName.size() <= 40 && data.authorName == author
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.text is string && data.text.size() <= 1200 && !hasBlockedChatText(data.text)
+        && data.createdAt is timestamp && data.updatedAt == request.time;
+    }
+    match /game_reviews/{gameId}/reviews/{userId} {
+      allow read: if true;
+      allow create: if signedIn() && request.auth.uid == userId && !isActiveBan()
+        && validGameReview(request.resource.data, gameId, userId)
+        && request.resource.data.createdAt == request.time;
+      allow update: if signedIn() && request.auth.uid == userId && !isActiveBan()
+        && validGameReview(request.resource.data, gameId, userId)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if signedIn() && (request.auth.uid == userId || isFluxStaff());
+    }
+    match /game_review_reports/{reportId} {
+      allow create, update: if signedIn() && !isActiveBan()
+        && request.resource.data.keys().hasAll(['gameId', 'authorUid', 'reporterUid', 'reason', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['gameId', 'authorUid', 'reporterUid', 'reason', 'createdAt'])
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.gameId is string && request.resource.data.authorUid is string
+        && request.resource.data.authorUid != request.auth.uid
+        && reportId == request.resource.data.gameId + '_' + request.resource.data.authorUid + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/game_reviews/$(request.resource.data.gameId)/reviews/$(request.resource.data.authorUid))
+        && request.resource.data.reason is string && request.resource.data.reason.size() > 0 && request.resource.data.reason.size() <= 500
+        && request.resource.data.createdAt == request.time;
+      allow read: if isFluxStaff();
+      allow delete: if isFluxAdmin();
+    }

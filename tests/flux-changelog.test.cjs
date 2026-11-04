@@ -4,7 +4,7 @@ const { changelogData } = require('../changelogData.js');
 const changelog = require('../js/flux-changelog.js');
 
 test('all historical releases keep their versions and use grouped notes', () => {
-  assert.deepEqual(changelogData.map(entry => entry.v), ['3.3.0','3.2.0','3.1.0','3.0.0','2.0.1','2.0.0','1.0.3','1.0.2','1.0.1','1.0.0']);
+  assert.deepEqual(changelogData.map(entry => entry.v), ['3.4.0','3.3.0','3.2.0','3.1.0','3.0.0','2.0.1','2.0.0','1.0.3','1.0.2','1.0.1','1.0.0']);
   for (const entry of changelogData) {
     assert.ok(entry.sections.length > 0, entry.v);
     assert.equal(entry.large, undefined);

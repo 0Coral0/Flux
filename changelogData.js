@@ -1,5 +1,27 @@
 const changelogData = [
     {
+        "v": "3.4.0",
+        "date": "2026-11-04",
+        "name": "The Your Space Update",
+        "mini": "Share a game, reshape your homepage, and make Flux your own.",
+        "sections": [
+            {
+                "title": "Your homepage",
+                "items": [
+                    "Added a homepage editor with draggable sections, move controls, hide and show, game columns, and a compact welcome banner. Layouts save locally and sync with signed-in accounts.",
+                    "Added image backgrounds from links or uploads, including animated GIFs and WebP, with theme tint, blur, and fit controls. Backgrounds stay on the device and pause in Lite Mode or reduced motion."
+                ]
+            },
+            {
+                "title": "Games and community",
+                "items": [
+                    "Added direct game links and a Share button below the player, so a shared link opens the selected game.",
+                    "Added shared game reviews with star ratings, account-owned editing and deletion, average ratings, and reporting. Guests can read reviews."
+                ]
+            }
+        ]
+    },
+    {
         "v": "3.3.0",
         "date": "2026-11-03",
         "name": "The Make It Yours Update",

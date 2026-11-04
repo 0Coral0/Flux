@@ -98,6 +98,7 @@
       win.addEventListener('flux-auth-changed', updateAccount);
       function firstVisit() {
         if (isComplete(win.localStorage)) return;
+        if (win.fluxGameLinks?.hasInitialGame()) { win.addEventListener('flux-player-closed', () => { if (!isComplete(win.localStorage)) open(); }, { once: true }); return; }
         const loader = el('loader-overlay');
         if (!loader || win.getComputedStyle(loader).display === 'none') { open(); return; }
         observer = new win.MutationObserver(() => { if (win.getComputedStyle(loader).display === 'none') { observer.disconnect(); if (!isComplete(win.localStorage)) open(); } });

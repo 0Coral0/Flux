@@ -140,11 +140,14 @@
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     </style>
     <link rel="stylesheet" href="css/flux-unified.css">
+    <link rel="stylesheet" href="css/flux-personalization.css">
     <script src="js/flux-theme-core.js"></script>
     <script src="js/flux-theme.js"></script>
     <script src="js/flux-performance.js"></script>
+    <script src="js/flux-backgrounds.js"></script>
 </head>
 <body class="flux-support-page">
+    <div id="site-background" class="site-background" aria-hidden="true" hidden><img id="site-background-image" alt="" decoding="async"></div>
     <canvas id="particle-canvas"></canvas>
 
     <header class="topbar">
