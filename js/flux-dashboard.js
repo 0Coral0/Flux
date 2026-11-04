@@ -42,7 +42,7 @@
     }
     function imageFor(game) {
       const image = document.createElement('img');
-      image.src = game.thumb || 'Fluxlogo.svg'; image.alt = ''; image.loading = 'lazy';
+      image.src = game.thumb || 'Fluxlogo.svg'; image.alt = ''; image.loading = 'lazy'; image.decoding = 'async';
       image.addEventListener('error', () => { image.src = 'Fluxlogo.svg'; }, { once: true });
       return image;
     }

@@ -143,6 +143,7 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
 @media(max-width:560px){.grid-2{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<script src="js/flux-changelog.js"></script>
 </head>
 <body>
 <canvas id="particle-canvas"></canvas>
@@ -241,7 +242,7 @@ textarea{resize:vertical;min-height:96px;line-height:1.55}
   <div class="panel">
    <div class="grid-2"><div class="form-group"><label for="cl-v">Version number</label><input id="cl-v" placeholder="3.0.0"></div><div class="form-group"><label for="cl-title">Update title</label><input id="cl-title" placeholder="The Flux Update"></div></div>
    <div class="form-group"><label for="cl-mini">Mini description</label><input id="cl-mini" placeholder="Added games and fixed bugs."></div>
-   <div class="form-group"><label for="cl-large">Full changelog</label><textarea id="cl-large" rows="14" placeholder="Paste your formatted list here…"></textarea><div class="help">Line breaks are preserved.</div></div>
+   <div class="form-group"><label for="cl-large">Full changelog</label><textarea id="cl-large" rows="14" placeholder="Paste your formatted list here…"></textarea><div class="help">Use a section heading, a blank line, then one change per line.</div></div>
    <button class="btn" id="btn-send-changelog"><i class="fa-solid fa-paper-plane"></i> Publish changelog</button>
   </div>
   <div class="panel"><div class="panel-head"><div class="panel-icon"><i class="fa-solid fa-eye"></i></div><div class="grow"><h3>Preview</h3><p>Updates as you type.</p></div></div><div class="cl-preview" id="cl-preview"></div></div>
@@ -1041,6 +1042,7 @@ async function sendChangelog() {
         return;
     }
 
+    entry.sections = window.FluxChangelog.parseNotes(entry.large);
     button.disabled = true;
 
     try {
@@ -1510,7 +1512,9 @@ function updateChangelogPreview() {
         '<div class="head"><span class="cl-ver">v' + escapeHtml(version || '0.0.0') +
         '</span><strong>' + escapeHtml(title || 'Untitled update') + '</strong></div>' +
         '<p>' + escapeHtml(mini || 'The mini description appears on the home screen.') + '</p>' +
-        '<div class="cl-body">' + escapeHtml(large || 'The full changelog appears here.') + '</div>';
+        '<div class="cl-body">' + window.FluxChangelog.parseNotes(large || 'The full changelog appears here.').map(section =>
+            '<section><h4>' + escapeHtml(section.title) + '</h4><ul>' + section.items.map(note => '<li>' + escapeHtml(note) + '</li>').join('') + '</ul></section>'
+        ).join('') + '</div>';
 }
 
 /* ---------- Event listeners ---------- */

@@ -1994,7 +1994,7 @@ main { min-width: 0; }
 
             <!-- Changelog View -->
             <div id="view-changelog" class="container">
-                <div class="flux-page-heading"><span class="home-section-kicker">WHAT'S NEW IN FLUX</span><h2>Always getting better<span>.</span></h2><p>The latest features, fixes, and little details.</p></div>
+                <div class="flux-page-heading"><span class="home-section-kicker">WHAT'S NEW IN FLUX</span><h2>Always getting better<span>.</span></h2><p>The latest features and major fixes.</p></div>
                 <div class="changelog-feed" id="changelog-feed-container"></div>
             </div>
 
@@ -2005,7 +2005,7 @@ main { min-width: 0; }
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
                         <input type="text" id="archive-search" placeholder="Search across game archives..."
-                            oninput="refreshArchives()">
+                            oninput="scheduleArchiveSearch()">
                     </div>
                 </div>
 
@@ -2579,6 +2579,8 @@ main { min-width: 0; }
     <script src="recordsData.js"></script>
     <script src="data.js"></script>
     <script src="js/flux-game-library.js"></script>
+    <script src="js/flux-particles.js"></script>
+    <script src="js/flux-changelog.js"></script>
     <script src="js/flux-game-catalog-baseline.js"></script>
     <script src="js/flux-dashboard.js"></script>
     <script src="js/flux-chat-moderation.js"></script>
@@ -2698,36 +2700,18 @@ main { min-width: 0; }
             openGame(movie.url, movie.name, movie.description, 'movie');
         }
 
+        let changelogRendered = false;
         function renderChangelogFeed() {
             const feedContainer = document.getElementById('changelog-feed-container');
-            if (!feedContainer) return;
-            feedContainer.innerHTML = '';
+            if (!feedContainer || changelogRendered) return;
 
             if (typeof changelogData === 'undefined' || !Array.isArray(changelogData)) {
                 feedContainer.innerHTML = `<div style="color: var(--text-dim); padding: 20px;">Could not load changelogData.js file.</div>`;
                 return;
             }
 
-            changelogData.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'changelog-card';
-                const date = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
-                const sections = Array.isArray(item.sections) ? item.sections.map(section => `
-                    <section class="changelog-section"><h4>${escapeHtml(section.title)}</h4><ul>${(Array.isArray(section.items) ? section.items : []).map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul></section>
-                `).join('') : '';
-                card.innerHTML = `
-                    <div class="changelog-header-row">
-                        <div>
-                            ${index === 0 || date ? `<div class="changelog-meta">${index === 0 ? '<span class="changelog-latest">LATEST UPDATE</span>' : ''}${date ? `<time datetime="${date}">${new Date(date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</time>` : ''}</div>` : ''}
-                            <h3 class="changelog-title">${escapeHtml(item.name)}</h3>
-                            <p class="changelog-mini">${escapeHtml(item.mini)}</p>
-                        </div>
-                        <span class="changelog-version-tag">v${escapeHtml(item.v)}</span>
-                    </div>
-                    ${sections ? `<div class="changelog-sections">${sections}</div>` : item.large ? `<details class="changelog-older"><summary>Read release notes</summary><div class="changelog-body">${escapeHtml(item.large)}</div></details>` : ''}
-                `;
-                feedContainer.appendChild(card);
-            });
+            window.FluxChangelog.render(document, feedContainer, changelogData);
+            changelogRendered = true;
         }
 
         function getDynamicGreeting() {
@@ -2765,16 +2749,18 @@ main { min-width: 0; }
         }
 
         function runUnscrambleEffects() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             const elements = document.querySelectorAll('.unscramble');
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+";
 
             elements.forEach(el => {
-                const targetText = el.getAttribute('data-text') || el.innerText;
+                if (el.closest('.container:not(.active)')) return;
+                const targetText = el.getAttribute('data-text') || el.textContent;
                 let iteration = 0;
 
                 clearInterval(el.interval);
                 el.interval = setInterval(() => {
-                    el.innerText = targetText
+                    el.textContent = targetText
                         .split("")
                         .map((letter, index) => {
                             if (index < iteration) {
@@ -2787,79 +2773,16 @@ main { min-width: 0; }
                     if (iteration >= targetText.length) {
                         clearInterval(el.interval);
                     }
-                    iteration += 1 / 2;
-                }, 30);
+                    iteration += Math.max(1, targetText.length / 12);
+                }, 50);
             });
-        }
-
-        let particles = [];
-        const canvas = document.getElementById('particle-canvas');
-        const ctx = canvas.getContext('2d');
-        let mouse = { x: null, y: null, radius: 110 };
-
-        window.addEventListener('mousemove', e => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-
-        window.addEventListener('mouseout', () => {
-            mouse.x = null;
-            mouse.y = null;
-        });
-
-        function initParticles() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            particles = [];
-            const spacing = 50;
-            for (let x = spacing / 2; x < canvas.width; x += spacing) {
-                for (let y = spacing / 2; y < canvas.height; y += spacing) {
-                    particles.push({ x: x, y: y, baseX: x, baseY: y, size: 1.5 });
-                }
-            }
-        }
-
-        function animateParticles() {
-            if (!particlesEnabled) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                return;
-            }
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach(p => {
-                if (mouse.x !== null && mouse.y !== null) {
-                    let dx = mouse.x - p.x;
-                    let dy = mouse.y - p.y;
-                    let dist = Math.hypot(dx, dy);
-                    if (dist < mouse.radius) {
-                        let force = (mouse.radius - dist) / mouse.radius;
-                        let angle = Math.atan2(dy, dx);
-                        p.x -= Math.cos(angle) * force * 16;
-                        p.y -= Math.sin(angle) * force * 16;
-                    }
-                }
-
-                let dx = p.baseX - p.x;
-                let dy = p.baseY - p.y;
-                p.x += dx * 0.08;
-                p.y += dy * 0.08;
-
-                ctx.fillStyle = '#888888';
-                ctx.globalAlpha = 0.5;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            requestAnimationFrame(animateParticles);
         }
 
         function toggleParticles() {
             particlesEnabled = document.getElementById('set-particles').checked;
-            if (particlesEnabled) animateParticles();
+            window.fluxParticles.setEnabled(particlesEnabled);
+            saveConfiguration();
         }
-
-        window.addEventListener('resize', initParticles);
 
         function switchChatRoom() {
             openFluxChatRoom('global_general', 'Global Chat');
@@ -3532,6 +3455,7 @@ main { min-width: 0; }
             }
 
             title.innerText = gameName;
+            window.fluxParticles.setPaused(true);
             iframe.src = gameUrl;
             iframe.title = mediaType === 'movie' ? 'Movie player' : 'Game Viewport';
             desc.innerText = gameDesc || 'No description provided.';
@@ -3552,6 +3476,7 @@ main { min-width: 0; }
             if (document.fullscreenElement) document.exitFullscreen().catch(console.warn);
             document.getElementById('theater-overlay').style.display = 'none';
             document.getElementById('theater-iframe').src = '';
+            window.fluxParticles.setPaused(false);
         }
 
         function refreshTheater() {
@@ -3641,18 +3566,26 @@ main { min-width: 0; }
             if (content) content.scrollTop = 0;
         }
 
+        let archiveSearchTimer = null;
+        let archiveRenderKey = '';
+        function scheduleArchiveSearch() {
+            clearTimeout(archiveSearchTimer);
+            archiveSearchTimer = setTimeout(refreshArchives, 100);
+        }
         function refreshArchives() {
+            clearTimeout(archiveSearchTimer);
             const grid = document.getElementById('main-grid');
             const favGrid = document.getElementById('favorites-grid');
             const favWrap = document.getElementById('favorites-container-wrap');
             const search = document.getElementById('archive-search')?.value.toLowerCase() || '';
 
             if (!grid) return;
-            grid.innerHTML = "";
-            if (favGrid) favGrid.innerHTML = "";
-
             const list = window.FluxGames.alphabetical(typeof gameList !== 'undefined' ? gameList : []);
             const favorites = getFavorites();
+            const key = JSON.stringify([search, favorites, list.map(game => [game.name, game.file || game.url || game.link, game.thumb, window.fluxDashboard?.badgeForGame(game)])]);
+            if (key === archiveRenderKey) return;
+            archiveRenderKey = key;
+            const mainCards = document.createDocumentFragment(), favoriteCards = document.createDocumentFragment();
 
             let hasFavoritesShown = false;
 
@@ -3661,15 +3594,17 @@ main { min-width: 0; }
                 const isFav = favorites.includes(game.name);
 
                 if (nameMatch) {
-                    grid.appendChild(createGameCard(game, isFav));
+                    mainCards.appendChild(createGameCard(game, isFav));
                 }
 
                 if (isFav && nameMatch && favGrid && favWrap) {
-                    favGrid.appendChild(createGameCard(game, true));
+                    favoriteCards.appendChild(createGameCard(game, true));
                     hasFavoritesShown = true;
                 }
             });
 
+            grid.replaceChildren(mainCards);
+            if (favGrid) favGrid.replaceChildren(favoriteCards);
             if (favWrap) {
                 favWrap.style.display = (hasFavoritesShown && favorites.length > 0) ? 'block' : 'none';
             }
@@ -3682,7 +3617,7 @@ main { min-width: 0; }
             const trend = window.fluxDashboard?.badgeForGame(game) || '';
 
             node.innerHTML = `
-                <img src="${game.thumb}" loading="lazy" alt="${game.name}">
+                <img src="${game.thumb}" loading="lazy" decoding="async" alt="${game.name}">
                 ${trend ? `<span class="game-trend-badge ${trend.toLowerCase()}">${trend}</span>` : ''}
                 <button class="game-fav-btn ${isFav ? 'favorited' : ''}" onclick="toggleFavorite('${game.name.replace(/'/g, "\\'")}', event)" title="Favorite">
                     <i class="fa-${isFav ? 'solid' : 'regular'} fa-heart"></i>
@@ -3767,14 +3702,11 @@ main { min-width: 0; }
 
         window.fluxDashboard.start({ games: typeof gameList !== 'undefined' ? gameList : [], openGame, getProfileData });
 
-        window.addEventListener('load', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             loadConfiguration();
-            initParticles();
-            animateParticles();
+            window.fluxParticles.start({ enabled: particlesEnabled });
             loadProfileData();
             renderQuickResume();
-            refreshArchives();
-            renderChangelogFeed();
 
             const greetingEl = document.getElementById('dynamic-greeting');
             if (greetingEl) {
@@ -3802,8 +3734,8 @@ main { min-width: 0; }
                     setTimeout(() => {
                         overlay.style.display = 'none';
                         runUnscrambleEffects();
-                    }, 500);
-                }, 1500);
+                    }, 180);
+                }, 450);
             } else {
                 skeleton.style.display = 'none';
                 flux.style.display = 'flex';
@@ -3821,9 +3753,9 @@ main { min-width: 0; }
                         setTimeout(() => {
                             overlay.style.display = 'none';
                             runUnscrambleEffects();
-                        }, 600);
-                    }, 1200);
-                }, 3000);
+                        }, 180);
+                    }, 650);
+                }, 150);
             }
         });
     </script>

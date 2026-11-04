@@ -26,7 +26,7 @@
     const cards = recommendations(games, current).map(game => {
       const card = document.createElement('button'); card.type = 'button'; card.className = 'rec-card';
       card.setAttribute('aria-label', 'Play ' + game.name); card.dataset.game = game.name;
-      const image = document.createElement('img'); image.src = game.thumb || 'Fluxlogo.svg'; image.alt = ''; image.loading = 'lazy';
+      const image = document.createElement('img'); image.src = game.thumb || 'Fluxlogo.svg'; image.alt = ''; image.loading = 'lazy'; image.decoding = 'async';
       image.addEventListener('error', () => { image.src = 'Fluxlogo.svg'; }, { once: true });
       const name = document.createElement('div'); name.className = 'rec-card-name'; name.textContent = game.name;
       card.append(image, name); card.addEventListener('click', () => openGame(game.file || game.url || game.link, game.name, game.description));

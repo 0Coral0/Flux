@@ -29,6 +29,9 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); opacity: .7;
 .section-title { color: var(--text-dim); font-size: .75rem; letter-spacing: .025em; }
 .section-title > i { color: var(--accent); }
 .game-node { border-radius: 13px; box-shadow: 0 6px 20px #0002; }
+.game-node { content-visibility: auto; contain-intrinsic-size: auto 160px; transition: transform .2s ease, border-color .2s ease; }
+.game-fav-btn { backdrop-filter: none; background: var(--surface); }
+.changelog-card { content-visibility: auto; contain-intrinsic-size: auto 650px; }
 .game-node:hover { box-shadow: 0 8px 24px #0003; }
 .game-title { color: var(--text); }
 .game-trend-badge, .home-game-badge { background: var(--surface); }

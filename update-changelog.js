@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const { parseNotes } = require('./js/flux-changelog.js');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -14,12 +15,12 @@ function ask(question) {
 }
 
 async function run() {
-    console.log("--- Aggw Changelog Manager (Multi-line Support) ---");
+    console.log("--- Flux Changelog Manager ---");
     const v = await ask('1. Version (e.g. 1.0.0): ');
     const name = await ask('2. Version Name: ');
     const mini = await ask('3. Mini Desc: ');
     
-    console.log('4. Large Desc (Paste your text below. Type "END" on a new line to finish):');
+    console.log('4. Release notes (use section headings, a blank line, then one change per line; type "END" to finish):');
     
     let largeLines = [];
     rl.on('line', (line) => {
@@ -52,7 +53,7 @@ function saveData(v, name, mini, large) {
     }
 
     // Add new entry to the start
-    logs.unshift({ v, name, mini, large });
+    logs.unshift({ v, name, mini, sections: parseNotes(large) });
 
     // Format the file correctly for the browser to read
     const output = `const changelogData = ${JSON.stringify(logs, null, 4)};\n\nif (typeof module !== 'undefined') { module.exports = { changelogData }; }`;
