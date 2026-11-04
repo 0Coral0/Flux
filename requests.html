@@ -142,6 +142,7 @@
     <link rel="stylesheet" href="css/flux-unified.css">
     <script src="js/flux-theme-core.js"></script>
     <script src="js/flux-theme.js"></script>
+    <script src="js/flux-performance.js"></script>
 </head>
 <body class="flux-support-page">
     <canvas id="particle-canvas"></canvas>
@@ -551,6 +552,7 @@
 
         // ---------- Title unscramble (same effect as Flux) ----------
         (function unscramble() {
+            if (window.fluxPerformance?.isEnabled()) return;
             if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             const el = $('hero-title'); const target = el.textContent; const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
             let i = 0;
@@ -566,11 +568,11 @@
             function draw() {
                 canvas.width = innerWidth; canvas.height = innerHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (!particlesOn) return;
+                if (window.fluxPerformance ? !window.fluxPerformance.allowsParticles() : !particlesOn) return;
                 ctx.fillStyle = 'rgba(148, 163, 184, 0.12)';
                 for (let x = 0; x < canvas.width; x += 40) for (let y = 0; y < canvas.height; y += 40) ctx.fillRect(x, y, 1.5, 1.5);
             }
-            addEventListener('resize', draw); draw();
+            addEventListener('resize', draw); addEventListener('flux-performance-changed', draw); draw();
         })();
 
         // Local first so the page is never empty, then try live sync

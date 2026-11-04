@@ -12,6 +12,7 @@
 - Moved player controls beneath the game and improved the mobile player.
 - Removed Duck Life 4 from the catalog.
 - Reduced background rendering, paused effects during games, and improved startup and game browsing.
+- Added Lite Mode in Settings to reduce effects, pause particles, and skip startup animations.
 - Reformatted release history into grouped notes.
 
 Theme Shop's Firestore ownership rules are included in [the Firebase setup guide](docs/firebase/THEME_SHOP.md). These rules require a separate Firebase deployment; pushing this repository does not deploy them.

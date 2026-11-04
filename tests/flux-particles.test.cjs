@@ -2,14 +2,14 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { create } = require('../js/flux-particles.js');
 
-function fixture({ reduced = false, coarse = false, width = 1280, height = 720 } = {}) {
+function fixture({ reduced = false, coarse = false, lite = false, width = 1280, height = 720 } = {}) {
   const events = {}, media = {}, frames = new Map();
   let next = 0, time = 100, draws = 0, dots = 0, currentDots = 0;
   const ctx = { clearRect() {}, beginPath() { currentDots = 0; }, moveTo() {}, arc() { currentDots++; }, fill() { draws++; dots = currentDots; } };
   const canvas = { width: 0, height: 0, getContext: () => ctx };
   const doc = { hidden: false, getElementById: () => canvas,
     addEventListener: (name, fn) => { events[name] = fn; }, removeEventListener: name => { delete events[name]; } };
-  const win = { document: doc, innerWidth: width, innerHeight: height,
+  const win = { document: doc, innerWidth: width, innerHeight: height, fluxPerformance: { isEnabled: () => lite },
     matchMedia(query) { return media[query] ||= { matches: query.includes('reduced') ? reduced : coarse,
       addEventListener(name, fn) { this.change = fn; }, removeEventListener() {} }; },
     requestAnimationFrame: fn => { const id = ++next; frames.set(id, fn); return id; },
@@ -65,4 +65,15 @@ test('reduced motion and touch devices keep a static grid, with bounded work on 
       ui.events.pointermove({ clientX: 30, clientY: 30 }); assert.equal(ui.frames.size, 0);
     }
   }
+});
+
+test('Lite Mode blocks particle work from startup and respects the game pause and normal preference when disabled', () => {
+  const ui = fixture({ lite: true }); ui.controller.start();
+  assert.equal(ui.frames.size, 0); assert.equal(ui.draws(), 0);
+  ui.events.pointermove({ clientX: 30, clientY: 30 }); assert.equal(ui.frames.size, 0);
+  ui.controller.setPaused(true); ui.controller.setLiteMode(false); assert.equal(ui.frames.size, 0);
+  ui.controller.setPaused(false); ui.settle(); assert.equal(ui.draws(), 1);
+  ui.events.pointermove({ clientX: 30, clientY: 30 });
+  ui.controller.setLiteMode(true); assert.equal(ui.frames.size, 0);
+  ui.controller.setEnabled(false); ui.controller.setLiteMode(false); assert.equal(ui.frames.size, 0);
 });

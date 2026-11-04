@@ -1700,6 +1700,7 @@ main { min-width: 0; }
     <link rel="stylesheet" href="css/flux-unified.css">
     <script src="js/flux-theme-core.js"></script>
     <script src="js/flux-theme.js"></script>
+    <script src="js/flux-performance.js"></script>
 </head>
 
 <body>
@@ -2058,6 +2059,10 @@ main { min-width: 0; }
                     </div>
 
                     <div id="tab-appearance" class="tab-panel active">
+                        <div class="settings-row lite-mode-row">
+                            <div><strong><label for="set-lite-mode">Lite Mode</label></strong><div id="lite-mode-description">A simpler look with less motion, fewer effects, and no background particles.</div></div>
+                            <label class="switch"><input type="checkbox" id="set-lite-mode" aria-describedby="lite-mode-description"><span class="slider"></span></label>
+                        </div>
                         <div class="settings-row">
                             <div><strong>Welcome setup</strong><div>Pick your colors, choose your layout, and make Flux feel like home.</div></div>
                             <button type="button" class="action-btn btn-outline" id="open-onboarding">Run setup <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></button>
@@ -2136,12 +2141,12 @@ main { min-width: 0; }
                         <div class="settings-row">
                             <div>
                                 <strong>Background Particles</strong>
-                                <div style="font-size:0.82rem; color:var(--text-dim);">Enable or disable animated gray
+                                <div id="particle-settings-note" style="font-size:0.82rem; color:var(--text-dim);">Enable or disable animated gray
                                     grid
                                     particles</div>
                             </div>
                             <label class="switch">
-                                <input type="checkbox" id="set-particles" checked onchange="toggleParticles()">
+                                <input type="checkbox" id="set-particles" aria-label="Background particles" aria-describedby="particle-settings-note" checked onchange="toggleParticles()">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -2751,7 +2756,7 @@ main { min-width: 0; }
         }
 
         function runUnscrambleEffects() {
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (window.fluxPerformance?.isEnabled() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             const elements = document.querySelectorAll('.unscramble');
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+";
 
@@ -3130,7 +3135,8 @@ main { min-width: 0; }
                 panic: panicKey,
                 faviconPreset: document.getElementById('faviconPreset')?.value || '',
                 customTabName: document.getElementById('customTabName')?.value || '',
-                particlesEnabled: document.getElementById('set-particles')?.checked ?? true
+                particlesEnabled: document.getElementById('set-particles')?.checked ?? true,
+                liteMode: window.fluxPerformance?.isEnabled() ?? false
             };
             localStorage.setItem('flux_config', JSON.stringify(config));
         }
@@ -3715,6 +3721,11 @@ main { min-width: 0; }
                 const greeting = getDynamicGreeting();
                 greetingEl.innerText = greeting;
                 greetingEl.setAttribute('data-text', greeting);
+            }
+
+            if (window.fluxPerformance?.isEnabled()) {
+                document.getElementById('loader-overlay').style.display = 'none';
+                return;
             }
 
             const savedConfig = JSON.parse(localStorage.getItem('flux_config') || '{}');

@@ -83,3 +83,18 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); opacity: .7;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Lite Mode applies to the Flux interface; games retain their own rendering. */
+.flux-lite-mode *, .flux-lite-mode *::before, .flux-lite-mode *::after {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  box-shadow: none !important; text-shadow: none !important;
+  filter: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+.flux-lite-mode #particle-canvas, .flux-lite-mode .x-glow-layer { display: none !important; }
+.flux-lite-mode .flux-text { transform: none !important; }
+.flux-lite-mode :is(.game-node, .home-game-card, .action-btn, .movie-card, .movie-hero-btn):hover { transform: none !important; }
+.flux-lite-mode #view-dashboard .module-banner, .flux-lite-mode .theme-shop-hero, .flux-lite-mode #flux-sidebar { background: var(--surface); }
+.settings-row:has(#set-particles:disabled) .switch { opacity: .45; cursor: not-allowed; }
+.switch:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 999px; }
+.switch:has(#set-lite-mode) { height: 44px; flex-shrink: 0; }
+.switch:has(#set-lite-mode) .slider { top: 10px; bottom: 10px; }

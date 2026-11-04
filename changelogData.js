@@ -32,6 +32,7 @@ const changelogData = [
             {
                 "title": "Performance",
                 "items": [
+                    "Added Lite Mode in Settings for fewer effects, no background particles, and a faster startup.",
                     "Reduced background rendering, paused effects while games are open, and made startup and browsing faster."
                 ]
             }

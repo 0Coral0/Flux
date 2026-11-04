@@ -8,9 +8,9 @@
     const doc = win.document, canvas = doc.getElementById('particle-canvas'), ctx = canvas?.getContext('2d');
     const reduced = win.matchMedia?.('(prefers-reduced-motion: reduce)');
     const coarse = win.matchMedia?.('(pointer: coarse)');
-    let started = false, enabled = true, paused = false, frame = null, lastPaint = 0;
+    let started = false, enabled = true, paused = false, liteMode = win.fluxPerformance?.isEnabled() === true, frame = null, lastPaint = 0;
     let points = [], pointer = null, resized = true, retarget = true;
-    const canDraw = () => ctx && enabled && !paused && !doc.hidden;
+    const canDraw = () => ctx && enabled && !paused && !liteMode && !doc.hidden;
     function cancel() {
       if (frame !== null) win.cancelAnimationFrame(frame);
       frame = null;
@@ -93,6 +93,7 @@
         sync();
       },
       setEnabled(value) { enabled = !!value; sync(); },
+      setLiteMode(value) { liteMode = !!value; pointer = null; retarget = true; sync(); },
       setPaused(value) { paused = !!value; pointer = null; retarget = true; sync(); },
       destroy() {
         cancel(); started = false;
