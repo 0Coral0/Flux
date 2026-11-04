@@ -25,7 +25,9 @@
     const fileKey = /^bg-[a-z0-9-]{1,80}$/.test(saved.fileKey || '') ? saved.fileKey : '';
     const number = (value, fallback, maximum) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(maximum, Number(value))) : fallback;
     return { kind: saved.kind === 'url' && url ? 'url' : saved.kind === 'upload' && fileKey ? 'upload' : 'none', url, fileKey,
-      fileName: String(saved.fileName || '').slice(0, 120), tint: number(saved.tint ?? 55, 55, 90), blur: number(saved.blur ?? 0, 0, 12), fit: saved.fit === 'contain' ? 'contain' : 'cover' };
+      fileName: String(saved.fileName || '').slice(0, 120), tint: number(saved.tint ?? 55, 55, 90), blur: number(saved.blur ?? 0, 0, 12), fit: saved.fit === 'contain' ? 'contain' : 'cover',
+      sharedAssetId: /^[a-f0-9]{32}$/.test(saved.sharedAssetId || '') ? saved.sharedAssetId : '',
+      sharedPreview: typeof saved.sharedPreview === 'string' && saved.sharedPreview.length <= 24000 && /^data:image\/(webp|jpeg);base64,[a-zA-Z0-9+/]+={0,2}$/.test(saved.sharedPreview) ? saved.sharedPreview : '' };
   }
   async function validateFile(file) {
     if (!file || file.size <= 0 || file.size > maxBytes) throw new Error('Choose an image smaller than 10 MB.');
@@ -102,34 +104,70 @@
       const next = normalize(value, win.location.href);
       win.localStorage.setItem(storageKey, JSON.stringify(next)); preferences = next; apply();
     }
-    async function upload(file) {
-      if (busy) return; busy = true; status('Saving image…'); let key;
+    async function upload(file, settings = {}) {
+      if (busy) { if (settings.required) throw new Error('Finish your current background upload first.'); return; } busy = true; status('Saving image…'); let key;
       try {
         await validateFile(file);
         if (win.createImageBitmap) { const bitmap = await win.createImageBitmap(file); bitmap.close(); }
         key = 'bg-' + win.crypto.randomUUID(); await media.put(key, { blob: file, name: file.name });
-        const previous = preferences.fileKey; persist({ ...preferences, kind: 'upload', fileKey: key, fileName: file.name, url: '' });
+        const previous = preferences.fileKey; persist({ ...preferences, ...settings.presentation, kind: 'upload', fileKey: key, fileName: file.name, url: '', sharedAssetId: settings.assetId || '', sharedPreview: settings.preview || '' });
         if (previous && previous !== key) media.remove(previous).catch(() => {});
-      } catch (error) { if (key) media.remove(key).catch(() => {}); status(error.message || 'Could not save that image.'); }
+      } catch (error) { if (key) media.remove(key).catch(() => {}); status(error.message || 'Could not save that image.'); if (settings.required) throw error; }
       finally { busy = false; if (el('background-file')) el('background-file').value = ''; }
+    }
+    async function exportForTheme(progress) {
+      const saved = { ...preferences }, presentation = { tint: saved.tint, blur: saved.blur, fit: saved.fit };
+      if (saved.kind === 'none') return { kind: 'none' };
+      if (saved.kind === 'url') {
+        const background = win.FluxThemes.normalizeBackground({ kind: 'url', url: saved.url, ...presentation });
+        if (!background) throw new Error('Use a public HTTPS background link or upload an image before sharing it.');
+        return background;
+      }
+      let shared = saved.sharedAssetId ? { assetId: saved.sharedAssetId, ...(saved.sharedPreview ? { preview: saved.sharedPreview } : {}) } : null;
+      if (!shared) {
+        const record = await media.get(saved.fileKey);
+        if (!record?.blob) throw new Error('Choose your background image again before sharing it.');
+        shared = await win.fluxThemeMedia.upload(record.blob, progress);
+        if (preferences.fileKey === saved.fileKey) persist({ ...preferences, sharedAssetId: shared.assetId, sharedPreview: shared.preview || '' });
+      }
+      return { kind: 'asset', ...shared, ...presentation };
+    }
+    async function applyShared(value) {
+      const background = win.FluxThemes.normalizeBackground(value);
+      if (!background) throw new Error('That theme contains an invalid background.');
+      if (busy) throw new Error('Finish your current background upload first.');
+      const previous = preferences.fileKey;
+      if (background.kind === 'asset') {
+        if (preferences.sharedAssetId === background.assetId && (await media.get(preferences.fileKey))?.blob) {
+          persist({ ...preferences, ...background, kind: 'upload' }); return;
+        }
+        const blob = await win.fluxThemeMedia.load(background.assetId);
+        const extension = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif' }[blob.type];
+        const file = new win.File([blob], 'Theme background.' + extension, { type: blob.type });
+        await upload(file, { required: true, assetId: background.assetId, preview: background.preview, presentation: background });
+      } else {
+        if (background.kind === 'url' && !blocked()) await loadImage(background.url);
+        persist({ ...preferences, ...background, url: background.url || '', kind: background.kind === 'url' ? 'url' : 'none', fileKey: '', fileName: '', sharedAssetId: '', sharedPreview: '' });
+        if (previous) media.remove(previous).catch(() => {});
+      }
     }
     function start() {
       el('background-url-form')?.addEventListener('submit', async event => {
         event.preventDefault(); if (busy) return; busy = true; status('Checking image link…');
         try {
           const url = imageUrl(el('background-url').value, win.location.href); if (!url) throw new Error('Paste a direct image link first.');
-          await loadImage(url); const previous = preferences.fileKey; persist({ ...preferences, kind: 'url', url, fileKey: '', fileName: '' }); if (previous) media.remove(previous).catch(() => {});
+          await loadImage(url); const previous = preferences.fileKey; persist({ ...preferences, kind: 'url', url, fileKey: '', fileName: '', sharedAssetId: '', sharedPreview: '' }); if (previous) media.remove(previous).catch(() => {});
         } catch (error) { status(error.message); } finally { busy = false; }
       });
       el('background-upload')?.addEventListener('click', () => el('background-file').click());
       el('background-file')?.addEventListener('change', event => { if (event.target.files[0]) upload(event.target.files[0]); });
-      el('background-clear')?.addEventListener('click', () => { try { const previous = preferences.fileKey; persist({ ...preferences, kind: 'none', url: '', fileKey: '', fileName: '' }); if (previous) media.remove(previous).catch(() => {}); } catch (_) { status('Could not save your background preference.'); } });
+      el('background-clear')?.addEventListener('click', () => { try { const previous = preferences.fileKey; persist({ ...preferences, kind: 'none', url: '', fileKey: '', fileName: '', sharedAssetId: '', sharedPreview: '' }); if (previous) media.remove(previous).catch(() => {}); } catch (_) { status('Could not save your background preference.'); } });
       for (const [id, field] of [['background-tint', 'tint'], ['background-blur', 'blur'], ['background-fit', 'fit']]) el(id)?.addEventListener('input', event => { try { persist({ ...preferences, [field]: event.target.value }); } catch (_) { status('Could not save your background preference.'); } });
       win.addEventListener('flux-performance-changed', apply); reduced?.addEventListener?.('change', apply);
       win.addEventListener('storage', event => { if (event.key !== storageKey) return; try { preferences = normalize(JSON.parse(event.newValue || '{}'), win.location.href); apply(); } catch (_) {} });
       win.addEventListener('pagehide', clear); win.addEventListener('pageshow', event => { if (event.persisted) apply(); }); apply();
     }
-    return { start, upload, getPreferences: () => ({ ...preferences }) };
+    return { start, upload, exportForTheme, applyShared, getPreferences: () => ({ ...preferences }) };
   }
   return { imageUrl, normalize, validateFile, create, maxBytes };
 });

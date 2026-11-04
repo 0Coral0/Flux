@@ -5,6 +5,7 @@
 - Added direct game links and a Share button below the player.
 - Added image backgrounds from links and uploads, including animated images, with tint, blur, and fit controls. Backgrounds stay on the device and pause in Lite Mode or reduced motion.
 - Added homepage customization: move and hide sections, adjust game columns, and choose a compact welcome banner. Signed-in accounts can sync the layout.
+- Extended Theme Shop codes to include optional backgrounds and homepage layouts. Shared uploads retain their animation, with small still previews for browsing.
 - Added shared star ratings and game reviews, with editing, deletion, and reporting. Guests can read reviews.
 
 Review rules were published to the existing Firebase project on November 4, 2026. See [review setup and validation](docs/firebase/GAME_REVIEWS.md).
@@ -24,6 +25,6 @@ Review rules were published to the existing Firebase project on November 4, 2026
 - Added Lite Mode in Settings to reduce effects, pause particles, and skip startup animations.
 - Reformatted release history into grouped notes.
 
-Theme Shop's Firestore ownership rules are included in [the Firebase setup guide](docs/firebase/THEME_SHOP.md). These rules require a separate Firebase deployment; pushing this repository does not deploy them.
+Theme Shop's Firestore ownership and background-sharing rules were deployed on November 4, 2026. The [Firebase setup guide](docs/firebase/THEME_SHOP.md) documents the format and maintenance steps.
 
 Older release notes are maintained in `changelogData.js` and the site's changelog.

@@ -1772,13 +1772,15 @@ main { min-width: 0; }
 
     <dialog id="theme-publish-dialog" class="theme-publish-dialog" aria-labelledby="theme-publish-title" aria-describedby="theme-publish-description">
         <form id="theme-publish-form" novalidate>
-            <header class="theme-publish-heading"><div><span class="home-section-kicker">A LOOK WORTH SHARING</span><h2 id="theme-publish-title">Share your colors<span>.</span></h2></div><button class="theme-shop-icon" type="button" id="theme-publish-close" aria-label="Close theme sharing"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></header>
+            <header class="theme-publish-heading"><div><span class="home-section-kicker">A LOOK WORTH SHARING</span><h2 id="theme-publish-title">Share your look<span>.</span></h2></div><button class="theme-shop-icon" type="button" id="theme-publish-close" aria-label="Close theme sharing"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></header>
             <p id="theme-publish-description">Give a theme code a name, then let the community make it theirs.</p>
             <label class="theme-shop-label" for="theme-publish-code">Theme code</label>
             <div class="theme-shop-input-row"><input class="settings-input" id="theme-publish-code" placeholder="e.g. midnight-mint" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false"><button class="action-btn btn-outline" type="button" id="theme-publish-preview">Preview code</button></div>
-            <button type="button" id="theme-publish-current" class="theme-shop-text-button"><i class="fa-solid fa-palette" aria-hidden="true"></i> Use my current colors instead</button>
+            <button type="button" id="theme-publish-current" class="theme-shop-text-button"><i class="fa-solid fa-palette" aria-hidden="true"></i> Use my current look instead</button>
             <label class="theme-shop-label" for="theme-publish-name">Theme name</label>
-            <input class="settings-input" id="theme-publish-name" placeholder="Give your palette a name" maxlength="48" autocomplete="off">
+            <input class="settings-input" id="theme-publish-name" placeholder="Give your theme a name" maxlength="48" autocomplete="off">
+            <fieldset class="theme-share-options"><legend>Include in this theme</legend><label><input type="checkbox" id="theme-publish-background"><span><strong>Background</strong><small id="theme-publish-background-note">Your image, tint, blur, and fit.</small></span></label><label><input type="checkbox" id="theme-publish-homepage"><span><strong>Homepage layout</strong><small>Section order, hidden sections, game columns, and banner size. Your account and game history stay yours.</small></span></label></fieldset>
+            <p id="theme-publish-media-notice" class="theme-media-notice" hidden>Publishing makes the included background public. Uploaded images keep their animation. Only share images you want everyone to use.</p>
             <div id="theme-publish-swatch" class="theme-publish-swatch" aria-label="Theme preview" hidden></div>
             <p id="theme-publish-status" class="theme-shop-status" role="status" aria-live="polite"></p>
             <footer class="theme-publish-footer"><span id="theme-publish-identity">Sign in to publish a theme.</span><button class="action-btn" type="submit" id="theme-publish-submit">Publish theme <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></footer>
@@ -2162,7 +2164,7 @@ main { min-width: 0; }
                             </label>
                         </div>
                         <section class="background-settings" aria-labelledby="background-heading">
-                            <h3 id="background-heading">Image background</h3><p>Use an image link or upload a PNG, JPG, WebP, GIF, or AVIF up to 10 MB. Animated images are supported. Backgrounds stay on this device and pause in Lite Mode or reduced motion.</p>
+                            <h3 id="background-heading">Image background</h3><p>Use an image link or upload a PNG, JPG, WebP, GIF, or AVIF up to 10 MB. Animated images are supported. Backgrounds save on this device; you can share them through Theme Shop. Lite Mode and reduced motion pause them.</p>
                             <form id="background-url-form" class="feature-input-row"><label class="theme-shop-sr" for="background-url">Direct image link</label><input class="settings-input" id="background-url" placeholder="Paste a direct image link" type="url" maxlength="3000"><button class="action-btn btn-outline" type="submit">Use image link</button></form>
                             <div class="feature-input-row"><input id="background-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" hidden><button type="button" class="action-btn btn-outline" id="background-upload">Upload image</button><button type="button" class="action-btn btn-outline" id="background-clear">Remove background</button><span id="background-current" class="profile-hint">Theme background</span></div>
                             <div class="background-controls"><label>Theme tint <span id="background-tint-value">55%</span><input id="background-tint" type="range" min="0" max="90" value="55"></label><label>Blur <span id="background-blur-value">0px</span><input id="background-blur" type="range" min="0" max="12" value="0"></label><label>Image fit<select class="settings-input" id="background-fit"><option value="cover">Fill screen</option><option value="contain">Fit whole image</option></select></label></div>
@@ -2520,7 +2522,7 @@ main { min-width: 0; }
 
             <div id="view-themes" class="container">
                 <section class="theme-shop-hero">
-                    <div><span class="home-section-kicker"><i class="fa-solid fa-palette" aria-hidden="true"></i> THE FLUX THEME SHOP</span><h2>A fresh look.<br>A little more <span>you.</span></h2><p>Find your next favorite palette. Share a code, give it a name, and let your colors travel.</p><div class="theme-shop-hero-actions"><button type="button" class="action-btn" id="theme-shop-share"><i class="fa-solid fa-plus" aria-hidden="true"></i> Share a theme</button><button type="button" class="action-btn btn-outline" id="theme-shop-create">Use my current colors <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div></div>
+                    <div><span class="home-section-kicker"><i class="fa-solid fa-palette" aria-hidden="true"></i> THE FLUX THEME SHOP</span><h2>A fresh look.<br>A little more <span>you.</span></h2><p>Share colors, backgrounds, and homepage layouts in one theme code. Find a look you love and make it yours.</p><div class="theme-shop-hero-actions"><button type="button" class="action-btn" id="theme-shop-share"><i class="fa-solid fa-plus" aria-hidden="true"></i> Share a theme</button><button type="button" class="action-btn btn-outline" id="theme-shop-create">Use my current look <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div></div>
                     <div class="theme-shop-hero-art" aria-hidden="true"><div><b>&gt;F</b><i></i><i></i></div><div><b>&gt;F</b><i></i><i></i></div><div><b>&gt;F</b><i></i><i></i></div></div>
                 </section>
                 <form id="theme-shop-code-form" class="theme-shop-code-bar">
@@ -2529,7 +2531,7 @@ main { min-width: 0; }
                 </form>
                 <p id="theme-shop-status" class="theme-shop-status" role="status" aria-live="polite"></p>
                 <section class="theme-shop-section" aria-labelledby="theme-community-title">
-                    <div class="theme-shop-section-heading"><div><span class="home-section-kicker">MADE BY THE COMMUNITY</span><h3 id="theme-community-title">Shared colors<span>.</span></h3></div><div class="theme-shop-tools"><label class="theme-shop-sr" for="theme-shop-search">Search community themes</label><input class="settings-input" type="search" id="theme-shop-search" placeholder="Find a theme…" autocomplete="off"><button class="theme-shop-icon" type="button" id="theme-shop-refresh" aria-label="Refresh community themes"><i class="fa-solid fa-rotate" aria-hidden="true"></i></button></div></div>
+                    <div class="theme-shop-section-heading"><div><span class="home-section-kicker">MADE BY THE COMMUNITY</span><h3 id="theme-community-title">Shared looks<span>.</span></h3></div><div class="theme-shop-tools"><label class="theme-shop-sr" for="theme-shop-search">Search community themes</label><input class="settings-input" type="search" id="theme-shop-search" placeholder="Find a theme…" autocomplete="off"><button class="theme-shop-icon" type="button" id="theme-shop-refresh" aria-label="Refresh community themes"><i class="fa-solid fa-rotate" aria-hidden="true"></i></button></div></div>
                     <div id="theme-community-grid" class="theme-shop-grid" aria-live="polite"><p class="theme-shop-empty">Open the shop to explore shared themes.</p></div>
                     <button type="button" id="theme-shop-more" class="action-btn btn-outline theme-shop-more" hidden>Load more themes <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
                 </section>
@@ -3222,9 +3224,11 @@ main { min-width: 0; }
             return { accent: document.getElementById('set-accent').value, bg: document.getElementById('set-bg').value, cardBg: document.getElementById('set-card-bg').value, borderColor: document.getElementById('set-border').value, textColor: document.getElementById('set-text').value };
         }
 
-        function applySavedTheme(theme) {
+        async function applySavedTheme(theme) {
             const normalized = window.FluxThemes?.normalizeTheme(theme);
             if (!normalized) return false;
+            if (normalized.background) await window.fluxBackgrounds.applyShared(normalized.background);
+            if (normalized.homepage) window.fluxHomeEditor.setPreferences(normalized.homepage);
             for (const [id, key] of [['set-accent','accent'], ['set-bg','bg'], ['set-card-bg','cardBg'], ['set-border','borderColor'], ['set-text','textColor']]) document.getElementById(id).value = normalized[key];
             applyThemeColors();
             return true;
@@ -3236,8 +3240,8 @@ main { min-width: 0; }
             const theme = getCurrentTheme();
             try {
                 if (!window.fluxData) throw new Error('Flux data service is still loading.');
-                await window.fluxData.saveTheme(normalizedCode, theme);
-                const themes = readSavedThemes(); themes[normalizedCode] = theme;
+                const saved = await window.fluxData.saveTheme(normalizedCode, theme);
+                const themes = readSavedThemes(); themes[normalizedCode] = saved.theme;
                 localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
                 alert(`Theme '${normalizedCode}' is saved and can be loaded on your other devices!`);
             } catch (error) {
@@ -3254,14 +3258,14 @@ main { min-width: 0; }
             try {
                 if (window.fluxData) {
                     const remote = await window.fluxData.loadTheme(normalizedCode);
-                    if (applySavedTheme(remote.theme)) {
+                    if (await applySavedTheme(remote.theme)) {
                         const themes = readSavedThemes(); themes[normalizedCode] = remote.theme;
                         localStorage.setItem('flux_saved_themes', JSON.stringify(themes));
                         return alert(`Theme '${normalizedCode}' loaded!`);
                     }
                 }
             } catch (_) { /* Local themes remain available offline. */ }
-            if (applySavedTheme(readSavedThemes()[normalizedCode])) return alert(`Theme '${normalizedCode}' loaded!`);
+            if (await applySavedTheme(readSavedThemes()[normalizedCode])) return alert(`Theme '${normalizedCode}' loaded!`);
             alert("Theme code not found.");
         }
 
@@ -3278,10 +3282,10 @@ main { min-width: 0; }
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = e => {
+            reader.onload = async e => {
                 try {
                     const theme = JSON.parse(e.target.result);
-                    if (!applySavedTheme(theme)) throw new Error('Invalid theme colors.');
+                    if (!await applySavedTheme(theme)) throw new Error('Invalid theme colors.');
                     alert("Theme imported successfully!");
                 } catch (err) {
                     alert("Invalid theme file.");
@@ -3891,6 +3895,7 @@ main { min-width: 0; }
 <script src="js/flux-auth-guard.js"></script>
 <script src="js/flux-auth.js?v=20261029-firebase"></script>
 <script src="js/flux-data-client.js?v=20261102-themes"></script>
+<script src="js/flux-theme-media.js"></script>
 <script src="js/flux-review-data.js"></script>
 <script src="js/flux-reviews.js"></script>
 <script src="js/discord-chat.js"></script>

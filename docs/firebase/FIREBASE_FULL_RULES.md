@@ -106,6 +106,37 @@ service cloud.firestore {
       match /tabCloakPresets/{document=**} { allow read, write: if signedIn() && request.auth.uid == userId; }
     }
 
+    // Theme bundles contain colors and optional public backgrounds/homepage layouts.
+    function validSharedBackground(value) {
+      return value is map && (
+        (value.keys().hasOnly(['kind']) && value.kind == 'none') ||
+        (value.keys().hasAll(['kind', 'tint', 'blur', 'fit'])
+          && value.tint is number && value.tint >= 0 && value.tint <= 90
+          && value.blur is number && value.blur >= 0 && value.blur <= 12
+          && value.fit in ['cover', 'contain']
+          && (!('preview' in value) || (value.preview is string && value.preview.size() <= 24000
+            && value.preview.matches('^data:image/(webp|jpeg);base64,[a-zA-Z0-9+/]+={0,2}$')))
+          && (
+            (value.kind == 'url' && value.keys().hasAll(['url'])
+              && value.keys().hasOnly(['kind', 'url', 'tint', 'blur', 'fit', 'preview'])
+              && value.url is string && value.url.size() <= 3000 && value.url.matches('^https://[^/@:?#]+(:[0-9]+)?(/.*)?([?].*)?(#.*)?$')) ||
+            (value.kind == 'asset' && value.keys().hasAll(['assetId'])
+              && value.keys().hasOnly(['kind', 'assetId', 'tint', 'blur', 'fit', 'preview'])
+              && value.assetId is string && value.assetId.matches('^[a-f0-9]{32}$')
+              && get(/databases/$(database)/documents/theme_backgrounds/$(value.assetId)).data.ready == true)
+          )
+        )
+      );
+    }
+    function validSharedHomepage(value) {
+      return value is map && value.keys().hasAll(['order', 'hidden', 'columns', 'hero'])
+        && value.keys().hasOnly(['order', 'hidden', 'columns', 'hero'])
+        && value.order is list && value.order.size() == 4 && value.order.toSet().size() == 4
+        && value.order.hasOnly(['welcome', 'stats', 'recent', 'hot'])
+        && value.hidden is list && value.hidden.size() <= 4 && value.hidden.toSet().size() == value.hidden.size()
+        && value.hidden.hasOnly(['welcome', 'stats', 'recent', 'hot'])
+        && value.columns in ['auto', '3', '4', '5', '6'] && value.hero in ['full', 'compact'];
+    }
     match /themes/{themeId} {
       function color(value) { return value is string && value.matches('^#[a-fA-F0-9]{6}$'); }
       function validTheme() {
@@ -115,9 +146,11 @@ service cloud.firestore {
           && data.ownerUid == request.auth.uid && data.updatedAt == request.time
           && data.theme is map
           && data.theme.keys().hasAll(['accent', 'bg', 'cardBg', 'borderColor', 'textColor'])
-          && data.theme.keys().hasOnly(['accent', 'bg', 'cardBg', 'borderColor', 'textColor'])
+          && data.theme.keys().hasOnly(['accent', 'bg', 'cardBg', 'borderColor', 'textColor', 'background', 'homepage'])
           && color(data.theme.accent) && color(data.theme.bg) && color(data.theme.cardBg)
-          && color(data.theme.borderColor) && color(data.theme.textColor);
+          && color(data.theme.borderColor) && color(data.theme.textColor)
+          && (!('background' in data.theme) || validSharedBackground(data.theme.background))
+          && (!('homepage' in data.theme) || validSharedHomepage(data.theme.homepage));
       }
       function validPublication() {
         let data = request.resource.data;
@@ -133,16 +166,48 @@ service cloud.firestore {
           && !themeId.matches('^flux-(emerald|ocean|violet|rose|amber)$');
       }
       allow read: if true;
-      allow create: if signedIn() && writableCode() && validTheme() && validPublication()
+      allow create: if signedIn() && !isActiveBan() && writableCode() && validTheme() && validPublication()
         && (!('publishedAt' in request.resource.data) || request.resource.data.publishedAt == request.time);
-      // Legacy unowned codes can be claimed once. Owned codes cannot change hands.
-      allow update: if signedIn() && writableCode()
+      allow update: if signedIn() && !isActiveBan() && writableCode()
         && resource.data.get('ownerUid', request.auth.uid) == request.auth.uid
         && validTheme() && validPublication()
         && (!('publishedAt' in request.resource.data)
           || request.resource.data.publishedAt == request.time
           || request.resource.data.publishedAt == resource.data.get('publishedAt', null));
       allow delete: if signedIn() && (resource.data.get('ownerUid', '') == request.auth.uid || isFluxAdmin());
+    }
+    match /theme_backgrounds/{assetId} {
+      function validAsset() {
+        let data = request.resource.data;
+        return assetId.matches('^[a-f0-9]{32}$')
+          && data.keys().hasAll(['ownerUid', 'contentType', 'size', 'chunkCount', 'sha256', 'ready', 'createdAt'])
+          && data.keys().hasOnly(['ownerUid', 'contentType', 'size', 'chunkCount', 'sha256', 'ready', 'createdAt'])
+          && data.ownerUid == request.auth.uid && data.ready == false && data.createdAt == request.time
+          && data.contentType in ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']
+          && data.size is int && data.size > 0 && data.size <= 10485760
+          && data.chunkCount is int && data.chunkCount >= 1 && data.chunkCount <= 20
+          && data.size > (data.chunkCount - 1) * 524288 && data.size <= data.chunkCount * 524288
+          && data.sha256 is string && data.sha256.matches('^[a-f0-9]{64}$');
+      }
+      allow get: if resource.data.ready || (signedIn() && resource.data.ownerUid == request.auth.uid);
+      allow create: if signedIn() && !isActiveBan() && validAsset();
+      allow update: if signedIn() && !isActiveBan() && resource.data.ownerUid == request.auth.uid
+        && !resource.data.ready && request.resource.data.ready == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ready']);
+      // Published bytes remain stable when another creator reuses a background.
+      allow delete: if isFluxAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid && !resource.data.ready);
+      match /chunks/{chunkId} {
+        function asset() { return get(/databases/$(database)/documents/theme_backgrounds/$(assetId)).data; }
+        function writer() { return signedIn() && asset().ownerUid == request.auth.uid && !asset().ready; }
+        allow get: if asset().ready || (signedIn() && asset().ownerUid == request.auth.uid);
+        allow create: if writer() && !isActiveBan()
+          && request.resource.data.keys().hasAll(['index', 'bytes']) && request.resource.data.keys().hasOnly(['index', 'bytes'])
+          && request.resource.data.index is int && request.resource.data.index >= 0 && request.resource.data.index < asset().chunkCount
+          && chunkId.matches('^[01][0-9]$') && int(chunkId) == request.resource.data.index
+          && request.resource.data.bytes is bytes && request.resource.data.bytes.size() > 0 && request.resource.data.bytes.size() <= 524288
+          && request.resource.data.bytes.size() == (request.resource.data.index == asset().chunkCount - 1 ? asset().size - request.resource.data.index * 524288 : 524288);
+        allow delete: if writer() || isFluxAdmin();
+      }
     }
 
     match /memorial_entries/{entryId} {

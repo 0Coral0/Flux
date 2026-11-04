@@ -7,7 +7,7 @@
   function create(win) {
     const doc = win.document, el = id => doc.getElementById(id), dialog = el('theme-publish-dialog');
     let items = [], cursor = null, hasMore = false, loaded = false, pending = null, loadingError = false;
-    let draft = null, generation = 0, publishing = false;
+    let draft = null, generation = 0, publishing = false, applying = false;
     const node = (tag, className, text) => { const value = doc.createElement(tag); if (className) value.className = className; if (text !== undefined) value.textContent = text; return value; };
     function notice(id, message = '', error = false) { const target = el(id); target.textContent = message; target.dataset.error = String(error); }
     function cache(code, theme) {
@@ -31,14 +31,23 @@
     function preview(theme, badge) {
       const result = node('div', 'theme-card-preview'); result.setAttribute('aria-hidden', 'true');
       for (const [key, variable] of [['accent','accent'], ['bg','bg'], ['cardBg','card'], ['borderColor','border'], ['textColor','text']]) result.style.setProperty('--theme-' + variable, theme[key]);
+      if (theme.background?.preview) {
+        const image = node('img', 'theme-preview-background'); image.src = theme.background.preview; image.alt = ''; image.loading = 'lazy'; image.decoding = 'async';
+        image.style.objectFit = theme.background.fit; image.style.filter = 'blur(' + Math.min(theme.background.blur / 3, 4) + 'px)';
+        const tint = node('span', 'theme-preview-tint'); tint.style.opacity = String(theme.background.tint / 100); result.append(image, tint);
+      }
       result.append(node('span', 'theme-card-badge', badge));
       const rail = node('div', 'theme-card-rail'); rail.append(node('b', '', '>F'), node('i'), node('i'), node('i'));
       const canvas = node('div', 'theme-card-canvas'), blocks = node('div'); blocks.append(node('i'), node('i'), node('i'));
       canvas.append(node('strong', '', 'Make it yours.'), node('span'), blocks); result.append(rail, canvas); return result;
     }
-    function apply(item) {
-      if (!win.applySavedTheme(item.theme)) throw new Error('This theme could not be applied. Please try another code.');
-      cache(item.code, item.theme); notice('theme-shop-status', `${item.name || 'Theme'} applied. Your colors are saved on this device.`);
+    async function apply(item) {
+      if (applying) throw new Error('Your previous theme is still applying.');
+      applying = true; notice('theme-shop-status', item.theme.background ? 'Applying theme and background…' : 'Applying theme…');
+      try {
+        if (!await win.applySavedTheme(item.theme)) throw new Error('This theme could not be applied. Please try another code.');
+        cache(item.code, item.theme); notice('theme-shop-status', `${item.name || 'Theme'} applied. Your look is saved on this device.`);
+      } finally { applying = false; }
     }
     async function copy(code, button) {
       try {
@@ -52,11 +61,12 @@
       result.append(preview(item.theme, isOriginal ? 'Flux original' : 'Community theme'));
       const body = node('div', 'theme-card-body'), footer = node('div', 'theme-card-footer');
       body.append(node('h4', '', item.name), node('p', 'theme-card-author', isOriginal ? 'A Flux original' : 'Shared by ' + item.sharedBy));
+      body.append(node('p', 'theme-card-includes', ['Colors', ...(item.theme.background ? ['Background'] : []), ...(item.theme.homepage ? ['Home layout'] : [])].join(' · ')));
       const codeButton = node('button', 'theme-card-code', item.code); codeButton.type = 'button'; codeButton.title = 'Copy code: ' + item.code;
       codeButton.setAttribute('aria-label', 'Copy theme code ' + item.code); codeButton.addEventListener('click', () => copy(item.code, codeButton));
       const use = node('button', 'theme-card-apply', 'Use theme'); use.type = 'button'; use.dataset.applyTheme = item.code; use.setAttribute('aria-label', 'Use ' + item.name + ' theme');
       const arrow = node('i', 'fa-solid fa-arrow-right'); arrow.setAttribute('aria-hidden', 'true'); use.append(arrow);
-      use.addEventListener('click', () => { try { apply(item); } catch (error) { notice('theme-shop-status', error.message, true); } });
+      use.addEventListener('click', async () => { use.disabled = true; try { await apply(item); } catch (error) { notice('theme-shop-status', error.message, true); } finally { use.disabled = false; } });
       footer.append(codeButton, use); body.append(footer); result.append(body); return result;
     }
     function empty(title, description) {
@@ -96,17 +106,26 @@
       el('theme-publish-identity').textContent = signedIn ? 'Shared as ' + (win.getProfileData?.().name || win.fluxAuthState.name || 'Flux member') : 'Sign in to share. Everyone can browse and use themes.';
       if (!publishing) el('theme-publish-submit').textContent = signedIn ? 'Publish theme' : 'Sign in to share';
     }
+    function updateChoices(reset = false) {
+      const background = el('theme-publish-background'), homepage = el('theme-publish-homepage');
+      if (!background || !homepage) return;
+      const current = win.fluxBackgrounds?.getPreferences?.(), available = !!draft?.theme.background || (!!draft && current?.kind && current.kind !== 'none');
+      if (reset) { background.checked = !!available; homepage.checked = !!draft?.theme.homepage; }
+      background.disabled = publishing || !available; homepage.disabled = publishing;
+      el('theme-publish-background-note').textContent = available ? (draft?.theme.background ? 'The background saved with this code, including its tint, blur, and fit.' : 'Your current background, including its tint, blur, and fit.') : 'Choose Use my current look after adding a background in Settings → Appearance.';
+      el('theme-publish-media-notice').hidden = !background.checked;
+    }
     function showDraft(value, label) {
       draft = value; el('theme-publish-code').value = value.code;
       const swatch = el('theme-publish-swatch'); swatch.replaceChildren(preview(value.theme, label)); swatch.hidden = false;
-      notice('theme-publish-status', 'Colors are ready. Add a name, then publish your theme.');
+      updateChoices(true); notice('theme-publish-status', 'Your theme is ready. Choose what to include, add a name, then publish.');
     }
     function currentColors() {
       const theme = themes.normalizeTheme(win.getCurrentTheme());
       if (!theme) throw new Error('Choose valid colors in Settings first.');
       let code = el('theme-publish-code').value.trim();
       if (!code || themes.original(code.toLowerCase())) code = 'theme-' + (win.crypto?.randomUUID?.().replaceAll('-', '').slice(0, 10) || Date.now().toString(36));
-      code = themes.normalizeCode(code); generation++; showDraft({ code, theme }, 'Your current colors');
+      code = themes.normalizeCode(code); generation++; showDraft({ code, theme, source: 'current' }, 'Your current look');
     }
     async function lookup() {
       const version = ++generation, code = themes.normalizeCode(el('theme-publish-code').value);
@@ -119,7 +138,7 @@
       if (publishing) { notice('theme-shop-status', 'Your theme is still publishing. Please wait a moment.'); return; }
       if (dialog.open) return;
       generation++; draft = null; el('theme-publish-form').reset(); el('theme-publish-swatch').hidden = true;
-      notice('theme-publish-status'); updateAuth(); dialog.showModal();
+      notice('theme-publish-status'); updateChoices(true); updateAuth(); dialog.showModal();
       if (useCurrent) { try { currentColors(); } catch (error) { notice('theme-publish-status', error.message, true); } }
       (useCurrent ? el('theme-publish-name') : el('theme-publish-code')).focus();
     }
@@ -130,19 +149,29 @@
       try { code = themes.normalizeCode(el('theme-publish-code').value); title = themes.normalizeName(el('theme-publish-name').value); }
       catch (error) { notice('theme-publish-status', error.message, true); return; }
       publishing = true;
+      el('theme-publish-close').disabled = true;
       for (const id of ['theme-publish-submit','theme-publish-preview','theme-publish-current','theme-publish-code','theme-publish-name']) el(id).disabled = true;
+      updateChoices();
       el('theme-publish-submit').textContent = 'Publishing…';
       try {
         if (!draft || draft.code !== code) await lookup();
         if (!draft || draft.code !== code) throw new Error('The code changed. Preview your theme again.');
-        const result = await win.fluxData.publishTheme(code, title, draft.theme);
+        await win.fluxData.assertThemeWritable?.(code);
+        const owner = win.fluxAuthState.uid, shared = { ...draft.theme };
+        if (el('theme-publish-background')?.checked) shared.background = draft.theme.background || await win.fluxBackgrounds.exportForTheme(percent => notice('theme-publish-status', 'Sharing your background… ' + percent + '%'));
+        else delete shared.background;
+        if (el('theme-publish-homepage')?.checked) shared.homepage = themes.normalizeHomepage(draft.theme.homepage || win.fluxHomeEditor.getPreferences());
+        else delete shared.homepage;
+        if (win.fluxAuthState?.uid !== owner) throw new Error('Your account changed. Please publish again.');
+        const result = await win.fluxData.publishTheme(code, title, shared);
         cache(code, result.theme); items = [result, ...items.filter(item => item.code !== code)]; loadingError = false; render();
         dialog.close(); notice('theme-shop-status', `${title} is shared. Anyone can use the code ${code}.`);
       } catch (error) { notice('theme-publish-status', error.message || 'Theme sharing is unavailable right now. Please try again.', true); }
       finally {
         publishing = false;
+        el('theme-publish-close').disabled = false;
         for (const id of ['theme-publish-submit','theme-publish-preview','theme-publish-current','theme-publish-code','theme-publish-name']) el(id).disabled = false;
-        updateAuth();
+        updateChoices(); updateAuth();
       }
     }
     function start() {
@@ -151,13 +180,15 @@
       el('theme-shop-share').addEventListener('click', () => open());
       el('theme-shop-create').addEventListener('click', () => open(true));
       el('theme-publish-close').addEventListener('click', () => dialog.close());
-      el('theme-publish-code').addEventListener('input', () => { generation++; draft = null; el('theme-publish-swatch').hidden = true; notice('theme-publish-status'); });
+      dialog.addEventListener('cancel', event => { if (publishing) event.preventDefault(); });
+      el('theme-publish-code').addEventListener('input', () => { generation++; draft = null; el('theme-publish-swatch').hidden = true; updateChoices(true); notice('theme-publish-status'); });
       el('theme-publish-current').addEventListener('click', () => { try { currentColors(); } catch (error) { notice('theme-publish-status', error.message, true); } });
+      el('theme-publish-background')?.addEventListener('change', () => updateChoices());
       el('theme-publish-preview').addEventListener('click', () => lookup().catch(error => notice('theme-publish-status', error.message, true)));
       el('theme-publish-form').addEventListener('submit', publish);
       el('theme-shop-code-form').addEventListener('submit', async event => {
         event.preventDefault(); const button = el('theme-shop-code-form').querySelector('button'); button.disabled = true;
-        try { const item = await readCode(el('theme-shop-code').value); apply({ ...item, name: 'Theme ' + item.code }); }
+        try { const item = await readCode(el('theme-shop-code').value); await apply({ ...item, name: 'Theme ' + item.code }); }
         catch (error) { notice('theme-shop-status', error.message, true); }
         finally { button.disabled = false; }
       });

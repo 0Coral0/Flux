@@ -26,4 +26,4 @@ This script is restricted to that local demo endpoint and never writes to produc
 
 ## Personalization storage
 
-Homepage preferences use `flux_home_preferences_v1` locally and `homepage` in the account's existing settings document. Wallpaper preferences use `flux_background_preferences_v1`; uploaded original image bytes stay in IndexedDB (`flux-personal-media/backgrounds`). Wallpaper uploads do not publish files to Firebase or other users. Animated bytes are retained without canvas re-encoding. Lite Mode and reduced motion detach the wallpaper source and revoke temporary URLs.
+Homepage preferences use `flux_home_preferences_v1` locally and `homepage` in the account's existing settings document. Wallpaper preferences use `flux_background_preferences_v1`; uploaded original image bytes save in IndexedDB (`flux-personal-media/backgrounds`). Uploading in Appearance does not publish the image. A user can explicitly include it when publishing through [Theme Shop](THEME_SHOP.md). Animated bytes are retained without canvas re-encoding. Lite Mode and reduced motion detach the wallpaper source and revoke temporary URLs.

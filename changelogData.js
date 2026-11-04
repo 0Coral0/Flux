@@ -9,7 +9,8 @@ const changelogData = [
                 "title": "Your homepage",
                 "items": [
                     "Added a homepage editor with draggable sections, move controls, hide and show, game columns, and a compact welcome banner. Layouts save locally and sync with signed-in accounts.",
-                    "Added image backgrounds from links or uploads, including animated GIFs and WebP, with theme tint, blur, and fit controls. Backgrounds stay on the device and pause in Lite Mode or reduced motion."
+                    "Added image backgrounds from links or uploads, including animated GIFs and WebP, with theme tint, blur, and fit controls. Backgrounds save locally and pause in Lite Mode or reduced motion.",
+                    "Theme Shop can now share backgrounds and homepage layouts with a theme code. Creators choose what to include, and animated uploads keep their original animation."
                 ]
             },
             {

@@ -113,7 +113,7 @@ test('reserved originals and malformed colors cannot be written', async () => {
   assert.equal(api.writes(), 0);
 });
 
-function uiFixture({ signedIn = true, service = {} } = {}) {
+function uiFixture({ signedIn = true, service = {}, background = { kind: 'none' } } = {}) {
   const nodes = {}, storage = new Map(), events = {}; let applied;
   const doc = { activeElement: null };
   function node() {
@@ -126,11 +126,13 @@ function uiFixture({ signedIn = true, service = {} } = {}) {
       reset() { nodes['theme-publish-code'].value = ''; nodes['theme-publish-name'].value = ''; }, querySelector() { return nodes.codeSubmit; }
     };
   }
-  for (const id of ['theme-publish-dialog','theme-shop-status','theme-publish-status','theme-community-grid','theme-shop-more','theme-shop-refresh','theme-shop-search','theme-originals-grid','theme-publish-identity','theme-publish-submit','theme-publish-code','theme-publish-name','theme-publish-preview','theme-publish-current','theme-publish-swatch','theme-publish-form','theme-shop-share','theme-shop-create','theme-publish-close','theme-shop-code-form','theme-shop-code','flux-auth-email','codeSubmit']) nodes[id] = node();
+  for (const id of ['theme-publish-dialog','theme-shop-status','theme-publish-status','theme-community-grid','theme-shop-more','theme-shop-refresh','theme-shop-search','theme-originals-grid','theme-publish-identity','theme-publish-submit','theme-publish-code','theme-publish-name','theme-publish-preview','theme-publish-current','theme-publish-swatch','theme-publish-form','theme-shop-share','theme-shop-create','theme-publish-close','theme-shop-code-form','theme-shop-code','flux-auth-email','codeSubmit','theme-publish-background','theme-publish-homepage','theme-publish-background-note','theme-publish-media-notice']) nodes[id] = node();
   doc.getElementById = id => nodes[id]; doc.createElement = node;
   const win = { document: doc, navigator: {}, setTimeout, clearTimeout,
     fluxAuthState: signedIn ? { status: 'signed-in', uid: 'alice', name: 'Alice' } : { status: 'signed-out' },
     getProfileData: () => ({ name: 'Alice' }), getCurrentTheme: () => ocean,
+    fluxBackgrounds: { getPreferences: () => background, exportForTheme: async () => background },
+    fluxHomeEditor: { getPreferences: () => ({order:['recent','welcome','stats','hot'],hidden:['stats'],columns:'4',hero:'compact'}) },
     localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) },
     addEventListener: (key, fn) => { events[key] = fn; }, showPage: page => { win.page = page; },
     applySavedTheme: theme => { applied = theme; return true; },
@@ -188,4 +190,50 @@ test('the catalog can retry after its data service becomes available', async () 
   ui.win.fluxData = { listPublishedThemes: async () => ({ themes: [{ code: 'back-online', name: 'Back Online', theme: ocean, sharedBy: 'Alice' }], cursor: null, hasMore: false }) };
   await ui.controller.load(true);
   assert.equal(ui.nodes['theme-community-grid'].children[0].className, 'theme-shop-card');
+});
+
+test('publishing a current look includes the chosen background controls and an optional homepage', async () => {
+  let sent;
+  const background={kind:'url',url:'https://images.example/animated.gif',tint:35,blur:2,fit:'contain'};
+  const ui=uiFixture({background,service:{publishTheme:async(code,name,theme)=>{sent=theme;return {code,name,theme,sharedBy:'Alice'};}}});
+  ui.controller.open(true);ui.nodes['theme-publish-name'].value='My full look';ui.nodes['theme-publish-homepage'].checked=true;
+  assert.equal(ui.nodes['theme-publish-background'].checked,true);
+  await ui.nodes['theme-publish-form'].dispatch('submit');
+  assert.deepEqual(sent.background,background);assert.equal(sent.homepage.columns,'4');assert.equal(sent.homepage.updatedAt,undefined);
+});
+
+test('the creator can explicitly leave background and homepage out of a shared code', async () => {
+  let sent;
+  const ui=uiFixture({background:{kind:'url',url:'https://images.example/a.gif',tint:50,blur:0,fit:'cover'},service:{publishTheme:async(code,name,theme)=>{sent=theme;return {code,name,theme,sharedBy:'Alice'};}}});
+  ui.controller.open(true);ui.nodes['theme-publish-name'].value='Colors only';ui.nodes['theme-publish-background'].checked=false;
+  await ui.nodes['theme-publish-form'].dispatch('submit');assert.deepEqual(sent,ocean);
+});
+
+test('saving updated colors preserves an already published background and layout', async () => {
+  const background={kind:'url',url:'https://images.example/a.gif',tint:50,blur:0,fit:'cover'};
+  const api=adapter({saved:{owned:{ownerUid:'alice',theme:{...ocean,background}}}});
+  await api.win.fluxData.saveTheme('owned',themes.normalizeTheme(themes.presets[0]));
+  assert.deepEqual(api.records.get('owned').theme.background,background);
+});
+
+test('a background apply failure is shown and does not falsely confirm the theme', async () => {
+  const ui=uiFixture();ui.win.applySavedTheme=async()=>{throw Error('Shared background is unavailable');};
+  ui.nodes['theme-shop-code'].value='flux-ocean';await ui.nodes['theme-shop-code-form'].dispatch('submit');
+  assert.match(ui.nodes['theme-shop-status'].textContent,/unavailable/);assert.equal(ui.nodes['theme-shop-status'].dataset.error,'true');
+});
+
+test('a saved color code can include the current background without replacing its colors', async () => {
+  let sent;
+  const background={kind:'url',url:'https://images.example/a.gif',tint:45,blur:1,fit:'cover'};
+  const ui=uiFixture({background,service:{publishTheme:async(code,name,theme)=>{sent=theme;return {code,name,theme,sharedBy:'Alice'};}}});
+  ui.controller.open();ui.nodes['theme-publish-code'].value='saved-colors';ui.nodes['theme-publish-name'].value='Saved look';
+  await ui.nodes['theme-publish-preview'].dispatch('click');assert.equal(ui.nodes['theme-publish-background'].checked,true);
+  await ui.nodes['theme-publish-form'].dispatch('submit');assert.deepEqual(sent,{...ocean,background});
+});
+
+test('code ownership is checked before uploading a background', async () => {
+  let uploads=0;
+  const ui=uiFixture({background:{kind:'upload'},service:{assertThemeWritable:async()=>{throw Error('That code belongs to another creator');}}});
+  ui.win.fluxBackgrounds.exportForTheme=async()=>{uploads++;};ui.controller.open(true);ui.nodes['theme-publish-name'].value='My look';
+  await ui.nodes['theme-publish-form'].dispatch('submit');assert.equal(uploads,0);assert.match(ui.nodes['theme-publish-status'].textContent,/another creator/);
 });

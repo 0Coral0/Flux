@@ -26,7 +26,7 @@
     await store.runTransaction(async transaction => {
       const record = await transaction.get(ref), previous = record.exists ? record.data() : {};
       if (previous.ownerUid && previous.ownerUid !== me.uid) throw themeConflict();
-      const theme = themes().normalizeTheme(value || previous.theme || previous);
+      const theme = themes().normalizeTheme(title === null && value ? { ...(previous.theme || previous), ...value } : value || previous.theme || previous);
       if (!theme) throw new Error('That code does not contain valid theme colors. Save your colors first.');
       const body = { theme, ownerUid: me.uid, updatedAt: stamp() };
       if (title !== null) Object.assign(body, { shopName: title, sharedBy: themeAuthor(me), publishedAt: stamp() });
@@ -37,6 +37,12 @@
     return result;
   }
   async function saveTheme(code, theme) { return writeTheme(code, theme); }
+  async function assertThemeWritable(code) {
+    const me = account(), key = themes().normalizeCode(code);
+    if (themes().original(key)) throw new Error('Flux original codes are reserved. Choose a new code for your look.');
+    const record = await db().collection('themes').doc(key).get();
+    if (record.exists && record.data().ownerUid && record.data().ownerUid !== me.uid) throw themeConflict();
+  }
   async function publishTheme(code, title, theme) { return writeTheme(code, theme, title); }
   async function listPublishedThemes({ after = null, limit = 18 } = {}) {
     const size = Math.max(1, Math.min(36, Math.trunc(Number(limit)) || 18));
@@ -85,5 +91,5 @@
     if (type === 'group' && !room.name) throw new Error('A group name is required.'); if (!previous.exists) await ref.set({ ...room, createdAt: stamp(), updatedAt: stamp() }); return { room };
   }
   async function chat(path, options = {}) { const method = String(options.method || 'GET').toUpperCase(), body = options.body || {}; if (path === '/me') return method === 'PUT' ? saveMe(body) : getMe(); if (path.startsWith('/users?name=')) return findUser(decodeURIComponent(path.split('=')[1] || '')); if (path === '/friends' && method === 'POST') return makeFriend(body); if (path.startsWith('/friends/') && (method === 'PUT' || method === 'DELETE')) return respondFriend(path.slice(9), method); if (path === '/rooms' && method === 'POST') return createRoom(body); throw new Error('That Firebase chat action is not available.'); }
-  win.FLUX_DATA_PROVIDER = 'firebase'; win.fluxData = Object.freeze({ health: async () => ({ ok: true, provider: 'firebase' }), loadTheme, saveTheme, publishTheme, listPublishedThemes, getSettings, putSettings, chat });
+  win.FLUX_DATA_PROVIDER = 'firebase'; win.fluxData = Object.freeze({ health: async () => ({ ok: true, provider: 'firebase' }), loadTheme, saveTheme, publishTheme, assertThemeWritable, listPublishedThemes, getSettings, putSettings, chat });
 })(window);
