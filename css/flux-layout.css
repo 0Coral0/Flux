@@ -18,16 +18,19 @@ main { box-sizing: border-box; min-height: 0; }
 #flux-sidebar .brand-name { font-size: 1.08rem; font-weight: 800; letter-spacing: -.04em; }
 #flux-sidebar .brand-subtitle { font-size: .62rem; letter-spacing: .04em; opacity: .75; }
 #flux-sidebar .brand-actions {
-  gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 13px;
-  background: rgba(var(--accent-rgb), .025);
+  gap: 7px; padding: 0;
 }
 #flux-sidebar .header-action.nav-item {
-  flex: 0 0 32px; width: 32px; height: 32px; min-height: 32px;
-  border: 1px solid transparent; border-radius: 9px;
+  flex: 0 0 34px; width: 34px; height: 34px; min-height: 34px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--bg);
   transition: color .18s ease, background .18s ease, border-color .18s ease;
 }
 #flux-sidebar .header-action.profile-shortcut { border-radius: 50%; }
 #flux-sidebar .header-action:hover { color: var(--text); background: var(--surface-hover); border-color: var(--border-active); }
+#flux-sidebar .header-action.active {
+  color: var(--accent); background: rgba(var(--accent-rgb), .1);
+  border-color: rgba(var(--accent-rgb), .35); box-shadow: none;
+}
 #flux-sidebar .nav-list { gap: 6px; margin-top: 20px; padding: 2px; scroll-padding: 4px; }
 #flux-sidebar .nav-list .nav-item {
   position: relative; min-height: 46px; padding: 12px 14px; gap: 12px;

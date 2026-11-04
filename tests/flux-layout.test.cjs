@@ -27,3 +27,14 @@ test('layout controls and saved interface assets are wired into the Flux shell',
   assert.match(css, /body\.flux-nav-horizontal #flux-sidebar \.nav-list \.nav-item/);
   assert.match(css, /flex-direction: column/);
 });
+
+test('existing layouts replace the Theme Shop tab with Changelog without moving the new shortcut into the page list', () => {
+  const saved = { navigation: 'horizontal', density: 'spacious', order: ['settings', 'themes', 'archives', 'changelog', 'account', 'dashboard'] };
+  const value = layout.normalize(saved);
+  assert.equal(value.navigation, 'horizontal');
+  assert.equal(value.density, 'spacious');
+  assert.deepEqual(value.order, ['settings', 'changelog', 'archives', 'dashboard', 'chat', 'records']);
+  assert.equal(value.order.includes('themes'), false);
+  assert.deepEqual(layout.normalize(value), value);
+  assert.deepEqual(saved.order, ['settings', 'themes', 'archives', 'changelog', 'account', 'dashboard']);
+});

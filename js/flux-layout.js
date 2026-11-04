@@ -8,15 +8,18 @@
 })(typeof window === 'undefined' ? null : window, function () {
   'use strict';
   const storageKey = 'flux_layout_preferences';
-  const defaults = Object.freeze({ navigation: 'vertical', density: 'comfortable', order: ['dashboard', 'chat', 'archives', 'themes', 'records', 'settings'] });
-  const labels = Object.freeze({ dashboard: 'Home', chat: 'Chat', archives: 'Games', themes: 'Theme Shop', records: 'Records', settings: 'Settings' });
+  const defaults = Object.freeze({ navigation: 'vertical', density: 'comfortable', order: ['dashboard', 'chat', 'archives', 'changelog', 'records', 'settings'] });
+  const labels = Object.freeze({ dashboard: 'Home', chat: 'Chat', archives: 'Games', changelog: 'Changelog', records: 'Records', settings: 'Settings' });
   const safeRead = (storage, key) => { try { return JSON.parse(storage.getItem(key) || '{}'); } catch (_) { return {}; } };
   const normalize = value => {
     const saved = value && typeof value === 'object' ? value : {};
     const navigation = ['vertical', 'horizontal'].includes(saved.navigation) ? saved.navigation : defaults.navigation;
     const density = ['compact', 'comfortable', 'spacious'].includes(saved.density) ? saved.density : defaults.density;
     const known = new Set(defaults.order); const order = [];
-    for (const id of Array.isArray(saved.order) ? saved.order : []) if (known.has(id) && !order.includes(id)) order.push(id);
+    for (const id of Array.isArray(saved.order) ? saved.order : []) {
+      const page = id === 'themes' ? 'changelog' : id;
+      if (known.has(page) && !order.includes(page)) order.push(page);
+    }
     for (const id of defaults.order) if (!order.includes(id)) order.push(id);
     return { navigation, density, order };
   };
