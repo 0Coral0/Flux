@@ -14,7 +14,8 @@
 .background-controls input, .background-controls select { width: 100%; min-width: 0; }
 .background-controls input[type="range"] { accent-color: var(--accent); }
 .home-customize-bar { display: flex; justify-content: flex-end; margin: 0 0 16px; }
-.home-customize-bar .action-btn { min-height: 36px; font-size: .72rem; }
+.home-customize-bar .action-btn { min-height: 36px; padding: 6px 0 6px 12px; border-color: transparent; background: transparent; color: var(--text-dim); font-size: .72rem; }
+.home-customize-bar .action-btn:hover, .home-customize-bar .action-btn[aria-expanded="true"] { color: var(--accent); }
 .home-editor-panel { display: grid; gap: 17px; padding: 20px; margin-bottom: 26px; background: var(--surface-card); border: 1px solid rgba(var(--accent-rgb), .3); border-radius: 14px; }
 .home-editor-panel h3 { margin: 0 0 6px; font-size: .95rem; }
 .home-editor-panel p { margin: 0; color: var(--text-dim); font-size: .77rem; line-height: 1.6; }

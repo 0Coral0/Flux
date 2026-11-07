@@ -4,8 +4,8 @@ main { box-sizing: border-box; min-height: 0; }
 #flux-sidebar {
   box-sizing: border-box;
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(var(--accent-rgb), .035), transparent 42%), var(--surface);
-  box-shadow: 8px 0 32px #0002;
+  background: var(--surface);
+  box-shadow: none;
 }
 #flux-sidebar .brand-box { gap: 10px; }
 #flux-sidebar .brand-home { flex: 1; width: auto; }
@@ -16,13 +16,13 @@ main { box-sizing: border-box; min-height: 0; }
   box-shadow: inset 0 1px 0 #ffffff08;
 }
 #flux-sidebar .brand-name { font-size: 1.08rem; font-weight: 800; letter-spacing: -.04em; }
-#flux-sidebar .brand-subtitle { font-size: .62rem; letter-spacing: .04em; opacity: .75; }
+#flux-sidebar .brand-subtitle { display: none; }
 #flux-sidebar .brand-actions {
   gap: 7px; padding: 0;
 }
 #flux-sidebar .header-action.nav-item {
   flex: 0 0 34px; width: 34px; height: 34px; min-height: 34px;
-  border: 1px solid var(--border); border-radius: 10px; background: var(--bg);
+  border: 1px solid transparent; border-radius: 10px; background: transparent;
   transition: color .18s ease, background .18s ease, border-color .18s ease;
 }
 #flux-sidebar .header-action.profile-shortcut { border-radius: 50%; }
@@ -42,11 +42,11 @@ main { box-sizing: border-box; min-height: 0; }
   display: inline-grid; place-items: center; flex: 0 0 20px; width: 20px;
   font-size: 1rem; opacity: .8;
 }
-#flux-sidebar .nav-list .nav-item:hover { background: var(--surface-hover); border-color: var(--border); }
+#flux-sidebar .nav-list .nav-item:hover { background: var(--surface-hover); border-color: transparent; }
 #flux-sidebar .nav-list .nav-item.active {
-  color: var(--accent); border-color: rgba(var(--accent-rgb), .23);
-  background: linear-gradient(100deg, rgba(var(--accent-rgb), .13), rgba(var(--accent-rgb), .045));
-  box-shadow: inset 0 1px 0 rgba(var(--accent-rgb), .06);
+  color: var(--accent); border-color: transparent;
+  background: rgba(var(--accent-rgb), .08);
+  box-shadow: none;
 }
 #flux-sidebar .nav-list .nav-item.active i { opacity: 1; }
 #flux-sidebar .nav-list .nav-item::after {
@@ -54,19 +54,16 @@ main { box-sizing: border-box; min-height: 0; }
   width: 3px; height: 16px; border-radius: 0 3px 3px 0;
   background: var(--accent); opacity: 0; pointer-events: none;
 }
-#flux-sidebar .nav-list .nav-item.active::after { opacity: 1; }
+#flux-sidebar .nav-list .nav-item.active::after { opacity: 0; }
 #flux-sidebar .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #flux-sidebar .sidebar-status { padding: 10px 4px 0; font-size: .69rem; }
 
 /* A quieter, consistent finish across the home page and shared surfaces. */
 #view-dashboard { padding-bottom: 0; }
-#view-dashboard .module-banner { border-radius: 18px; box-shadow: 0 12px 36px #0003; }
-#view-dashboard .module-banner::before { width: 3px; }
-#view-dashboard .metric-card { border-radius: 14px; box-shadow: 0 6px 24px #0002; }
+#view-dashboard .module-banner { border-radius: 14px; box-shadow: none; }
+#view-dashboard .module-banner::before { width: 2px; box-shadow: none; opacity: .65; }
 #view-dashboard .home-section:last-child { margin-bottom: 0; }
-.home-empty { border-style: solid; background: var(--surface); }
 .flux-footer { margin-top: 36px; }
-main:has(#view-dashboard.active #quick-resume-container:not(:empty)) .flux-footer { padding-bottom: 84px; }
 
 .settings-layout-intro { padding: 6px 0 8px; }
 .settings-layout-intro h3 { margin: 6px 0 7px; font-size: 1.35rem; }
@@ -94,7 +91,7 @@ main:has(#view-dashboard.active #quick-resume-container:not(:empty)) .flux-foote
   body.flux-nav-horizontal #flux-sidebar .nav-list {
     grid-column: 2; grid-row: 1; display: flex; flex-flow: row wrap; align-items: center;
     min-width: 0; margin: 0; padding: 4px; gap: 4px; overflow: visible;
-    border: 1px solid var(--border); border-radius: 15px; background: var(--bg);
+    border: 0; border-radius: 0; background: transparent;
   }
   body.flux-nav-horizontal #flux-sidebar .nav-list .nav-item {
     flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; padding: 10px 9px;
@@ -114,12 +111,14 @@ main:has(#view-dashboard.active #quick-resume-container:not(:empty)) .flux-foote
 }
 
 @media (max-width: 900px) {
-  .mobile-header { background: var(--surface); box-shadow: 0 6px 24px #0002; }
+  .mobile-header { background: var(--surface); box-shadow: none; }
   .mobile-brand-mark, .mobile-icon-button, .mobile-nav-button { border-radius: 12px; }
   #flux-sidebar .brand-box { flex-wrap: wrap; row-gap: 12px; padding-bottom: 18px; }
   #flux-sidebar .header-action.nav-item { flex-basis: 44px; width: 44px; height: 44px; min-height: 44px; }
   #flux-sidebar .nav-list .nav-item { min-height: 48px; }
   #view-dashboard .module-banner { border-radius: 14px; }
+  .mobile-icon-button { background: transparent; border-color: transparent; }
+  .mobile-nav-button[aria-current="page"] { background: transparent; border-color: transparent; }
   .settings-order-row { align-items: stretch; }
   .layout-page-order { width: 100%; }
 }

@@ -6,7 +6,7 @@
   'use strict';
   const storageKey = 'flux_home_preferences_v1';
   const ids = ['welcome', 'stats', 'recent', 'hot'];
-  const labels = { welcome: 'Welcome banner', stats: 'Game and account stats', recent: 'Recently added', hot: 'Hot games' };
+  const labels = { welcome: 'Welcome banner', stats: 'Library and account', recent: 'Recently added', hot: 'Popular games' };
   const defaults = { order: ids, hidden: [], columns: 'auto', hero: 'full', updatedAt: 0 };
   function normalize(value) {
     const saved = value && typeof value === 'object' ? value : {};
