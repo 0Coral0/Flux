@@ -2,8 +2,9 @@
 
 The Home and Games banner placements are wired for manual AdSense display ads.
 Live ads are **disabled** in `js/ads-config.js`. Localhost always shows mockups;
-Vercel never loads the ad provider. No publisher or slot IDs have been supplied.
+Vercel never loads the ad provider. The publisher ID is configured; ad unit slot IDs are still pending.
 The only configured advertising host is `flux-o8vp.onrender.com`; Netlify is not enabled.
+The static ownership meta tag is in `index.html`, and the supplied seller record is in root `ads.txt`.
 
 ## Account and site review
 
