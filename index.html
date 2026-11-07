@@ -1704,6 +1704,7 @@ main { min-width: 0; }
     <script src="js/flux-theme.js"></script>
     <script src="js/flux-performance.js"></script>
     <script src="js/flux-backgrounds.js"></script>
+    <script src="js/ads-config.js"></script>
     <script src="js/flux-ad-previews.js"></script>
 </head>
 
@@ -1950,7 +1951,7 @@ main { min-width: 0; }
                     <p id="home-edit-status" role="status" aria-live="polite"></p>
                 </aside>
                 <p id="home-empty-layout" class="home-empty" hidden>Your homepage is empty. Choose Customize home to show sections again.</p>
-                <aside class="flux-ad-slot" data-ad-preview aria-label="Homepage advertisement preview">
+                <aside class="flux-ad-slot" data-ad-preview data-ad-placement="home" aria-label="Homepage advertisement">
                     <div class="flux-ad-caption"><span>Advertisement</span><span>Preview only</span></div>
                     <div class="flux-ad-box"><i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i><div><strong>Banner ad space</strong><p>A future advertisement would appear here.</p></div></div>
                 </aside>
@@ -2029,7 +2030,7 @@ main { min-width: 0; }
                     </div>
                 </div>
 
-                <aside class="flux-ad-slot" data-ad-preview aria-label="Game library advertisement preview">
+                <aside class="flux-ad-slot" data-ad-preview data-ad-placement="games" aria-label="Game library advertisement">
                     <div class="flux-ad-caption"><span>Advertisement</span><span>Preview only</span></div>
                     <div class="flux-ad-box"><i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i><div><strong>Banner ad space</strong><p>A future advertisement would appear here.</p></div></div>
                 </aside>
@@ -3609,6 +3610,7 @@ main { min-width: 0; }
             }
             const content = document.getElementById('flux-main');
             if (content) content.scrollTop = 0;
+            window.dispatchEvent(new Event('flux-page-changed'));
         }
 
         let archiveSearchTimer = null;
