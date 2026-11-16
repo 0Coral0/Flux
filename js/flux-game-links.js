@@ -55,7 +55,7 @@
           return;
         }
         observer?.disconnect();
-        win.showPage('archives'); options.openGame(pathOf(initialGame), initialGame.name, initialGame.description);
+        win.showPage('games'); options.openGame(pathOf(initialGame), initialGame.name, initialGame.description);
       }
       if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', launch, { once: true }); else launch();
     }

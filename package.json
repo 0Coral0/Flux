@@ -1,5 +1,6 @@
 {
-  "name": "aggw-ultimate",
+  "name": "flux",
+  "productName": "Flux",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {

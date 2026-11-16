@@ -1,10 +1,10 @@
 // ============================================
-// ARCHIVE ENGINE
+// GAME LIBRARY
 // ============================================
 
-function refreshArchives() {
+function refreshGames() {
     const grid = document.getElementById('main-grid');
-    const search = document.getElementById('archive-search').value.toLowerCase();
+    const search = document.getElementById('game-search').value.toLowerCase();
     grid.innerHTML = "";
 
     const list = (typeof gameList !== 'undefined' ? gameList : []);
@@ -68,7 +68,7 @@ function toggleFavoriteByName(gameName) {
     }
 
     localStorage.setItem('aggw_favorites', JSON.stringify(favorites));
-    refreshArchives();
+    refreshGames();
 }
 
 function openGame(gameFile, gameName, gameDescription) {
@@ -77,7 +77,7 @@ function openGame(gameFile, gameName, gameDescription) {
         file: gameFile,
         name: gameName,
         description: gameDescription,
-        thumb: 'AggwLogo.png'
+        thumb: 'Fluxlogo.svg'
     };
 
     incrementPlayCount(gameName);
@@ -173,8 +173,8 @@ function updateRecentPlayed() {
     }
 }
 
-function initArchiveScrollHide() {
-    const container = document.getElementById('view-archives');
+function initGameScrollHide() {
+    const container = document.getElementById('view-games');
     const searchBar = document.querySelector('.search-engine-wrap');
 
     let lastScroll = 0;
@@ -193,19 +193,19 @@ function initArchiveScrollHide() {
 }
 
 // Export functions to window
-window.refreshArchives = refreshArchives;
+window.refreshGames = refreshGames;
 window.toggleFavoriteByName = toggleFavoriteByName;
 window.openGame = openGame;
 window.closeTheater = closeTheater;
 window.refreshGame = refreshGame;
 window.refreshMostPlayed = refreshMostPlayed;
 window.updateRecentPlayed = updateRecentPlayed;
-window.initArchiveScrollHide = initArchiveScrollHide;
+window.initGameScrollHide = initGameScrollHide;
 
-// Initialize archives when DOM is ready
+// Initialize games when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    refreshArchives();
+    refreshGames();
     refreshMostPlayed();
     updateRecentPlayed();
-    setTimeout(initArchiveScrollHide, 100);
+    setTimeout(initGameScrollHide, 100);
 });

@@ -106,7 +106,7 @@
             hotIds = new Set(items.map(item => catalogId(item.game)));
             if (!items.length) empty(target, 'No community plays yet. Be the first to play!');
             else target.replaceChildren(...items.map(item => makeCard(item.game, item.plays.toLocaleString() + (item.plays === 1 ? ' PLAY' : ' PLAYS'))));
-            win.refreshArchives?.();
+            win.refreshGames?.();
           }, () => empty(target, 'Community play counts are temporarily unavailable.'));
         } catch (_) { empty(target, 'Community play counts are temporarily unavailable.'); }
         finally { hotRequest = null; }

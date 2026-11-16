@@ -61,7 +61,7 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); opacity: .7;
 .flux-footer-copy { display: flex; align-items: center; flex-wrap: wrap; gap: 9px 14px; }
 .flux-footer-title { margin-bottom: 0; }
 .flux-footer-action { background: transparent; border-color: transparent; }
-#archive-search, #archive-search:focus { box-shadow: none; }
+#game-search, #game-search:focus { box-shadow: none; }
 #particle-canvas { opacity: .28; }
 .appearance-details { border-top: 1px solid var(--border); }
 .appearance-details summary { position: relative; padding: 20px 28px 20px 0; list-style: none; color: var(--text); font-size: .85rem; font-weight: 600; cursor: pointer; }

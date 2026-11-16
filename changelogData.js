@@ -137,12 +137,12 @@ const changelogData = [
     {
         "v": "3.0.0",
         "name": "The Flux Update",
-        "mini": "AGGW becomes Flux with a rebuilt site, a Lounge, and customizable profiles.",
+        "mini": "A rebuilt Flux with a Lounge and customizable profiles.",
         "sections": [
             {
                 "title": "Welcome to Flux",
                 "items": [
-                    "Rebuilt AGGW Ultimate as Flux with new branding, a sidebar, and a green default theme.",
+                    "Rebuilt Flux with updated branding, a sidebar, and a green default theme.",
                     "Added a dashboard with time-based greetings and a favorites counter.",
                     "Gave the changelog its own page and reorganized settings into tabs."
                 ]
@@ -172,7 +172,7 @@ const changelogData = [
             {
                 "title": "Anniversary theme",
                 "items": [
-                    "Added a limited anniversary theme inspired by the first AGGW site, originally launched on September 18."
+                    "Added a limited anniversary theme inspired by the original Flux site, launched on September 18."
                 ]
             },
             {

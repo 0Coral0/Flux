@@ -119,13 +119,13 @@ function reportGame() {
     if (!reason) return;
     
     // Prepare report for Discord bot to DM @CoralDaProot
-    const reportMessage = `🚨 Game Report for @CoralDaProot\n\nGame: ${currentGameData.name}\nReason: ${reason}\nFile: ${currentGameData.file}\n\nReported from Aggw Ultimate`;
+    const reportMessage = `🚨 Game Report for @CoralDaProot\n\nGame: ${currentGameData.name}\nReason: ${reason}\nFile: ${currentGameData.file}\n\nReported from Flux`;
     
     // Copy to clipboard for easy pasting
     navigator.clipboard.writeText(reportMessage).then(() => {
-        alert(`Report prepared for: ${currentGameData.name}\n\nThe report has been copied to your clipboard.\nThe Aggw bot will DM this report to @CoralDaProot.\n\nMessage:\n${reportMessage}`);
+        alert(`Report prepared for: ${currentGameData.name}\n\nThe report has been copied to your clipboard.\nThe Flux bot will DM this report to @CoralDaProot.\n\nMessage:\n${reportMessage}`);
     }).catch(() => {
-        alert(`Report prepared for: ${currentGameData.name}\n\nThe Aggw bot will DM this report to @CoralDaProot.\n\nMessage:\n${reportMessage}`);
+        alert(`Report prepared for: ${currentGameData.name}\n\nThe Flux bot will DM this report to @CoralDaProot.\n\nMessage:\n${reportMessage}`);
     });
 }
 

@@ -25,7 +25,7 @@ window.addEventListener('load', () => {
             setInterval(updateMetrics, 1000);
             
             // Initialize data
-            refreshArchives();
+            refreshGames();
             refreshRecords();
             loadTheme();
             loadPanicKey();
@@ -62,16 +62,16 @@ function showPage(id) {
     if (viewEl) viewEl.classList.add('active');
     if (btnEl) btnEl.classList.add('active');
 
-    if (id === 'archives') refreshArchives();
+    if (id === 'games') refreshGames();
     if (id === 'records') refreshRecords();
 }
 
 // ============================================
 // ARCHIVE ENGINE
 // ============================================
-function refreshArchives() {
+function refreshGames() {
     const grid = document.getElementById('main-grid');
-    const search = document.getElementById('archive-search').value.toLowerCase();
+    const search = document.getElementById('game-search').value.toLowerCase();
     grid.innerHTML = "";
 
     const list = (typeof gameList !== 'undefined' ? gameList : []);
@@ -101,7 +101,7 @@ function openGame(gameFile, gameName, gameDescription) {
         file: gameFile,
         name: gameName,
         description: gameDescription,
-        thumb: (typeof gameList !== 'undefined' ? gameList.find(g => g.file === gameFile)?.thumb : 'AggwLogo.png')
+        thumb: (typeof gameList !== 'undefined' ? gameList.find(g => g.file === gameFile)?.thumb : 'Fluxlogo.svg')
     };
     
     localStorage.setItem('flux_last_played', JSON.stringify(fullGame));
@@ -123,7 +123,7 @@ function closeTheater() {
     if (viewport) {
         viewport.src = '';
     }
-    showPage('archives');
+    showPage('games');
 }
 
 function refreshTheater() {
@@ -244,7 +244,7 @@ window.handleGlobalKeys = function(e) {
 // ============================================
 // EXPORT FUNCTIONS
 // ============================================
-window.refreshArchives = refreshArchives;
+window.refreshGames = refreshGames;
 window.openGame = openGame;
 window.refreshRecords = refreshRecords;
 window.showPage = showPage;
@@ -260,6 +260,6 @@ window.refreshTheater = refreshTheater;
 document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     loadPanicKey();
-    refreshArchives();
+    refreshGames();
     refreshRecords();
 });

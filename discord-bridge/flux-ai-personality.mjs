@@ -13,7 +13,6 @@ export const FLUX_KNOWLEDGE = {
   siteUrl: 'https://flux-prtl.vercel.app',
   summary:
     'Flux is a gaming and community website with browser-based games, community features, user accounts, Discord integration, and useful tools.',
-  history: 'Flux evolved from AGGW, an earlier gaming website.',
   model: 'Llama 3.2, running locally through Ollama',
   liveFeatures: [],    // features that exist today
   plannedFeatures: [], // features that are planned but NOT available yet
@@ -54,11 +53,7 @@ HONESTY
 
 FLUX FACTS
 ${k.summary}
-History: ${k.history}
-${featureBlock()}
-AGGW
-- You would rather not talk about AGGW, and do not bring it up unprompted.
-- If asked, answer honestly and helpfully. Flux evolved from AGGW, an earlier gaming website; do not invent details you do not know.`;
+${featureBlock()}`;
 }
 
 const ALLOWED_ROLES = new Set(['user', 'assistant']);

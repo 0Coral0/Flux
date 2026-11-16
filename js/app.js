@@ -29,9 +29,9 @@ window.addEventListener('load', () => {
             initBatteryMetric();
             setInterval(updateMetrics, 1000);
             
-            // Initialize archives
-            if (typeof window.refreshArchives === 'function') {
-                window.refreshArchives();
+            // Initialize games
+            if (typeof window.refreshGames === 'function') {
+                window.refreshGames();
             }
             if (typeof window.refreshMostPlayed === 'function') {
                 window.refreshMostPlayed();
@@ -39,8 +39,8 @@ window.addEventListener('load', () => {
             if (typeof window.updateRecentPlayed === 'function') {
                 window.updateRecentPlayed();
             }
-            if (typeof window.initArchiveScrollHide === 'function') {
-                setTimeout(() => window.initArchiveScrollHide(), 100);
+            if (typeof window.initGameScrollHide === 'function') {
+                setTimeout(() => window.initGameScrollHide(), 100);
             }
         }, 1800);
     } catch (err) {
@@ -138,7 +138,7 @@ function showPage(id) {
     if (viewEl) viewEl.classList.add('active');
     if (btnEl) btnEl.classList.add('active');
 
-    if (id === 'archives') refreshArchives();
+    if (id === 'games') refreshGames();
     if (id === 'account') {
         if (typeof window.saveUserSettingsToCloud === 'function') {
             // no-op placeholder so account page always exists in nav flow
@@ -333,7 +333,7 @@ function saveLimitedThemePreferences() {
 
 function setOriginalEditionBrandCopy(enabled) {
     const copy = [
-        ['.sidebar-brand-main', 'Aggw Ultimate'],
+        ['.sidebar-brand-main', 'Flux'],
         ['.sidebar-brand-sub', '1st Anniversary']
     ];
 
@@ -428,7 +428,7 @@ function toggleMemorialTheme() {
 // Typewriter effect
 let typewriterInterval = null;
 const typewriterPhrases = [
-    'AGGW ULTIMATE EDITION',
+    'FLUX',
     'Endless Games All In One Place',
     'Your Escape From Classroom Boredom',
     'YOUR GATEWAY TO GAMING',
@@ -591,7 +591,7 @@ function loadConfiguration() {
     if (saved.customTabName) {
         document.title = saved.customTabName;
     } else if (!saved.faviconPreset) {
-        document.title = "Aggw Ultimate";
+        document.title = "Flux";
     }
 
     if (typeof window.applyUiScale === 'function') {

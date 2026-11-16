@@ -33,7 +33,7 @@ test('existing layouts replace the Theme Shop tab with Changelog without moving 
   const value = layout.normalize(saved);
   assert.equal(value.navigation, 'horizontal');
   assert.equal(value.density, 'spacious');
-  assert.deepEqual(value.order, ['settings', 'changelog', 'archives', 'dashboard', 'chat', 'records']);
+  assert.deepEqual(value.order, ['settings', 'changelog', 'games', 'dashboard', 'chat', 'records']);
   assert.equal(value.order.includes('themes'), false);
   assert.deepEqual(layout.normalize(value), value);
   assert.deepEqual(saved.order, ['settings', 'themes', 'archives', 'changelog', 'account', 'dashboard']);

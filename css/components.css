@@ -83,7 +83,7 @@
     margin-bottom: 24px;
 }
 
-#archive-search {
+#game-search {
     width: 100%;
     padding: 14px 18px 14px 46px;
     background: var(--surface);
@@ -96,7 +96,7 @@
     transition: border-color 0.2s ease;
 }
 
-#archive-search:focus {
+#game-search:focus {
     border-color: var(--accent);
 }
 

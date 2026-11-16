@@ -57,7 +57,7 @@ body {
 .config-block,
 .theme-preview-modal,
 .theme-preview-card,
-#archive-search,
+#game-search,
 .changelog-modal,
 #detail-overlay .theme-preview-modal {
     background: var(--card) !important;

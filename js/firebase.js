@@ -67,7 +67,7 @@ function openThemePreview(themeData, onLoad) {
     modal.style.background = themeData.bg || '#111';
     body.style.background = themeData.bg || '#111';
     accentText.style.color = themeData.accent || '#ffee00';
-    accentText.textContent = 'Aggw Ultimate';
+    accentText.textContent = 'Flux';
     bgText.textContent = `Accent: ${themeData.accent} • Background: ${themeData.bg}`;
 
     pill1.style.background = themeData.accent || '#ffee00';

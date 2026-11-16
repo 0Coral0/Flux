@@ -108,8 +108,8 @@ function applyCustomFavicon(input) {
 }
 
 function resetTabCloak() {
-    document.title = "Aggw Ultimate";
-    setFavicon("AggwLogo.png");
+    document.title = "Flux";
+    setFavicon("Fluxlogo.svg");
 
     const presetDropdown = document.getElementById("faviconPreset");
     const customTabName = document.getElementById("customTabName");
@@ -126,7 +126,7 @@ function resetTabCloak() {
 // ============================================
 function exportTheme() {
     const data = {
-        name: "AGGW Ultimate Theme",
+        name: "Flux Theme",
         accent: document.getElementById('set-accent').value,
         bg: document.getElementById('set-bg').value,
         timestamp: new Date().toISOString()
@@ -135,7 +135,7 @@ function exportTheme() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aggw_theme_${Date.now()}.json`;
+    a.download = `flux_theme_${Date.now()}.json`;
     a.click();
 }
 

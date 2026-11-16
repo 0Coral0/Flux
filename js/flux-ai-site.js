@@ -10,7 +10,7 @@
         { id: 'browser', label: 'Browser', aliases: ['browser', 'web browser'] },
         { id: 'ai', label: 'Assistant', aliases: ['assistant', 'flux ai', 'ai'] },
         { id: 'chat', label: 'Chat', aliases: ['chat', 'discord', 'discord chat', 'messages'] },
-        { id: 'archives', label: 'Games', aliases: ['games', 'game', 'archives', 'game library', 'games library'] },
+        { id: 'games', label: 'Games', aliases: ['games', 'game', 'archives', 'game library', 'games library'] },
         { id: 'movies', label: 'Movies', aliases: ['movies', 'movie', 'films', 'film', 'movie library'] },
         { id: 'records', label: 'Records', aliases: ['records', 'stats', 'statistics'] },
         { id: 'settings', label: 'Settings', aliases: ['settings', 'preferences'] },

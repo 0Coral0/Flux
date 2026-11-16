@@ -9,6 +9,12 @@ const { GoogleGenAI } = require('@google/genai');
 const http = require('http');
 const express = require('express');
 
+// Keep existing admin sessions and desktop data after the package rename.
+const previousUserData = path.join(app.getPath('appData'), 'aggw-ultimate');
+if (!fs.existsSync(app.getPath('userData')) && fs.existsSync(previousUserData)) {
+  app.setPath('userData', previousUserData);
+}
+
 let mainWindow;
 let db;
 let oauth2Client;
