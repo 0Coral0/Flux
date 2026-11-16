@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="google-adsense-account" content="ca-pub-8972543037141638">
     <title>Flux // Gateway</title>
     <link id="favicon" rel="icon" type="image/x-icon" href="Fluxlogo.svg">
     <link rel="stylesheet" href="css/flux-ai-redesign.css">
@@ -1700,13 +1699,10 @@ main { min-width: 0; }
     <link rel="stylesheet" href="css/flux-game-player.css">
     <link rel="stylesheet" href="css/flux-unified.css">
     <link rel="stylesheet" href="css/flux-personalization.css">
-    <link rel="stylesheet" href="css/flux-ad-previews.css">
     <script src="js/flux-theme-core.js"></script>
     <script src="js/flux-theme.js"></script>
     <script src="js/flux-performance.js"></script>
     <script src="js/flux-backgrounds.js"></script>
-    <script src="js/ads-config.js"></script>
-    <script src="js/flux-ad-previews.js"></script>
 </head>
 
 <body>
@@ -1952,10 +1948,6 @@ main { min-width: 0; }
                     <p id="home-edit-status" role="status" aria-live="polite"></p>
                 </aside>
                 <p id="home-empty-layout" class="home-empty" hidden>Your homepage is empty. Choose Customize home to show sections again.</p>
-                <aside class="flux-ad-slot" data-ad-preview data-ad-placement="home" aria-label="Homepage advertisement">
-                    <div class="flux-ad-caption"><span>Advertisement</span><span>Preview only</span></div>
-                    <div class="flux-ad-box"><i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i><div><strong>Banner ad space</strong><p>A future advertisement would appear here.</p></div></div>
-                </aside>
                 <div class="module-banner" data-home-section="welcome">
                     <h2 id="dynamic-greeting">Welcome back</h2>
                     <p>Find a new favorite or pick up where you left off.</p>
@@ -2031,10 +2023,6 @@ main { min-width: 0; }
                     </div>
                 </div>
 
-                <aside class="flux-ad-slot" data-ad-preview data-ad-placement="games" aria-label="Game library advertisement">
-                    <div class="flux-ad-caption"><span>Advertisement</span><span>Preview only</span></div>
-                    <div class="flux-ad-box"><i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i><div><strong>Banner ad space</strong><p>A future advertisement would appear here.</p></div></div>
-                </aside>
                 <div id="favorites-container-wrap" style="display: none;">
                     <div class="section-title"><i class="fa-solid fa-heart"></i> Favorited Games</div>
                     <div class="library-grid" id="favorites-grid"></div>
@@ -2085,10 +2073,6 @@ main { min-width: 0; }
                         <div class="settings-row lite-mode-row">
                             <div><strong><label for="set-lite-mode">Lite Mode</label></strong><div id="lite-mode-description">A simpler look with less motion, fewer effects, and no background particles.</div></div>
                             <label class="switch"><input type="checkbox" id="set-lite-mode" aria-describedby="lite-mode-description"><span class="slider"></span></label>
-                        </div>
-                        <div class="settings-row">
-                            <div><strong><label for="set-ad-previews">Show advertisements</label></strong><div id="ad-previews-description">Preview ad spaces on Home and Games. Real advertisements are not connected.</div></div>
-                            <label class="switch"><input type="checkbox" id="set-ad-previews" aria-describedby="ad-previews-description"><span class="slider"></span></label>
                         </div>
                         <div class="settings-row">
                             <div><strong>Welcome setup</strong><div>Pick your colors, choose your layout, and make Flux feel like home.</div></div>
@@ -3611,7 +3595,6 @@ main { min-width: 0; }
             }
             const content = document.getElementById('flux-main');
             if (content) content.scrollTop = 0;
-            window.dispatchEvent(new Event('flux-page-changed'));
         }
 
         let gameSearchTimer = null;
