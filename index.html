@@ -2613,8 +2613,8 @@ main { min-width: 0; }
                     <button type="button" class="theater-btn danger" onclick="closeTheater()"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Close</button>
                 </div>
             </div>
-            <div class="theater-desc-panel">
-                <h4>Description</h4>
+            <div class="theater-desc-panel" tabindex="0" role="region" aria-labelledby="theater-desc-heading">
+                <h4 id="theater-desc-heading">Description</h4>
                 <div class="theater-desc-content" id="theater-desc-content">Loading description...</div>
             </div>
             <div class="theater-sidebar">
@@ -3489,6 +3489,7 @@ main { min-width: 0; }
             iframe.title = mediaType === 'movie' ? 'Movie player' : 'Game Viewport';
             desc.innerText = gameDesc || 'No description provided.';
             overlay.style.display = 'flex';
+            desc.parentElement.scrollTop = 0;
             overlay.dataset.mediaType = mediaType;
             window.fluxGameLinks?.onOpen(mediaType === 'game' ? currentGame : null);
 
